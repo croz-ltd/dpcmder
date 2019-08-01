@@ -1,5 +1,16 @@
 # golang implementation of DataPower Commander
 
+DataPower Commander (dpcmder) is command line tool I created for easier maintenance
+of files on DataPower appliances and easier development of DataPower appliance solutions.
+
+Current functions:
+- basic file maintenance
+  - view, edit, copy and delete file hierarchies (DataPower and local file system)
+  - filter and search files in current directory
+- sync mode
+  - turn on to automaticaly upload new and changed files from local filesystem to DataPower
+  - usefull for development to automaticaly propagate your changes from any IDE/editor you are using to DataPower
+
 ## Workspace
 
 We have to set GOPATH variable to go directory.
@@ -43,4 +54,103 @@ GOOS=darwin GOARCH=386 go build -o dpcmder-mac-386 dpcmder.go
 GOOS=darwin GOARCH=amd64 go build -o dpcmder-mac-amd64 dpcmder.go
 GOOS=linux GOARCH=386 go build -o dpcmder-linux-386 dpcmder.go
 GOOS=linux GOARCH=amd64 go build -o dpcmder-linux-amd64 dpcmder.go
+```
+
+## A bit of history of dpcmder
+
+When I started to work with DataPower (beginning of 2008) I plunged into world
+of XSLT-s - it is a verbose functional programming world. As Java developer I
+used Eclipse IDE a lot and I found it a good tool to work with XML/XSL files.
+There were some parts of XLST I could even test without uploading them to DataPower,
+using functionalities available in Eclipse but for some DataPower-specific parts
+only way to test it was to upload them to DataPower appliance.
+
+Soon I realized it is a bit cumbersome to upload files to DataPower appliance
+during development. I found IBM created an eclipse plugin which enabled us to
+quickly copy files from local eclipse workspace to DataPower appliance
+(and vice versa) which made development cycle much more comfortable and faster.
+Unfortunately, IBM shipped this plugin only until DataPower firmware 3.8.2 and
+stopped maintaining this plugin to be compatible with new DataPower versions.
+There were some work-around solutions but none felt right for me.
+
+At some point I thought about developing Eclipse plugin myself but decided to go
+other direction because of the following reasons:
+- from all sources I checked Eclipse plugin development is not fulfilling experience
+- I thought it would be nice to have a tool which could be used to maintain files on DataPower by sysadmins, not only developers
+
+At first, I created a bash shell which had basic functionalities I planned to
+implement but on my Linux box it was working a bit slow. Then I started this
+script in Linux bash console using cmder Console Emulator (https://cmder.net/)
+and realized it is so slow it is almost unusable. I wanted to have:
+- application which would work on at least 3 major OS-es (both my company and our clients use all 3 of them)
+- command line application so it can be used through ssh on some jump server if required
+- application which would work fast
+- application which would be simple to use (and similar to Midnight Commander and/or Total Commander)
+
+I evaluated few technologies to implement this. After checking Node.js pkg and
+Golang which both enabled me to build executables for all target platforms on my
+Linux machine. At the end I decided to go with the Go as it produced smaller executables.
+
+One issue which is still left partialy unsolved is handling keypresses for some
+of the special keys on Windows (maybe MacOS) environment. Seems like it is not
+quite easy to crate portable application which can correctly use arrow keys,
+Home & End key etc so I added alternative keys for each of those actions. Best
+of all, if you are not sure just press 'h' key (or any other unmapped key) and
+help will be shown.
+
+
+## dpcmder funcions help
+
+```
+ArrowUp / i         - move one item up
+ArrowDown / k       - move one item down
+Shift+ArrowUp / I   - select current item and move one item up (can use Alt instead of Shift)
+Shift+ArrowDown / K - select current item and move one item down (can use Alt instead of Shift)
+PgUp / u            - move page of items up
+PgDown / o          - move page of items down
+Shift+PgUp / U      - select current item and move page of items up
+Shift+PgDown / O    - select current item and move page of items down
+Home / a            - move to first item
+End / z             - move to last item
+Shift+Home / A      - move to first item and select all items from current one to the first one
+Shift+End / Z       - move to last item and select all items from current one to the last one
+ArrowLeft / j       - scroll items left (usefull for long names)
+ArrowRight / l      - scroll items right (usefull for long names)
+Space               - select current item
+TAB                 - switch from left to right panel and vice versa
+Return              - enter directory
+F2/2                - refresh focused pane (reload files/dirs)
+F3/3                - view current file
+F4/4                - edit file
+F5/5                - copy selected (or current if none selected) directories and files
+F7/7                - create directory
+DEL/d               - delete selected (or current if none selected) directories and files
+/                   - find string
+n                   - find next string
+p                   - find previous string
+f                   - filter shown items by string
+.                   - enter location (full path) for local file system
+s                   - auto-synchronize selected directories (local to dp)
+q                   - quit
+any-other-char      - show help (+ hex value of key pressed visible in status bar)
+
+Navigational keys (except Left/Right can be used in combination with Shift for selections):
+PgUp  Up  PgDn
+Left Down Right
+Home      End
+
+Alternative keys:
+u i o
+j k l
+a   z
+
+Custom Viewer/Editor commands:
+dpcmder configuration is saved to ~/.dpcmder/config.json where commands used for
+calling viewer and editor are set. By default these are "less" and "vi" but could
+be any commands although edit command should not be started in background (for
+example: a new tab in editor which is already open) for editing to work as expected.
+
+SOMA (+ AMP) vs REST:
+SOMA and AMP interfaces have one shortcoming - you can't see domain list if you
+don't have proper rights. With REST you can get domain list without any credentials.
 ```
