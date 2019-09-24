@@ -1,4 +1,4 @@
-# golang implementation of DataPower Commander
+# DataPower Commander
 
 DataPower Commander (dpcmder) is command line tool I created for easier maintenance
 of files on DataPower appliances and easier development of DataPower appliance solutions.
@@ -11,35 +11,18 @@ Current functions:
   - turn on to automaticaly upload new and changed files from local filesystem to DataPower
   - usefull for development to automaticaly propagate your changes from any IDE/editor you are using to DataPower
 
-## Workspace
+## Install
 
-We have to set GOPATH variable to go directory.
-
-Under go/src are go projects (created and downloaded)
-
-## Installing libaries
-
-```
-go get github.com/nsf/termbox-go
-go get github.com/antchfx/jsonquery
-go get github.com/antchfx/xmlquery
-go get github.com/howeyc/gopass
+From project directory:
+```bash
+go install
 ```
 
 ## Run
 
-From project directory:
-
-```go
-go run dpcmder.go
+```bash
+dpcmder -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-debug]
 ```
-
-From anywhere as long as $GOPATH is set:
-
-```go
-go run github.com/croz-ltd/dpcmder
-```
-
 
 ## Build
 
