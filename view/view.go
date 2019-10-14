@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/nsf/termbox-go"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/extprogs"
 	"github.com/croz-ltd/dpcmder/help"
@@ -15,6 +14,7 @@ import (
 	"github.com/croz-ltd/dpcmder/repo/localfs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/key"
+	"github.com/nsf/termbox-go"
 	"os"
 	"strings"
 	"time"
@@ -48,8 +48,8 @@ func Init() {
 
 	m := &model.M
 
-	repos[model.Left].Load(m)
-	repos[model.Right].Load(m)
+	repos[model.Left].InitialLoad(m)
+	repos[model.Right].InitialLoad(m)
 
 	setScreenSize(m)
 	draw(m)

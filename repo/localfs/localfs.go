@@ -106,10 +106,10 @@ func (r LocalRepo) LoadCurrent(m *model.Model) {
 	m.SetItems(localSide, itemsWithParentDir)
 }
 
-func (r LocalRepo) Load(m *model.Model) {
+func (r LocalRepo) InitialLoad(m *model.Model) {
 	currPath, err := filepath.Abs(*config.LocalFolderPath)
 	if err != nil {
-		logging.LogFatal("localfs.Load(): ", err)
+		logging.LogFatal("localfs.InitialLoad(): ", err)
 	}
 
 	m.SetCurrPathForSide(localSide, currPath)

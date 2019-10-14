@@ -127,21 +127,23 @@ func fetchDpDomains() []string {
 	return domains
 }
 
-func (r *DpRepo) Load(m *model.Model) {
+func (r *DpRepo) InitialLoad(m *model.Model) {
+	logging.LogDebug(fmt.Sprintf("InitialLoad(), m.DpDomain(): %s", m.DpDomain()))
+
 	m.SetCurrPathForSide(dpSide, "")
 	setTitle(m, "")
 
-	if m.DpDomain() == "" {
-		r.loadDomains(m)
-	} else {
-		r.loadFilestores(m)
-	}
+	r.LoadCurrent(m)
 }
 
 func (r *DpRepo) LoadCurrent(m *model.Model) {
+	logging.LogDebug(fmt.Sprintf("LoadCurrent(), dpSide: %v", dpSide))
+
 	currPath := m.CurrPathForSide(dpSide)
-	if currPath == "" {
-		r.Load(m)
+	if m.DpDomain() == "" {
+		r.loadDomains(m)
+	} else if currPath == "" {
+		r.loadFilestores(m)
 	} else {
 		r.loadCurrentPath(m)
 	}
@@ -598,8 +600,10 @@ func (r *DpRepo) makeRestPath(m *model.Model, filePath string) string {
 	return "/mgmt/filestore/" + m.DpDomain() + "/" + currRestFilePath
 }
 
+// loadDomains loads DataPower domains from current DataPower.
 func (r *DpRepo) loadDomains(m *model.Model) {
 	domainNames := fetchDpDomains()
+	logging.LogDebug(fmt.Sprintf("loadDomains(), domainNames: %v", domainNames))
 
 	items := make(model.ItemList, len(domainNames))
 
@@ -612,6 +616,7 @@ func (r *DpRepo) loadDomains(m *model.Model) {
 	m.SetItems(dpSide, items)
 }
 
+// loadFilestores loads DataPower filestores in current domain (cert:, local:,..).
 func (r *DpRepo) loadFilestores(m *model.Model) {
 	if config.DpUseRest() {
 		jsonString := restGet("/mgmt/filestore/" + m.DpDomain())
@@ -668,6 +673,7 @@ func (r *DpRepo) loadFilestores(m *model.Model) {
 	}
 }
 
+// loadDpDir loads DataPower directory (local:, local:///test,..).
 func (r *DpRepo) loadDpDir(m *model.Model, currPath string) {
 	parentDir := model.Item{Type: 'd', Name: "..", Size: "", Modified: "", Selected: false}
 	filesDirs := r.ListFiles(m, currPath)

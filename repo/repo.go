@@ -6,7 +6,7 @@ import (
 
 // Repo is a common repository methods implemented by local filesystem and DataPower
 type Repo interface {
-	Load(m *model.Model)
+	InitialLoad(m *model.Model)
 	LoadCurrent(m *model.Model)
 	EnterCurrentDirectory(m *model.Model)
 	ListFiles(m *model.Model, dirPath string) []model.Item
