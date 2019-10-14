@@ -1,13 +1,12 @@
 package config
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/howeyc/gopass"
+	"github.com/croz-ltd/confident"
 	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"io/ioutil"
+	"github.com/howeyc/gopass"
 	"os"
 	"os/user"
 	"strings"
@@ -26,18 +25,20 @@ var DebugLogFile *bool
 
 // DataPower configuration from command flags.
 var (
-	DpRestURL  *string
-	DpSomaURL  *string
-	DpUsername *string
-	DpPassword *string
-	DpDomain   *string
-	Proxy      *string
+	DpRestURL      *string
+	DpSomaURL      *string
+	DpUsername     *string
+	DpPassword     *string
+	DpDomain       *string
+	Proxy          *string
+	DpTemplateName *string
 )
 
 type Config struct {
-	Cmd  Command
-	Log  Log
-	Sync Sync
+	Cmd                 Command
+	Log                 Log
+	Sync                Sync
+	DataPowerAppliances map[string]DataPowerAppliance
 }
 
 type Command struct {
@@ -53,8 +54,37 @@ type Sync struct {
 	Seconds int
 }
 
+type DataPowerAppliance struct {
+	RestUrl  string
+	SomaUrl  string
+	Username string
+	Domain   string
+	Proxy    string
+}
+
 //var Cmd = Command{Viewer: "less", Editor: "vi"}
-var Conf = Config{Cmd: Command{Viewer: "less", Editor: "vi"}, Log: Log{MaxEntrySize: logging.MaxEntrySize}, Sync: Sync{Seconds: 4}}
+var Conf = Config{Cmd: Command{Viewer: "less", Editor: "vi"}, Log: Log{MaxEntrySize: logging.MaxEntrySize}, Sync: Sync{Seconds: 4}, DataPowerAppliances: make(map[string]DataPowerAppliance)}
+
+var k *confident.Confident
+
+func confidentBootstrap() {
+	k = confident.New()
+	k.WithConfiguration(&Conf)
+	// <Optional>
+	k.Name = "config"
+	k.Type = "json"
+	k.Path = configDirPathEnsureExists()
+	k.Permission = os.FileMode(0644)
+	// </Optional>
+	logging.LogDebug("Conf before read: ", Conf)
+	k.Read()
+	logging.LogDebug("Conf after read: ", Conf)
+	if (*DpRestURL != "" || *DpSomaURL != "") && *DpTemplateName != "" {
+		Conf.DataPowerAppliances[*DpTemplateName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername}
+		k.Persist()
+		logging.LogDebug("Conf after persist: ", Conf)
+	}
+}
 
 // ParseProgramArgs parses program arguments and fill config package variables with flag values.
 func parseProgramArgs() {
@@ -65,6 +95,7 @@ func parseProgramArgs() {
 	DpPassword = flag.String("p", "", "")
 	DpDomain = flag.String("d", "", "")
 	Proxy = flag.String("x", "", "")
+	DpTemplateName = flag.String("t", "", "")
 	DebugLogFile = flag.Bool("debug", false, "write dpcmder.log file")
 
 	flag.Parse()
@@ -76,8 +107,7 @@ func Init() {
 	logging.DebugLogFile = *DebugLogFile
 	logging.LogDebug("dpcmder starting...")
 	validateProgramArgs()
-	initConfigDir()
-	readConfig()
+	confidentBootstrap()
 }
 
 // ValidateProgramArgs parsed program arguments and asks for password input and/or
@@ -120,7 +150,7 @@ func configDirPath() string {
 	return configDirPath
 }
 
-func configFilePath() string {
+func configDirPathEnsureExists() string {
 	configDirPath := configDirPath()
 
 	_, err := os.Stat(configDirPath)
@@ -131,49 +161,7 @@ func configFilePath() string {
 		}
 	}
 
-	configFilePath := utils.GetFilePath(configDirPath, configFileName)
-
-	return configFilePath
-}
-
-func initConfigDir() {
-	configFilePath := configFilePath()
-	_, err := os.Stat(configFilePath)
-	if err != nil {
-		file, err := os.Create(configFilePath)
-		if err != nil {
-			logging.LogFatal("Can't create configuration file: ", err)
-		}
-		defer file.Close()
-
-		configBytes, err := json.MarshalIndent(Conf, "", "  ")
-		if err != nil {
-			logging.LogFatal("Can't marshall configuration object: ", err)
-		}
-
-		_, err = file.Write(configBytes)
-		if err != nil {
-			logging.LogFatal("Can't write configuration file: ", err)
-		}
-	}
-}
-
-func readConfig() {
-	logging.LogDebug("Conf before read: ", Conf)
-	configFilePath := configFilePath()
-
-	configFileBytes, err := ioutil.ReadFile(configFilePath)
-	if err != nil {
-		logging.LogFatal("Can't read configuration file: ", err)
-	}
-
-	err = json.Unmarshal(configFileBytes, &Conf)
-	if err != nil {
-		logging.LogFatal("Can't unmarshal configuration file: ", err)
-	}
-
-	logging.MaxEntrySize = Conf.Log.MaxEntrySize
-	logging.LogDebug("Conf after read:  ", Conf)
+	return configDirPath
 }
 
 // DpUseRest returns true if we configured dpcmder to use DataPower REST Management interface.
@@ -195,6 +183,7 @@ func PrintConfig() {
 	fmt.Println("DpPassword: ", strings.Repeat("*", len(*DpPassword)))
 	fmt.Println("DpDomain: ", *DpDomain)
 	fmt.Println("Proxy: ", *Proxy)
+	fmt.Println("DpTemplateName: ", *DpTemplateName)
 }
 
 func usage() {
