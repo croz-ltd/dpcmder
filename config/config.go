@@ -23,6 +23,9 @@ var LocalFolderPath *string
 // DebugLogFile enables writing of debug messages to dpcmder.log file in current folder.
 var DebugLogFile *bool
 
+// Help flag shows dpcmder usage help.
+var Help *bool
+
 // DataPower configuration from command flags.
 var (
 	DpRestURL      *string
@@ -88,15 +91,16 @@ func confidentBootstrap() {
 
 // ParseProgramArgs parses program arguments and fill config package variables with flag values.
 func parseProgramArgs() {
-	LocalFolderPath = flag.String("l", "", "")
-	DpRestURL = flag.String("r", "", "")
-	DpSomaURL = flag.String("s", "", "")
-	DpUsername = flag.String("u", "", "")
-	DpPassword = flag.String("p", "", "")
-	DpDomain = flag.String("d", "", "")
-	Proxy = flag.String("x", "", "")
-	DpTemplateName = flag.String("t", "", "")
-	DebugLogFile = flag.Bool("debug", false, "write dpcmder.log file")
+	LocalFolderPath = flag.String("l", ".", "Path to local directory to open, default is '.'")
+	DpRestURL = flag.String("r", "", "DataPower REST URL")
+	DpSomaURL = flag.String("s", "", "DataPower SOMA URL")
+	DpUsername = flag.String("u", "", "DataPower user username")
+	DpPassword = flag.String("p", "", "DataPower user password")
+	DpDomain = flag.String("d", "", "DataPower domain name")
+	Proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
+	DpTemplateName = flag.String("t", "", "Name of DataPower connection config template to save with given configuration params")
+	DebugLogFile = flag.Bool("debug", false, "Write dpcmder.log file in current dir")
+	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
 	flag.Parse()
 }
@@ -113,6 +117,10 @@ func Init() {
 // ValidateProgramArgs parsed program arguments and asks for password input and/or
 // shows usage message in case some mandatory arguments are missing.
 func validateProgramArgs() {
+	if *Help {
+		usage()
+	}
+
 	if *LocalFolderPath == "" ||
 		(*DpUsername != "" && *DpRestURL == "" && *DpSomaURL == "") {
 		usage()
@@ -184,19 +192,31 @@ func PrintConfig() {
 	fmt.Println("DpDomain: ", *DpDomain)
 	fmt.Println("Proxy: ", *Proxy)
 	fmt.Println("DpTemplateName: ", *DpTemplateName)
+	fmt.Println("Help: ", *Help)
 }
 
 func usage() {
 	fmt.Println("Usage:")
-	fmt.Printf(" %s -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-debug]\n", os.Args[0])
+	fmt.Printf(" %s -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-t DP_TEMPLATE_NAME] [-debug]\n", os.Args[0])
 	fmt.Println("")
+	fmt.Println(" -l LOCAL_FOLDER_PATH - set path to local folder")
+	fmt.Println(" -r DATA_POWER_REST_URL - set REST management URL for DataPower")
+	fmt.Println(" -s DATA_POWER_SOMA_AMP_URL - set SOMA URL for DataPower")
+	fmt.Println(" -u USERNAME - set username to connect to DataPower")
+	fmt.Println(" -p PASSWORD - set password to connect to DataPower")
+	fmt.Println(" -d DP_DOMAIN - connect to specific DataPower domain (can me neccessary on some security configurations)")
+	fmt.Println(" -x PROXY_SERVER - connect to DataPower through proxy")
+	fmt.Println(" -t DP_TEMPLATE_NAME - save DataPower configuration under given name")
 	fmt.Println(" -debug flag turns on creation of dpcmder.log file with debug log messages")
+	fmt.Println(" -h flag shows this help")
+	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Example:")
-	fmt.Printf(" %s -l .\n", os.Args[0])
-	fmt.Println("   - will run only local file browser without connection to DataPower")
+	fmt.Printf(" %s\n", os.Args[0])
+	fmt.Println("   - will run local file browser (in current dir) with available DataPower connection templates shown")
 	fmt.Printf(" %s -l . -r https://172.17.0.2:5554 -u admin\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -debug\n", os.Args[0])
+	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -t LocalDp\n", os.Args[0])
 
 	os.Exit(1)
 }
