@@ -30,20 +30,33 @@ func TestItemIsDirectory(t *testing.T) {
 		}
 	}
 }
+func TestItemIsDpAppliance(t *testing.T) {
+	itemList := prepareItemList()
+
+	dirs := []bool{false, true, false, false, false}
+
+	for idx := 0; idx < len(dirs); idx++ {
+		got := itemList[idx].IsDpAppliance()
+		want := dirs[idx]
+		if got != want {
+			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
+		}
+	}
+}
 
 // ItemList methods tests
 
 func prepareItemList() ItemList {
 	return ItemList{
-		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'd', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
-		Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'd', DpDirType: 0, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'd', DpDirType: 'A', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', DpDirType: 0, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
 	}
 }
 func TestItemListLen(t *testing.T) {
@@ -105,6 +118,20 @@ func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 func TestModelM(t *testing.T) {
 	if M.currSide != Left {
 		t.Errorf("Initial model currSide should be Left (%v) but is (%v).", Left, M.currSide)
+	}
+}
+
+func TestModelDpAppliance(t *testing.T) {
+	model := Model{}
+
+	if model.DpAppliance() != "" {
+		t.Errorf("Initial model DpAppliance should be '' but is '%s'.", model.DpAppliance())
+	}
+
+	applianceName := "MyLocalDp"
+	model.SetDpAppliance(applianceName)
+	if model.DpAppliance() != applianceName {
+		t.Errorf("Changed model DpAppliance should be '%s' but is '%s'.", applianceName, model.DpAppliance())
 	}
 }
 

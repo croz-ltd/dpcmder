@@ -67,21 +67,22 @@ func httpRequest(urlFullPath, method, body string) string {
 	}
 	req, err := http.NewRequest(method, urlFullPath, bodyReader)
 	if err != nil {
-		logging.LogFatal(err)
+		logging.LogFatal("dp Can't prepare request: ", err)
 	}
 
-	req.SetBasicAuth(*config.DpUsername, *config.DpPassword)
+	// logging.LogDebug(fmt.Sprintf("dp username:password: '%s:%s'", *config.DpUsername, config.DpPassword()))
+	req.SetBasicAuth(*config.DpUsername, config.DpPassword())
 	resp, err := client.Do(req)
 
 	if err != nil {
-		logging.LogFatal(err)
+		logging.LogFatal("dp Can't send request: ", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
-		bodyBytes, err2 := ioutil.ReadAll(resp.Body)
-		if err2 != nil {
-			logging.LogFatal(err2)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			logging.LogFatal("dp Can't read response: ", err)
 		}
 		logging.LogDebug(fmt.Sprintf("dp httpResponse: '%s'", string(bodyBytes)))
 		return string(bodyBytes)
@@ -128,7 +129,7 @@ func fetchDpDomains() []string {
 }
 
 func (r *DpRepo) InitialLoad(m *model.Model) {
-	logging.LogDebug(fmt.Sprintf("InitialLoad(), m.DpDomain(): %s", m.DpDomain()))
+	logging.LogDebug(fmt.Sprintf("InitialLoad(), m.DpDomain(): %s, %s", m.DpAppliance(), m.DpDomain()))
 
 	m.SetCurrPathForSide(dpSide, "")
 	setTitle(m, "")
@@ -140,7 +141,9 @@ func (r *DpRepo) LoadCurrent(m *model.Model) {
 	logging.LogDebug(fmt.Sprintf("LoadCurrent(), dpSide: %v", dpSide))
 
 	currPath := m.CurrPathForSide(dpSide)
-	if m.DpDomain() == "" {
+	if *config.DpUsername == "" {
+		r.loadAppliances(m)
+	} else if m.DpDomain() == "" {
 		r.loadDomains(m)
 	} else if currPath == "" {
 		r.loadFilestores(m)
@@ -160,16 +163,55 @@ func setTitle(m *model.Model, currPath string) {
 	m.SetTitle(dpSide, fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, *url, m.DpDomain(), currPath))
 }
 
+func (r DpRepo) EnterCurrentDirectoryQuestionToUser(m *model.Model) string {
+	currentDpAppliance := m.DpAppliance()
+	if currentDpAppliance == "" {
+		selectedDpAppliance := m.CurrItemForSide(dpSide).Name
+		savedPassword := config.Conf.DataPowerAppliances[selectedDpAppliance].Password
+		if savedPassword == "" {
+			transientPassword := config.DpTransientPasswordMap[selectedDpAppliance]
+			if transientPassword == "" {
+				return fmt.Sprintf("Enter password for %s@%s: ", config.Conf.DataPowerAppliances[selectedDpAppliance].Username, selectedDpAppliance)
+			} else {
+				config.SetDpPassword(transientPassword)
+				config.SetDpTransientPassword(transientPassword)
+			}
+		}
+	}
+	return ""
+}
+func (r DpRepo) EnterCurrentDirectoryAnswerFromUser(m *model.Model, password string) bool {
+	config.SetDpPassword(password)
+	if password != "" {
+		selectedDpAppliance := m.CurrItemForSide(dpSide).Name
+		config.DpTransientPasswordMap[selectedDpAppliance] = password
+	}
+	return password != ""
+}
+
 func (r *DpRepo) EnterCurrentDirectory(m *model.Model) {
+	dpAppliance := m.DpAppliance()
 	dpDomain := m.DpDomain()
 	currPath := m.CurrPathForSide(dpSide)
-	logging.LogDebug("dp.EnterCurrentDirectory() BEGIN currPath: " + currPath + "\n")
 	dirName := m.CurrItemForSide(dpSide).Name
+	logging.LogDebug(fmt.Sprintf(
+		"dp.EnterCurrentDirectory() dpAppliance: '%s', dpDomain: '%s', currPath '%s', dirName: '%s'",
+		dpAppliance, dpDomain, currPath, dirName))
 	newCurrentItemName := ".."
-	if dpDomain == "" {
+	if dpAppliance == "" {
+		m.SetDpAppliance(m.CurrItemForSide(dpSide).Name)
+		config.LoadDpConfig(m.DpAppliance())
+		m.SetDpDomain(config.Conf.DataPowerAppliances[m.DpAppliance()].Domain)
+	} else if dpDomain == "" && dirName != ".." {
 		m.SetDpDomain(m.CurrItemForSide(dpSide).Name)
 	} else if dirName == ".." {
-		if currPath == "" {
+		if dpDomain == "" {
+			m.SetDpAppliance("")
+			config.ClearDpConfig()
+			logging.LogDebug(fmt.Sprintf(
+				"dp.EnterCurrentDirectory() dpAppliance: '%s', dpDomain: '%s', currPath '%s', dirName: '%s'",
+				dpAppliance, dpDomain, currPath, dirName))
+		} else if currPath == "" {
 			m.SetDpDomain("")
 		} else if strings.HasSuffix(currPath, ":") {
 			currPath, newCurrentItemName = "", currPath
@@ -355,6 +397,8 @@ func (r *DpRepo) GetFileType(m *model.Model, parentPath, fileName string) byte {
 			} else if len(dpFileNodes) == 1 {
 				return 'f'
 			}
+
+			logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType() - wronge response: '%s'", r.dpFilestoreXml))
 		} else {
 			if m.DpDomain() != "" {
 				return 'd'
@@ -600,15 +644,37 @@ func (r *DpRepo) makeRestPath(m *model.Model, filePath string) string {
 	return "/mgmt/filestore/" + m.DpDomain() + "/" + currRestFilePath
 }
 
+// loadAppliances loads DataPower appliances from configuration.
+func (r *DpRepo) loadAppliances(m *model.Model) {
+	appliances := config.Conf.DataPowerAppliances
+	logging.LogDebug(fmt.Sprintf("dp.loadAppliances(), appliances: %v", appliances))
+
+	items := make(model.ItemList, len(appliances))
+	idx := 0
+	for name, _ := range appliances {
+		items[idx] = model.Item{Type: 'd', DpDirType: 'A', Name: name, Size: "", Modified: "", Selected: false}
+		idx = idx + 1
+	}
+
+	logging.LogDebug(fmt.Sprintf("dp.loadAppliances(), items: %v", items))
+
+	sort.Sort(items)
+
+	logging.LogDebug(fmt.Sprintf("dp.loadAppliances(), items: %v", items))
+
+	m.SetItems(dpSide, items)
+}
+
 // loadDomains loads DataPower domains from current DataPower.
 func (r *DpRepo) loadDomains(m *model.Model) {
 	domainNames := fetchDpDomains()
 	logging.LogDebug(fmt.Sprintf("loadDomains(), domainNames: %v", domainNames))
 
-	items := make(model.ItemList, len(domainNames))
+	items := make(model.ItemList, len(domainNames)+1)
+	items[0] = model.Item{Type: 'd', Name: "..", Size: "", Modified: "", Selected: false}
 
 	for idx, name := range domainNames {
-		items[idx] = model.Item{Type: 'd', Name: name, Size: "", Modified: "", Selected: false}
+		items[idx+1] = model.Item{Type: 'd', DpDirType: 'D', Name: name, Size: "", Modified: "", Selected: false}
 	}
 
 	sort.Sort(items)
@@ -635,7 +701,7 @@ func (r *DpRepo) loadFilestores(m *model.Model) {
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			items[idx+1] = model.Item{Type: 'd', Name: filestoreName, Size: "", Modified: "", Selected: false}
+			items[idx+1] = model.Item{Type: 'd', DpDirType: 'F', Name: filestoreName, Size: "", Modified: "", Selected: false}
 		}
 
 		sort.Sort(items)
@@ -659,7 +725,7 @@ func (r *DpRepo) loadFilestores(m *model.Model) {
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			items[idx+1] = model.Item{Type: 'd', Name: filestoreName, Size: "", Modified: "", Selected: false}
+			items[idx+1] = model.Item{Type: 'd', DpDirType: 'F', Name: filestoreName, Size: "", Modified: "", Selected: false}
 		}
 
 		sort.Sort(items)
@@ -686,11 +752,17 @@ func (r *DpRepo) loadDpDir(m *model.Model, currPath string) {
 }
 
 func (r *DpRepo) loadCurrentPath(m *model.Model) {
+	dpAppliance := m.DpAppliance()
 	dpDomain := m.DpDomain()
 	currPath := m.CurrPathForSide(dpSide)
+	logging.LogDebug(fmt.Sprintf(
+		"dp.loadCurrentPath() dpAppliance: '%s', dpDomain: '%s', currPath '%s'",
+		dpAppliance, dpDomain, currPath))
 	setTitle(m, currPath)
 
-	if dpDomain == "" {
+	if dpAppliance == "" {
+		r.loadAppliances(m)
+	} else if dpDomain == "" {
 		r.loadDomains(m)
 	} else if currPath == "" {
 		r.loadFilestores(m)

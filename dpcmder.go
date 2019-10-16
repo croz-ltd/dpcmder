@@ -13,6 +13,9 @@ func main() {
 	config.PrintConfig()
 	dp.InitNetworkSettings()
 	model.M.SetDpDomain(*config.DpDomain)
+	if *config.DpUsername != "" {
+		model.M.SetDpAppliance(config.PreviousAppliance)
+	}
 
 	view.Init()
 	// model.M.Print()

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"encoding/base32"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/croz-ltd/confident"
@@ -13,8 +15,9 @@ import (
 )
 
 const (
-	configDirName  = ".dpcmder"
-	configFileName = "config.json"
+	configDirName     = ".dpcmder"
+	configFileName    = "config.json"
+	PreviousAppliance = "_PreviousAppliance_"
 )
 
 // LocalFolderPath is a folder where dpcmder start showing files - set by command flag.
@@ -31,11 +34,14 @@ var (
 	DpRestURL      *string
 	DpSomaURL      *string
 	DpUsername     *string
-	DpPassword     *string
+	dpPassword     *string
 	DpDomain       *string
 	Proxy          *string
 	DpTemplateName *string
 )
+
+// DpTransientPasswordMap contains passwords entered through dpcmder usage and not saved to config.
+var DpTransientPasswordMap = make(map[string]string)
 
 type Config struct {
 	Cmd                 Command
@@ -61,6 +67,7 @@ type DataPowerAppliance struct {
 	RestUrl  string
 	SomaUrl  string
 	Username string
+	Password string
 	Domain   string
 	Proxy    string
 }
@@ -82,8 +89,12 @@ func confidentBootstrap() {
 	logging.LogDebug("Conf before read: ", Conf)
 	k.Read()
 	logging.LogDebug("Conf after read: ", Conf)
-	if (*DpRestURL != "" || *DpSomaURL != "") && *DpTemplateName != "" {
-		Conf.DataPowerAppliances[*DpTemplateName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername}
+	if *DpRestURL != "" || *DpSomaURL != "" {
+		if *DpTemplateName != "" {
+			Conf.DataPowerAppliances[*DpTemplateName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
+		} else {
+			Conf.DataPowerAppliances[PreviousAppliance] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
+		}
 		k.Persist()
 		logging.LogDebug("Conf after persist: ", Conf)
 	}
@@ -95,7 +106,7 @@ func parseProgramArgs() {
 	DpRestURL = flag.String("r", "", "DataPower REST URL")
 	DpSomaURL = flag.String("s", "", "DataPower SOMA URL")
 	DpUsername = flag.String("u", "", "DataPower user username")
-	DpPassword = flag.String("p", "", "DataPower user password")
+	password := flag.String("p", "", "DataPower user password")
 	DpDomain = flag.String("d", "", "DataPower domain name")
 	Proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
 	DpTemplateName = flag.String("t", "", "Name of DataPower connection config template to save with given configuration params")
@@ -103,6 +114,7 @@ func parseProgramArgs() {
 	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
 	flag.Parse()
+	SetDpPassword(*password)
 }
 
 // Init intializes configuration: parses command line flags and creates config directory.
@@ -112,6 +124,27 @@ func Init() {
 	logging.LogDebug("dpcmder starting...")
 	validateProgramArgs()
 	confidentBootstrap()
+}
+
+func ClearDpConfig() {
+	*DpRestURL = ""
+	*DpSomaURL = ""
+	*DpUsername = ""
+	*dpPassword = ""
+	*DpDomain = ""
+	*Proxy = ""
+}
+func LoadDpConfig(configName string) {
+	appliance := Conf.DataPowerAppliances[configName]
+
+	*DpRestURL = appliance.RestUrl
+	*DpSomaURL = appliance.SomaUrl
+	*DpUsername = appliance.Username
+	if appliance.Password != "" {
+		*dpPassword = appliance.Password
+	}
+	*DpDomain = appliance.Domain
+	*Proxy = appliance.Proxy
 }
 
 // ValidateProgramArgs parsed program arguments and asks for password input and/or
@@ -127,18 +160,20 @@ func validateProgramArgs() {
 	}
 
 	if *DpUsername != "" {
-		if *DpPassword == "" {
+		if *dpPassword == "" {
 			fmt.Println("DataPower password: ")
 			// Silent. For printing *'s use gopass.GetPasswdMasked()
 			pass, err := gopass.GetPasswdMasked()
 			if err != nil {
 				usage()
 			} else {
-				*DpPassword = string(pass)
+				password := string(pass)
+				SetDpPassword(password)
+				SetDpTransientPassword(password)
 			}
 		}
 
-		if *DpPassword == "" {
+		if *dpPassword == "" {
 			fmt.Println("Password can't be empty!")
 			fmt.Println()
 			usage()
@@ -182,13 +217,38 @@ func DpUseSoma() bool {
 	return *DpSomaURL != ""
 }
 
+func SetDpPassword(password string) {
+	b32password := base32.StdEncoding.EncodeToString([]byte(password))
+	dpPassword = &b32password
+}
+func DpPassword() string {
+	passBytes, err := base32.StdEncoding.DecodeString(*dpPassword)
+	if err != nil {
+		logging.LogFatal("Can't decode password: ", err)
+	}
+	return string(passBytes)
+}
+
+func SetDpTransientPassword(password string) {
+	DpTransientPasswordMap[PreviousAppliance] = password
+}
+
+func (c *Config) GetDpApplianceConfig(name string) []byte {
+	dpAppliance := c.DataPowerAppliances[name]
+	json, err := json.MarshalIndent(dpAppliance, "", "  ")
+	if err != nil {
+		logging.LogFatal("Can't unmarshal DataPower appliance configuration: ", err)
+	}
+	return json
+}
+
 // PrintConfig prints configuration values to console.
 func PrintConfig() {
 	fmt.Println("LocalFolderPath: ", *LocalFolderPath)
 	fmt.Println("DpRestURL: ", *DpRestURL)
 	fmt.Println("DpSomaURL: ", *DpSomaURL)
 	fmt.Println("DpUsername: ", *DpUsername)
-	fmt.Println("DpPassword: ", strings.Repeat("*", len(*DpPassword)))
+	fmt.Println("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
 	fmt.Println("DpDomain: ", *DpDomain)
 	fmt.Println("Proxy: ", *Proxy)
 	fmt.Println("DpTemplateName: ", *DpTemplateName)

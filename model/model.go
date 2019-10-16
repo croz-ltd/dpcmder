@@ -18,11 +18,12 @@ const (
 
 // Item contains information about File/Directory.
 type Item struct {
-	Type     byte
-	Name     string
-	Size     string
-	Modified string
-	Selected bool
+	Type      byte // d - directory; f - file
+	DpDirType byte // A - appliance; D - domain; F - filestore
+	Name      string
+	Size      string
+	Modified  string
+	Selected  bool
 }
 
 // ItemList is slice extended as a sortable list of Items (implements sort.Interface).
@@ -31,6 +32,7 @@ type ItemList []Item
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
+	dpAppliance         string
 	dpDomain            string
 	title               [2]string
 	items               [2]ItemList
@@ -57,6 +59,11 @@ func (item *Item) IsDirectory() bool {
 	return item.Type == 'd'
 }
 
+// IsDpAppliance retuns true if Item is a DataPower appliance template.
+func (item *Item) IsDpAppliance() bool {
+	return item.DpDirType == 'A'
+}
+
 // ItemList methods
 
 func (items ItemList) Len() int {
@@ -72,6 +79,13 @@ func (items ItemList) Swap(i, j int) {
 }
 
 // Model methods
+
+func (m *Model) DpAppliance() string {
+	return m.dpAppliance
+}
+func (m *Model) SetDpAppliance(dpAppliance string) {
+	m.dpAppliance = dpAppliance
+}
 
 func (m *Model) DpDomain() string {
 	return m.dpDomain

@@ -218,7 +218,7 @@ func draw(m *model.Model) {
 	termbox.Flush()
 }
 
-func userInput(m *model.Model, question string, initialValue string) string {
+func userInputBoth(m *model.Model, question string, initialValue string, valueVisible bool) string {
 	x, y := 0, 1
 	w, _ := termbox.Size()
 	if m.CurrSide() == model.Right {
@@ -313,13 +313,21 @@ loop:
 			firstQLetterIdx = rbIdx - maxQlen + 2
 		}
 		s := string(rb[firstQLetterIdx:])
-
+		if !valueVisible {
+			s = strings.Repeat("*", rbLen)
+		}
 		// logging.LogDebug("---cellx: ", cellx, ", rbidx: ", rbIdx, ", firstQLetterIdx: ", firstQLetterIdx)
 		writeLineWithCursor(cellx, y, s, termbox.ColorDefault, termbox.ColorDefault, cellx+rbIdx-firstQLetterIdx, termbox.AttrReverse, termbox.AttrReverse)
 		termbox.Flush()
 	}
 
 	return strings.Trim(string(rb), "\x00")
+}
+func userInput(m *model.Model, question string, initialValue string) string {
+	return userInputBoth(m, question, initialValue, true)
+}
+func userInputPassword(m *model.Model, question string, initialValue string) string {
+	return userInputBoth(m, question, initialValue, false)
 }
 
 func writeLine(x, y int, line string, fg, bg termbox.Attribute) int {
@@ -358,19 +366,32 @@ func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursor
 
 func enterCurrentDirectory(m *model.Model) {
 	if m.CurrItem().IsDirectory() {
-		repos[m.CurrSide()].EnterCurrentDirectory(m)
-		m.SetCurrentFilter("")
+		requireUserQuestion := repos[m.CurrSide()].EnterCurrentDirectoryQuestionToUser(m)
+		canContinue := true
+		if requireUserQuestion != "" {
+			answer := userInputPassword(m, requireUserQuestion, "")
+			canContinue = repos[m.CurrSide()].EnterCurrentDirectoryAnswerFromUser(m, answer)
+		}
+
+		if canContinue {
+			repos[m.CurrSide()].EnterCurrentDirectory(m)
+			m.SetCurrentFilter("")
+		}
 	}
 }
 
 func viewCurrent(m *model.Model) {
-	if !m.CurrItem().IsDirectory() {
-		fileContent := repos[m.CurrSide()].GetFile(m, m.CurrPath(), m.CurrItem().Name)
+	ci := m.CurrItem()
+	logging.LogDebug("view.viewCurrent(), item: ", ci, ", dir: ", ci.IsDirectory(), ", dp appliance: ", ci.IsDpAppliance())
+	if !ci.IsDirectory() {
+		fileContent := repos[m.CurrSide()].GetFile(m, m.CurrPath(), ci.Name)
 		if fileContent != nil {
-			extprogs.View(m.CurrItem().Name, fileContent)
+			extprogs.View(ci.Name, fileContent)
 		} else {
-			currentStatus = fmt.Sprintf("Can't fetch file '%s' from path '%s'.", m.CurrItem().Name, m.CurrPath())
+			currentStatus = fmt.Sprintf("Can't fetch file '%s' from path '%s'.", ci.Name, m.CurrPath())
 		}
+	} else if ci.IsDpAppliance() {
+		extprogs.View(ci.Name, config.Conf.GetDpApplianceConfig(ci.Name))
 	}
 }
 
