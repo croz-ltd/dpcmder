@@ -87,7 +87,10 @@ func httpRequest(urlFullPath, method, body string) string {
 		logging.LogDebug(fmt.Sprintf("dp httpResponse: '%s'", string(bodyBytes)))
 		return string(bodyBytes)
 	} else {
+		logging.LogDebug(fmt.Sprintf("dp resp.StatusCode: '%d'", resp.StatusCode))
 		if resp.StatusCode == 404 {
+			return ""
+		} else if resp.StatusCode == 403 {
 			return ""
 		}
 		logging.LogFatal("HTTP " + method + " call to '" + urlFullPath + "' returned HTTP StatusCode " + string(resp.StatusCode) + "(" + resp.Status + ")")
