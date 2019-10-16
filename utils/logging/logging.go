@@ -16,11 +16,13 @@ var (
 	DebugLogFile bool = false
 )
 
+// LogFatal logs fatal error message to log file and exits dpcmder.
 func LogFatal(v ...interface{}) {
 	termbox.Close()
 	log.Fatal(v...)
 }
 
+// LogDebug logs debug message to log file.
 func LogDebug(v ...interface{}) {
 	if DebugLogFile {
 		msg := fmt.Sprintf("%v: %v\n", time.Now().Format("2006-01-02T15:04:05.999"), v)
