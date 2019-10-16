@@ -83,7 +83,8 @@ func confidentBootstrap() {
 	// <Optional>
 	k.Name = "config"
 	k.Type = "json"
-	k.Path = configDirPathEnsureExists()
+	k.Path = configDirPath()
+	// k.Path = configDirPathEnsureExists()
 	k.Permission = os.FileMode(0644)
 	// </Optional>
 	logging.LogDebug("Conf before read: ", Conf)
@@ -124,6 +125,7 @@ func Init() {
 	logging.LogDebug("dpcmder starting...")
 	validateProgramArgs()
 	confidentBootstrap()
+	validatePassword()
 }
 
 func ClearDpConfig() {
@@ -147,8 +149,8 @@ func LoadDpConfig(configName string) {
 	*Proxy = appliance.Proxy
 }
 
-// ValidateProgramArgs parsed program arguments and asks for password input and/or
-// shows usage message in case some mandatory arguments are missing.
+// validateProgramArgs validate parsed program arguments and/or shows usage
+// message in case some mandatory arguments are missing.
 func validateProgramArgs() {
 	if *Help {
 		usage()
@@ -158,7 +160,11 @@ func validateProgramArgs() {
 		(*DpUsername != "" && *DpRestURL == "" && *DpSomaURL == "") {
 		usage()
 	}
+}
 
+// validatePassword validates password argument and asks for password input and/or
+// shows usage message in case it is missing.
+func validatePassword() {
 	if *DpUsername != "" {
 		if *dpPassword == "" {
 			fmt.Println("DataPower password: ")
