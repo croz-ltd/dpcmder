@@ -117,11 +117,11 @@ func (r LocalRepo) InitialLoad(m *model.Model) {
 	r.LoadCurrent(m)
 }
 
-func (r LocalRepo) EnterCurrentDirectoryQuestionToUser(m *model.Model) string {
-	return ""
+func (r LocalRepo) EnterCurrentDirectoryMissingPassword(m *model.Model) bool {
+	return false
 }
-func (r LocalRepo) EnterCurrentDirectoryAnswerFromUser(m *model.Model, inputValue string) bool {
-	return true
+func (r LocalRepo) EnterCurrentDirectorySetPassword(m *model.Model, password string) bool {
+	return false
 }
 
 func (r LocalRepo) EnterCurrentDirectory(m *model.Model) {

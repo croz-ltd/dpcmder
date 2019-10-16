@@ -163,7 +163,7 @@ func setTitle(m *model.Model, currPath string) {
 	m.SetTitle(dpSide, fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, *url, m.DpDomain(), currPath))
 }
 
-func (r DpRepo) EnterCurrentDirectoryQuestionToUser(m *model.Model) string {
+func (r DpRepo) EnterCurrentDirectoryMissingPassword(m *model.Model) bool {
 	currentDpAppliance := m.DpAppliance()
 	if currentDpAppliance == "" {
 		selectedDpAppliance := m.CurrItemForSide(dpSide).Name
@@ -171,24 +171,21 @@ func (r DpRepo) EnterCurrentDirectoryQuestionToUser(m *model.Model) string {
 		if savedPassword == "" {
 			transientPassword := config.DpTransientPasswordMap[selectedDpAppliance]
 			if transientPassword == "" {
-				return fmt.Sprintf("Enter password for %s@%s: ", config.Conf.DataPowerAppliances[selectedDpAppliance].Username, selectedDpAppliance)
+				return true
 			} else {
 				config.SetDpPassword(transientPassword)
-				config.SetDpTransientPassword(transientPassword)
 			}
 		}
 	}
-	return ""
+	return false
 }
-func (r DpRepo) EnterCurrentDirectoryAnswerFromUser(m *model.Model, password string) bool {
+func (r DpRepo) EnterCurrentDirectorySetPassword(m *model.Model, password string) bool {
 	config.SetDpPassword(password)
 	if password != "" {
-		selectedDpAppliance := m.CurrItemForSide(dpSide).Name
-		config.DpTransientPasswordMap[selectedDpAppliance] = password
+		config.SetDpTransientPassword(password)
 	}
 	return password != ""
 }
-
 func (r *DpRepo) EnterCurrentDirectory(m *model.Model) {
 	dpAppliance := m.DpAppliance()
 	dpDomain := m.DpDomain()

@@ -366,11 +366,17 @@ func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursor
 
 func enterCurrentDirectory(m *model.Model) {
 	if m.CurrItem().IsDirectory() {
-		requireUserQuestion := repos[m.CurrSide()].EnterCurrentDirectoryQuestionToUser(m)
 		canContinue := true
-		if requireUserQuestion != "" {
-			answer := userInputPassword(m, requireUserQuestion, "")
-			canContinue = repos[m.CurrSide()].EnterCurrentDirectoryAnswerFromUser(m, answer)
+		missingPassword := repos[m.CurrSide()].EnterCurrentDirectoryMissingPassword(m)
+		if missingPassword {
+			if m.CurrSide() == model.Left {
+				selectedDpAppliance := m.CurrItemForSide(model.Left).Name
+				question := fmt.Sprintf("Enter password for %s@%s: ", config.Conf.DataPowerAppliances[selectedDpAppliance].Username, selectedDpAppliance)
+				answer := userInputPassword(m, question, "")
+				canContinue = repos[m.CurrSide()].EnterCurrentDirectorySetPassword(m, answer)
+			} else {
+				logging.LogFatal("Don't expect password for localfs.")
+			}
 		}
 
 		if canContinue {

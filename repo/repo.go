@@ -8,8 +8,8 @@ import (
 type Repo interface {
 	InitialLoad(m *model.Model)
 	LoadCurrent(m *model.Model)
-	EnterCurrentDirectoryQuestionToUser(m *model.Model) string
-	EnterCurrentDirectoryAnswerFromUser(m *model.Model, inputValue string) bool
+	EnterCurrentDirectoryMissingPassword(m *model.Model) bool
+	EnterCurrentDirectorySetPassword(m *model.Model, password string) bool
 	EnterCurrentDirectory(m *model.Model)
 	ListFiles(m *model.Model, dirPath string) []model.Item
 	GetFileType(m *model.Model, parentPath, fileName string) byte
