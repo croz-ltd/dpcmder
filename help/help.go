@@ -24,7 +24,7 @@ Space               - select current item
 TAB                 - switch from left to right panel and vice versa
 Return              - enter directory
 F2/2                - refresh focused pane (reload files/dirs)
-F3/3                - view current file
+F3/3                - view current file or DataPower configuration
 F4/4                - edit file
 F5/5                - copy selected (or current if none selected) directories and files
 F7/7                - create directory
@@ -60,6 +60,7 @@ don't have proper rights. With REST you can get domain list without any credenti
 
 TODO:
 
+- add diff for files
 - add default value for input questions (set it after first user selection), for example:
   - Are you sure you want to disable sync mode [y/n] (): y
 	- Are you sure you want to disable sync mode [y/n] (y):
