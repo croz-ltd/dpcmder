@@ -59,7 +59,7 @@ func (item *Item) IsDirectory() bool {
 	return item.Type == 'd'
 }
 
-// IsDpAppliance retuns true if Item is a DataPower appliance template.
+// IsDpAppliance retuns true if Item is a DataPower appliance configuration.
 func (item *Item) IsDpAppliance() bool {
 	return item.DpDirType == 'A'
 }

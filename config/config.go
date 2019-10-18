@@ -31,13 +31,13 @@ var Help *bool
 
 // DataPower configuration from command flags.
 var (
-	DpRestURL      *string
-	DpSomaURL      *string
-	DpUsername     *string
-	dpPassword     *string
-	DpDomain       *string
-	Proxy          *string
-	DpTemplateName *string
+	DpRestURL    *string
+	DpSomaURL    *string
+	DpUsername   *string
+	dpPassword   *string
+	DpDomain     *string
+	Proxy        *string
+	DpConfigName *string
 )
 
 // DpTransientPasswordMap contains passwords entered through dpcmder usage and not saved to config.
@@ -91,8 +91,8 @@ func confidentBootstrap() {
 	k.Read()
 	logging.LogDebug("Conf after read: ", Conf)
 	if *DpRestURL != "" || *DpSomaURL != "" {
-		if *DpTemplateName != "" {
-			Conf.DataPowerAppliances[*DpTemplateName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
+		if *DpConfigName != "" {
+			Conf.DataPowerAppliances[*DpConfigName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
 		} else {
 			Conf.DataPowerAppliances[PreviousAppliance] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
 		}
@@ -110,7 +110,7 @@ func parseProgramArgs() {
 	password := flag.String("p", "", "DataPower user password")
 	DpDomain = flag.String("d", "", "DataPower domain name")
 	Proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
-	DpTemplateName = flag.String("t", "", "Name of DataPower connection config template to save with given configuration params")
+	DpConfigName = flag.String("C", "", "Name of DataPower connection configuration to save with given configuration params")
 	DebugLogFile = flag.Bool("debug", false, "Write dpcmder.log file in current dir")
 	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
@@ -257,13 +257,13 @@ func PrintConfig() {
 	fmt.Println("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
 	fmt.Println("DpDomain: ", *DpDomain)
 	fmt.Println("Proxy: ", *Proxy)
-	fmt.Println("DpTemplateName: ", *DpTemplateName)
+	fmt.Println("DpConfigName: ", *DpConfigName)
 	fmt.Println("Help: ", *Help)
 }
 
 func usage() {
 	fmt.Println("Usage:")
-	fmt.Printf(" %s -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-t DP_TEMPLATE_NAME] [-debug]\n", os.Args[0])
+	fmt.Printf(" %s -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug]\n", os.Args[0])
 	fmt.Println("")
 	fmt.Println(" -l LOCAL_FOLDER_PATH - set path to local folder")
 	fmt.Println(" -r DATA_POWER_REST_URL - set REST management URL for DataPower")
@@ -272,17 +272,17 @@ func usage() {
 	fmt.Println(" -p PASSWORD - set password to connect to DataPower")
 	fmt.Println(" -d DP_DOMAIN - connect to specific DataPower domain (can me neccessary on some security configurations)")
 	fmt.Println(" -x PROXY_SERVER - connect to DataPower through proxy")
-	fmt.Println(" -t DP_TEMPLATE_NAME - save DataPower configuration under given name")
+	fmt.Println(" -c DP_CONFIG_NAME - save DataPower configuration under given name")
 	fmt.Println(" -debug flag turns on creation of dpcmder.log file with debug log messages")
 	fmt.Println(" -h flag shows this help")
 	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Example:")
 	fmt.Printf(" %s\n", os.Args[0])
-	fmt.Println("   - will run local file browser (in current dir) with available DataPower connection templates shown")
+	fmt.Println("   - will run local file browser (in current dir) with available DataPower connection configurations shown")
 	fmt.Printf(" %s -l . -r https://172.17.0.2:5554 -u admin\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -debug\n", os.Args[0])
-	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -t LocalDp\n", os.Args[0])
+	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -c LocalDp\n", os.Args[0])
 
 	os.Exit(1)
 }
