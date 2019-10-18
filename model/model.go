@@ -16,14 +16,14 @@ const (
 	Right = Side(1)
 )
 
-// Item contains information about File/Directory.
+// Item contains information about File, Directory, DataPower filestore,
+// DataPower domain or DataPower configuration.
 type Item struct {
-	Type      byte // d - directory; f - file
-	DpDirType byte // A - appliance; D - domain; F - filestore
-	Name      string
-	Size      string
-	Modified  string
-	Selected  bool
+	Type     byte // d - directory; f - file; A - appliance configuration; D - domain; F - filestore
+	Name     string
+	Size     string
+	Modified string
+	Selected bool
 }
 
 // ItemList is slice extended as a sortable list of Items (implements sort.Interface).
@@ -50,60 +50,101 @@ type Model struct {
 
 // Item methods
 
-func (item Item) String() string {
-	return fmt.Sprintf("%c %10s %19s %s", item.Type, item.Size, item.Modified, item.Name)
+// String method returns formatted string representing how item will be shown.
+func (item *Item) String() string {
+	return fmt.Sprintf("%s %10s %19s %s", item.GetDisplayableType(), item.Size, item.Modified, item.Name)
 }
 
-// IsDirectory retuns true if Item is a directory.
+// GetDisplayableType retuns "f" for files, "" for configuration and "d" for all other.
+func (item *Item) GetDisplayableType() string {
+	if item.Type == 'f' {
+		return "f"
+	} else if item.Type == 'd' {
+		return "d"
+	} else {
+		return ""
+	}
+}
+
+// IsFile returns true if Item is a file.
+func (item *Item) IsFile() bool {
+	return item.Type == 'f'
+}
+
+// IsDirectory returns true if Item is a directory.
 func (item *Item) IsDirectory() bool {
 	return item.Type == 'd'
 }
 
-// IsDpAppliance retuns true if Item is a DataPower appliance configuration.
+// IsDpAppliance returns true if Item is a DataPower appliance configuration.
 func (item *Item) IsDpAppliance() bool {
-	return item.DpDirType == 'A'
+	return item.Type == 'A'
 }
 
-// ItemList methods
+// IsDpDomain returns true if Item is a DataPower domain.
+func (item *Item) IsDpDomain() bool {
+	return item.Type == 'D'
+}
 
+// IsDpFilestore returns true if Item is a DataPower filestore (cert:, local:,..).
+func (item *Item) IsDpFilestore() bool {
+	return item.Type == 'F'
+}
+
+// ItemList methods (implements sort.Interface)
+
+// Len returns number of items in ItemList.
 func (items ItemList) Len() int {
 	return len(items)
 }
+
+// Less returns true if item at first index should be before second one.
 func (items ItemList) Less(i, j int) bool {
 	return items[i].Type < items[j].Type ||
 		(items[i].Type == items[j].Type &&
 			strings.ToLower(items[i].Name) < strings.ToLower(items[j].Name))
 }
+
+// Swap swaps items with given indices.
 func (items ItemList) Swap(i, j int) {
 	reflect.Swapper(items)(i, j)
 }
 
 // Model methods
 
+// DpAppliance returns name of configuration of current DataPower configuration.
 func (m *Model) DpAppliance() string {
 	return m.dpAppliance
 }
+
+// SetDpAppliance sets name of configuration of current DataPower configuration.
 func (m *Model) SetDpAppliance(dpAppliance string) {
 	m.dpAppliance = dpAppliance
 }
 
+// DpDomain returns name of current DataPower domain.
 func (m *Model) DpDomain() string {
 	return m.dpDomain
 }
+
+// SetDpDomain sets name of current DataPower domain.
 func (m *Model) SetDpDomain(dpDomain string) {
 	m.dpDomain = dpDomain
 }
 
+// SetItems changes list of items for given side.
 func (m *Model) SetItems(side Side, items []Item) {
 	m.allItems[side] = items
 	m.items[side] = items
 	m.applyFilter(side)
 }
 
+// SetItemsMaxSize sets maximum number of items which can be shown on screen.
 func (m *Model) SetItemsMaxSize(itemMaxRows, itemMaxCols int) {
 	m.itemMaxRows, m.itemMaxCols = itemMaxRows, itemMaxCols
 }
 
+// GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
 	if m.itemMaxRows < visibleItemCount {
@@ -113,6 +154,7 @@ func (m *Model) GetVisibleItemCount(side Side) int {
 	}
 }
 
+// GetVisibleItem returns (visible) item from given side at given index.
 func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	itemIdx := rowIdx + m.currFirstRowItemIdx[side]
 
@@ -121,6 +163,7 @@ func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	return item
 }
 
+// IsSelectable returns true if we can select current item.
 func (m *Model) IsSelectable() bool {
 	return m.CurrPath() != ""
 }

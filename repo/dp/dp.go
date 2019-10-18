@@ -650,7 +650,7 @@ func (r *DpRepo) loadAppliances(m *model.Model) {
 	items := make(model.ItemList, len(appliances))
 	idx := 0
 	for name, _ := range appliances {
-		items[idx] = model.Item{Type: 'd', DpDirType: 'A', Name: name, Size: "", Modified: "", Selected: false}
+		items[idx] = model.Item{Type: 'A', Name: name, Size: "", Modified: "", Selected: false}
 		idx = idx + 1
 	}
 
@@ -669,10 +669,10 @@ func (r *DpRepo) loadDomains(m *model.Model) {
 	logging.LogDebug(fmt.Sprintf("loadDomains(), domainNames: %v", domainNames))
 
 	items := make(model.ItemList, len(domainNames)+1)
-	items[0] = model.Item{Type: 'd', Name: "..", Size: "", Modified: "", Selected: false}
+	items[0] = model.Item{Type: 'A', Name: "..", Size: "", Modified: "", Selected: false}
 
 	for idx, name := range domainNames {
-		items[idx+1] = model.Item{Type: 'd', DpDirType: 'D', Name: name, Size: "", Modified: "", Selected: false}
+		items[idx+1] = model.Item{Type: 'D', Name: name, Size: "", Modified: "", Selected: false}
 	}
 
 	sort.Sort(items)
@@ -694,12 +694,12 @@ func (r *DpRepo) loadFilestores(m *model.Model) {
 		filestoreNameNodes := jsonquery.Find(doc, "/filestore/location/*/name")
 
 		items := make(model.ItemList, len(filestoreNameNodes)+1)
-		items[0] = model.Item{Type: 'd', Name: "..", Size: "", Modified: "", Selected: false}
+		items[0] = model.Item{Type: 'D', Name: "..", Size: "", Modified: "", Selected: false}
 
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			items[idx+1] = model.Item{Type: 'd', DpDirType: 'F', Name: filestoreName, Size: "", Modified: "", Selected: false}
+			items[idx+1] = model.Item{Type: 'F', Name: filestoreName, Size: "", Modified: "", Selected: false}
 		}
 
 		sort.Sort(items)
@@ -718,12 +718,12 @@ func (r *DpRepo) loadFilestores(m *model.Model) {
 		filestoreNameNodes := xmlquery.Find(doc, "//*[local-name()='location']/@name")
 
 		items := make(model.ItemList, len(filestoreNameNodes)+1)
-		items[0] = model.Item{Type: 'd', Name: "..", Size: "", Modified: "", Selected: false}
+		items[0] = model.Item{Type: 'D', Name: "..", Size: "", Modified: "", Selected: false}
 
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			items[idx+1] = model.Item{Type: 'd', DpDirType: 'F', Name: filestoreName, Size: "", Modified: "", Selected: false}
+			items[idx+1] = model.Item{Type: 'F', Name: filestoreName, Size: "", Modified: "", Selected: false}
 		}
 
 		sort.Sort(items)

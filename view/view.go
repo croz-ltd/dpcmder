@@ -365,7 +365,8 @@ func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursor
 }
 
 func enterCurrentDirectory(m *model.Model) {
-	if m.CurrItem().IsDirectory() {
+	currItem := m.CurrItem()
+	if currItem.IsDirectory() || currItem.IsDpAppliance() || currItem.IsDpDomain() || currItem.IsDpFilestore() {
 		canContinue := true
 		missingPassword := repos[m.CurrSide()].EnterCurrentDirectoryMissingPassword(m)
 		if missingPassword {
@@ -388,8 +389,8 @@ func enterCurrentDirectory(m *model.Model) {
 
 func viewCurrent(m *model.Model) {
 	ci := m.CurrItem()
-	logging.LogDebug("view.viewCurrent(), item: ", ci, ", dir: ", ci.IsDirectory(), ", dp appliance: ", ci.IsDpAppliance())
-	if !ci.IsDirectory() {
+	logging.LogDebug("view.viewCurrent(), item: ", ci, ", type: ", ci.Type)
+	if ci.IsFile() {
 		fileContent := repos[m.CurrSide()].GetFile(m, m.CurrPath(), ci.Name)
 		if fileContent != nil {
 			extprogs.View(ci.Name, fileContent)
@@ -402,7 +403,7 @@ func viewCurrent(m *model.Model) {
 }
 
 func editCurrent(m *model.Model) {
-	if !m.CurrItem().IsDirectory() {
+	if m.CurrItem().IsFile() {
 		fileName := m.CurrItem().Name
 		fileContent := repos[m.CurrSide()].GetFile(m, m.CurrPath(), fileName)
 		changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
@@ -416,7 +417,7 @@ func editCurrent(m *model.Model) {
 func copyItem(m *model.Model, fromRepo, toRepo repo.Repo, fromBasePath, toBasePath string, item model.Item, confirmOverwrite string) string {
 	if item.IsDirectory() {
 		confirmOverwrite = copyDirs(m, fromRepo, toRepo, fromBasePath, toBasePath, item.Name, confirmOverwrite)
-	} else {
+	} else if item.IsFile() {
 		confirmOverwrite = copyFile(m, fromRepo, toRepo, fromBasePath, toBasePath, item.Name, confirmOverwrite)
 	}
 	return confirmOverwrite

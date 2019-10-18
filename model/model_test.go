@@ -17,10 +17,36 @@ func TestItemString(t *testing.T) {
 		t.Errorf("Got: %s, want: %s.", got, want)
 	}
 }
-func TestItemIsDirectory(t *testing.T) {
-	itemList := prepareItemList()
+func TestItemGetDisplayableType(t *testing.T) {
+	itemList := prepareAllTypesItemList()
 
-	dirs := []bool{true, true, false, false, false}
+	displayedType := []string{"", "", "", "d", "f"}
+
+	for idx := 0; idx < len(displayedType); idx++ {
+		got := itemList[idx].GetDisplayableType()
+		want := displayedType[idx]
+		if got != want {
+			t.Errorf("Got: %s, want: %s (item: %v).", got, want, itemList[idx])
+		}
+	}
+}
+func TestItemIsFile(t *testing.T) {
+	itemList := prepareAllTypesItemList()
+
+	files := []bool{false, false, false, false, true}
+
+	for idx := 0; idx < len(files); idx++ {
+		got := itemList[idx].IsFile()
+		want := files[idx]
+		if got != want {
+			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
+		}
+	}
+}
+func TestItemIsDirectory(t *testing.T) {
+	itemList := prepareAllTypesItemList()
+
+	dirs := []bool{false, false, false, true, false}
 
 	for idx := 0; idx < len(dirs); idx++ {
 		got := itemList[idx].IsDirectory()
@@ -31,13 +57,39 @@ func TestItemIsDirectory(t *testing.T) {
 	}
 }
 func TestItemIsDpAppliance(t *testing.T) {
-	itemList := prepareItemList()
+	itemList := prepareAllTypesItemList()
 
-	dirs := []bool{false, true, false, false, false}
+	datapowers := []bool{true, false, false, false, false}
 
-	for idx := 0; idx < len(dirs); idx++ {
+	for idx := 0; idx < len(datapowers); idx++ {
 		got := itemList[idx].IsDpAppliance()
-		want := dirs[idx]
+		want := datapowers[idx]
+		if got != want {
+			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
+		}
+	}
+}
+func TestItemIsDpDomain(t *testing.T) {
+	itemList := prepareAllTypesItemList()
+
+	domains := []bool{false, true, false, false, false}
+
+	for idx := 0; idx < len(domains); idx++ {
+		got := itemList[idx].IsDpDomain()
+		want := domains[idx]
+		if got != want {
+			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
+		}
+	}
+}
+func TestItemIsDpFilestore(t *testing.T) {
+	itemList := prepareAllTypesItemList()
+
+	filestores := []bool{false, false, true, false, false}
+
+	for idx := 0; idx < len(filestores); idx++ {
+		got := itemList[idx].IsDpFilestore()
+		want := filestores[idx]
 		if got != want {
 			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
 		}
@@ -48,15 +100,25 @@ func TestItemIsDpAppliance(t *testing.T) {
 
 func prepareItemList() ItemList {
 	return ItemList{
-		Item{Type: 'd', DpDirType: 0, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'd', DpDirType: 'A', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', DpDirType: 0, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'd', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'f', Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
+		Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+	}
+}
+
+func prepareAllTypesItemList() ItemList {
+	return ItemList{
+		Item{Type: 'A', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'D', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'F', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
 	}
 }
 func TestItemListLen(t *testing.T) {
@@ -88,7 +150,7 @@ func TestItemListLess(t *testing.T) {
 		gotRes := itemList.Less(testRow.i, testRow.j)
 		extectedRes := testRow.res
 		if gotRes != extectedRes {
-			t.Errorf("Got res: %v, want res: %v (%d - '%s', %d - '%s').",
+			t.Errorf("Got res: %v, want res: %v (%d - '%v', %d - '%v').",
 				gotRes, extectedRes, testRow.i, itemList[testRow.i], testRow.j, itemList[testRow.j])
 		}
 	}
@@ -111,7 +173,7 @@ func TestItemListSwap(t *testing.T) {
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
 	if got != want {
-		t.Errorf("checkCurr - got '%s' but want '%s' (%s).", got, want, msg)
+		t.Errorf("checkCurr - got '%v' but want '%v' (%s).", got, want, msg)
 	}
 }
 
@@ -265,7 +327,7 @@ func TestModelVisibleItems(t *testing.T) {
 		for idx := 0; idx < gotLen; idx++ {
 			gotItem, wantItem := got[idx], want[idx]
 			if gotItem != wantItem {
-				t.Errorf("Got '%s' but want '%s'.", gotItem, wantItem)
+				t.Errorf("Got '%v' but want '%v'.", gotItem, wantItem)
 			}
 		}
 	}
@@ -366,7 +428,7 @@ func TestModelSelect(t *testing.T) {
 		for idx := 0; idx < gotLen; idx++ {
 			gotItem, wantItem := gotSelected[idx], model.items[side][wantSelectedIdx[idx]]
 			if gotItem != wantItem {
-				t.Errorf("checkSelected[%d] - got '%s' but want '%s' (%s).", idx, gotItem, wantItem, msg)
+				t.Errorf("checkSelected[%d] - got '%v' but want '%v' (%s).", idx, gotItem, wantItem, msg)
 			}
 		}
 	}

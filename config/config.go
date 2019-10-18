@@ -110,7 +110,7 @@ func parseProgramArgs() {
 	password := flag.String("p", "", "DataPower user password")
 	DpDomain = flag.String("d", "", "DataPower domain name")
 	Proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
-	DpConfigName = flag.String("C", "", "Name of DataPower connection configuration to save with given configuration params")
+	DpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
 	DebugLogFile = flag.Bool("debug", false, "Write dpcmder.log file in current dir")
 	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
