@@ -28,6 +28,7 @@ const (
 	Chs            = "73"
 	Chu            = "75"
 	ChU            = "55"
+	Chx            = "78"
 	Chz            = "7a"
 	ChZ            = "5a"
 	ArrowUp        = "1b4f41"

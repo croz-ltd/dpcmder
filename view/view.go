@@ -159,7 +159,7 @@ loop:
 			copyCurrent(m)
 		case key.F7, key.Ch7:
 			createDirectory(m)
-		case key.Del, key.Chd:
+		case key.Del, key.Chx:
 			deleteCurrent(m)
 		case key.Chs:
 			syncModeToggle(m)

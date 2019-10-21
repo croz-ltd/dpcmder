@@ -28,7 +28,7 @@ F3/3                - view current file or DataPower configuration
 F4/4                - edit file
 F5/5                - copy selected (or current if none selected) directories and files
 F7/7                - create directory
-DEL/d               - delete selected (or current if none selected) directories and files
+DEL/x               - delete selected (or current if none selected) directories and files
 /                   - find string
 n                   - find next string
 p                   - find previous string
