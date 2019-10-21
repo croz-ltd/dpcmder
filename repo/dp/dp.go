@@ -767,4 +767,5 @@ func (r *DpRepo) loadCurrentPath(m *model.Model) {
 	} else {
 		r.loadDpDir(m, currPath)
 	}
+	m.SortSide(dpSide)
 }
