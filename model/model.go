@@ -168,39 +168,48 @@ func (m *Model) IsSelectable() bool {
 	return m.CurrPath() != ""
 }
 
+// CurrSide returns currently used Side.
 func (m *Model) CurrSide() Side {
 	return m.currSide
 }
 
+// CurrSide returns currently non-used Side.
 func (m *Model) OtherSide() Side {
 	return 1 - m.currSide
 }
 
+// Title returns title for given Side.
 func (m *Model) Title(side Side) string {
 	return m.title[side]
 }
 
+// SetTitle sets title for given Side.
 func (m *Model) SetTitle(side Side, title string) {
 	m.title[side] = title
 }
 
+// IsCurrentSide returns true if given side is currently used.
 func (m *Model) IsCurrentSide(side Side) bool {
 	return side == m.currSide
 }
 
+// IsCurrentItem returns true if item at given idx and side is the current item under cursor.
 func (m *Model) IsCurrentItem(side Side, itemIdx int) bool {
 	return itemIdx == m.currItemIdx[side]
 }
 
+// IsCurrentRow returns true if row at given idx and side is the current row under cursor.
 func (m *Model) IsCurrentRow(side Side, rowIdx int) bool {
 	// TODO: update with vertical scrolling
 	return rowIdx+m.currFirstRowItemIdx[side] == m.currItemIdx[side]
 }
 
+// CurrItemForSide returns current item under cursor for given side.
 func (m *Model) CurrItemForSide(side Side) *Item {
 	return &m.items[side][m.currItemIdx[side]]
 }
 
+// SetCurrItemForSide sets current item under cursor for given side and item name.
 func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 	itemIdx := 0
 	for idx, item := range m.items[side] {
@@ -213,22 +222,27 @@ func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 	m.currItemIdx[side] = itemIdx
 }
 
+// CurrItem returns current item under cursor for used side.
 func (m *Model) CurrItem() *Item {
 	return m.CurrItemForSide(m.currSide)
 }
 
+// CurrPathForSide returns current path for given side.
 func (m *Model) CurrPathForSide(side Side) string {
 	return m.currPath[side]
 }
 
+// CurrPath returns current path for used side.
 func (m *Model) CurrPath() string {
 	return m.CurrPathForSide(m.currSide)
 }
 
+// SetCurrPathForSide sets current path for given side.
 func (m *Model) SetCurrPathForSide(side Side, newPath string) {
 	m.currPath[side] = newPath
 }
 
+// SetCurrPath sets current path for used side.
 func (m *Model) SetCurrPath(newPath string) {
 	m.SetCurrPathForSide(m.currSide, newPath)
 }
@@ -259,15 +273,18 @@ func (m *Model) applyFilter(side Side) {
 	}
 }
 
+// SetCurrentFilter sets filter string to apply to current side.
 func (m *Model) SetCurrentFilter(filterString string) {
 	m.currentFilter[m.currSide] = filterString
 	m.applyFilter(m.currSide)
 }
 
+// CurrentFilter returns filter string applied to current side.
 func (m *Model) CurrentFilter() string {
 	return m.currentFilter[m.currSide]
 }
 
+// ToggleCurrItem toggles selection of current item under cursor.
 func (m *Model) ToggleCurrItem() {
 	if m.IsSelectable() {
 		item := m.CurrItem()
@@ -275,6 +292,7 @@ func (m *Model) ToggleCurrItem() {
 	}
 }
 
+// ToggleSide switch usage from one side to other.
 func (m *Model) ToggleSide() {
 	if m.currSide == Left {
 		m.currSide = Right
@@ -283,28 +301,34 @@ func (m *Model) ToggleSide() {
 	}
 }
 
+// NavUp moves cursor one item up if possible.
 func (m *Model) NavUp() {
-	m.NavUpDown(m.currSide, -1)
+	m.navUpDown(m.currSide, -1)
 }
 
+// NavDown moves cursor one item down if possible.
 func (m *Model) NavDown() {
-	m.NavUpDown(m.currSide, 1)
+	m.navUpDown(m.currSide, 1)
 }
 
+// NavPgUp moves cursor one page up if possible.
 func (m *Model) NavPgUp() {
-	m.NavUpDown(m.currSide, -m.GetVisibleItemCount(m.currSide)+1)
+	m.navUpDown(m.currSide, -m.GetVisibleItemCount(m.currSide)+1)
 }
 
+// NavPgDown moves cursor one page down if possible.
 func (m *Model) NavPgDown() {
-	m.NavUpDown(m.currSide, m.GetVisibleItemCount(m.currSide)-1)
+	m.navUpDown(m.currSide, m.GetVisibleItemCount(m.currSide)-1)
 }
 
+// NavTop moves cursor to first item.
 func (m *Model) NavTop() {
-	m.NavUpDown(m.currSide, -len(m.items[m.currSide]))
+	m.navUpDown(m.currSide, -len(m.items[m.currSide]))
 }
 
+// NavBottom moves cursor to last item.
 func (m *Model) NavBottom() {
-	m.NavUpDown(m.currSide, len(m.items[m.currSide]))
+	m.navUpDown(m.currSide, len(m.items[m.currSide]))
 }
 
 func (m *Model) selRange(firstIdx, lastIdx int) {
@@ -322,30 +346,34 @@ func (m *Model) selRange(firstIdx, lastIdx int) {
 	}
 }
 
+// SelPgUp selects all items one page up from current one.
 func (m *Model) SelPgUp() {
 	firstIdx := m.currItemIdx[m.currSide] - m.GetVisibleItemCount(m.currSide) + 2
 	lastIdx := m.currItemIdx[m.currSide]
 	m.selRange(firstIdx, lastIdx)
 }
 
+// SelPgDown selects all items one page down from current one.
 func (m *Model) SelPgDown() {
 	firstIdx := m.currItemIdx[m.currSide]
 	lastIdx := m.currItemIdx[m.currSide] + m.GetVisibleItemCount(m.currSide) - 2
 	m.selRange(firstIdx, lastIdx)
 }
 
+// SelToTop selects all items from current one to first one.
 func (m *Model) SelToTop() {
 	lastIdx := m.currItemIdx[m.currSide]
 	m.selRange(0, lastIdx)
 }
 
+// SelToBottom selects all items from current one to last one.
 func (m *Model) SelToBottom() {
 	firstIdx := m.currItemIdx[m.currSide]
 	lastIdx := len(m.items[m.currSide]) - 1
 	m.selRange(firstIdx, lastIdx)
 }
 
-func (m *Model) NavUpDown(side Side, move int) {
+func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
 
 	if newCurr < 0 {
@@ -366,10 +394,12 @@ func (m *Model) NavUpDown(side Side, move int) {
 	m.currItemIdx[side] = newCurr
 }
 
+// SortSide sorts all items in given side.
 func (m *Model) SortSide(side Side) {
 	sort.Sort(m.items[side])
 }
 
+// GetSelectedItems returns all selected items for given side.
 func (m *Model) GetSelectedItems(side Side) []Item {
 	var selItems = make([]Item, 0)
 	for _, item := range m.items[side] {
@@ -380,6 +410,7 @@ func (m *Model) GetSelectedItems(side Side) []Item {
 	return selItems
 }
 
+// SearchNext moves cursor to next item containing given searchStr and returns true if item is found.
 func (m *Model) SearchNext(searchStr string) bool {
 	side := m.CurrSide()
 	nextItemIdx := m.currItemIdx[side] + 1
@@ -392,13 +423,14 @@ func (m *Model) SearchNext(searchStr string) bool {
 		itemStr := strings.ToLower(item.String())
 		if strings.Contains(itemStr, searchStr) {
 			move := idx - m.currItemIdx[side]
-			m.NavUpDown(side, move)
+			m.navUpDown(side, move)
 			return move != 0
 		}
 	}
 	return false
 }
 
+// SearchNext moves cursor to previous item containing given searchStr and returns true if item is found.
 func (m *Model) SearchPrev(searchStr string) bool {
 	side := m.CurrSide()
 	prevItemIdx := m.currItemIdx[side] - 1
@@ -412,11 +444,13 @@ func (m *Model) SearchPrev(searchStr string) bool {
 		itemStr := strings.ToLower(item.String())
 		if strings.Contains(itemStr, searchStr) {
 			move := idx - m.currItemIdx[side]
-			m.NavUpDown(side, move)
+			m.navUpDown(side, move)
 			return move != 0
 		}
 	}
 	return false
 }
 
+// M contains Model with all information on current DataPower and filesystem
+// we are showing in dpcmder.
 var M Model = Model{currSide: Left}
