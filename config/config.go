@@ -153,12 +153,12 @@ func LoadDpConfig(configName string) {
 // message in case some mandatory arguments are missing.
 func validateProgramArgs() {
 	if *Help {
-		usage()
+		usage(0)
 	}
 
 	if *LocalFolderPath == "" ||
 		(*DpUsername != "" && *DpRestURL == "" && *DpSomaURL == "") {
-		usage()
+		usage(1)
 	}
 }
 
@@ -171,7 +171,7 @@ func validatePassword() {
 			// Silent. For printing *'s use gopass.GetPasswdMasked()
 			pass, err := gopass.GetPasswdMasked()
 			if err != nil {
-				usage()
+				usage(1)
 			} else {
 				password := string(pass)
 				SetDpPassword(password)
@@ -182,7 +182,7 @@ func validatePassword() {
 		if *dpPassword == "" {
 			fmt.Println("Password can't be empty!")
 			fmt.Println()
-			usage()
+			usage(1)
 		}
 	}
 }
@@ -261,7 +261,7 @@ func PrintConfig() {
 	fmt.Println("Help: ", *Help)
 }
 
-func usage() {
+func usage(exitStatus int) {
 	fmt.Println("Usage:")
 	fmt.Printf(" %s -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug]\n", os.Args[0])
 	fmt.Println("")
@@ -284,5 +284,5 @@ func usage() {
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -debug\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -c LocalDp\n", os.Args[0])
 
-	os.Exit(1)
+	os.Exit(exitStatus)
 }
