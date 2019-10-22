@@ -21,8 +21,15 @@ go install
 ## Run
 
 ```bash
-dpcmder -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-debug]
+dpcmder -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug]
 ```
+
+## Saving DataPower connection parameters
+
+If you choose to use flag "-c" to save DataPower connection parameters be aware
+that password is saved if provided with "-p" flag. *Though it is not saved
+as clear text it is not encrypted so don't save password if you are afraid
+your dpcmder configuration file (~/.dpcmder/config.json) could be compromised.*
 
 ## Build
 
@@ -107,7 +114,7 @@ F3/3                - view current file
 F4/4                - edit file
 F5/5                - copy selected (or current if none selected) directories and files
 F7/7                - create directory
-DEL/d               - delete selected (or current if none selected) directories and files
+DEL/x               - delete selected (or current if none selected) directories and files
 /                   - find string
 n                   - find next string
 p                   - find previous string
