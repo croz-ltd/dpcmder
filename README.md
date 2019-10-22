@@ -27,9 +27,9 @@ dpcmder -l LOCAL_FOLDER_PATH [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_UR
 ## Saving DataPower connection parameters
 
 If you choose to use flag "-c" to save DataPower connection parameters be aware
-that password is saved if provided with "-p" flag. *Though it is not saved
+that password is saved if provided with "-p" flag. **Though password is not saved
 as clear text it is not encrypted so don't save password if you are afraid
-your dpcmder configuration file (~/.dpcmder/config.json) could be compromised.*
+your dpcmder configuration file (~/.dpcmder/config.json) could be compromised.**
 
 ## Build
 
