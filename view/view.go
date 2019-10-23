@@ -415,6 +415,7 @@ func editCurrent(m *model.Model) {
 }
 
 func copyItem(m *model.Model, fromRepo, toRepo repo.Repo, fromBasePath, toBasePath string, item model.Item, confirmOverwrite string) string {
+	logging.LogDebug(fmt.Sprintf("view.copyItem(.., .., .., %v, %v, %v, %v)", fromBasePath, toBasePath, item, confirmOverwrite))
 	if item.IsDirectory() {
 		confirmOverwrite = copyDirs(m, fromRepo, toRepo, fromBasePath, toBasePath, item.Name, confirmOverwrite)
 	} else if item.IsFile() {

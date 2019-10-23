@@ -76,6 +76,8 @@ func httpRequest(urlFullPath, method, body string) string {
 
 	if err != nil {
 		logging.LogFatal("dp Can't send request: ", err)
+		// 2019/10/22 08:39:14 dp Can't send request: Post https://10.123.56.55:5550/service/mgmt/current: dial tcp 10.123.56.55:5550: i/o timeout
+		//exit status 1
 	}
 	defer resp.Body.Close()
 
@@ -364,9 +366,11 @@ func (r *DpRepo) GetFileType(m *model.Model, parentPath, fileName string) byte {
 			return 'd'
 		} else if len(file) == 1 {
 			return 'f'
+		} else if len(file) == 0 {
+			return ' '
 		}
 
-		logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType() - wronge response: '%s'", jsonString))
+		logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType(.., '%s', '%s') - wrong response: '%s'", parentPath, fileName, jsonString))
 	} else if config.DpUseSoma() {
 		if parentPath != "" {
 			dpFilestoreLocation, _ := utils.SplitOnFirst(parentPath, "/")
@@ -394,9 +398,11 @@ func (r *DpRepo) GetFileType(m *model.Model, parentPath, fileName string) byte {
 				return 'd'
 			} else if len(dpFileNodes) == 1 {
 				return 'f'
+			} else if len(dpFileNodes) == 0 {
+				return ' '
 			}
 
-			logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType() - wronge response: '%s'", r.dpFilestoreXml))
+			logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType(.., '%s', '%s') - wrong response: '%s'", parentPath, fileName, r.dpFilestoreXml))
 		} else {
 			if m.DpDomain() != "" {
 				return 'd'
