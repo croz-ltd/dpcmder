@@ -84,7 +84,7 @@ func confidentBootstrap() {
 	k.Name = "config"
 	k.Type = "json"
 	k.Path = configDirPath()
-	// k.Path = configDirPathEnsureExists()
+	k.Path = configDirPathEnsureExists()
 	k.Permission = os.FileMode(0644)
 	// </Optional>
 	logging.LogDebug("Conf before read: ", Conf)
