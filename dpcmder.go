@@ -36,7 +36,6 @@ func setupCloseHandler() {
 	signal.Notify(c, os.Interrupt, syscall.SIGKILL)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT)
 	signal.Notify(c, os.Interrupt, syscall.SIGHUP)
-	signal.Notify(c)
 	go func() {
 		s := <-c
 		logging.LogDebug("System interrupt signal received, dpcmder ending. s: ", s)
