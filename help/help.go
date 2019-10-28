@@ -31,6 +31,8 @@ F5/5                - copy selected (or current if none selected) directories an
                     - if selected is DataPower configuration create export of whole appliance (TODO)
 F7/7                - create directory
 DEL/x               - delete selected (or current if none selected) directories and files
+d                   - diff current files/directories
+                      ("blocking" diff command have to be used, for example script ldiff.sh containing "diff $1 $2 | less")
 /                   - find string
 n                   - find next string
 p                   - find previous string
@@ -62,7 +64,7 @@ don't have proper rights. With REST you can get domain list without any credenti
 
 TODO:
 
-- add diff for files
+- add domain/appliance export
 - add default value for input questions (set it after first user selection), for example:
   - Are you sure you want to disable sync mode [y/n] (): y
 	- Are you sure you want to disable sync mode [y/n] (y):
