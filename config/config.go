@@ -53,6 +53,7 @@ type Config struct {
 type Command struct {
 	Viewer string
 	Editor string
+	Diff   string
 }
 
 type Log struct {
@@ -73,7 +74,12 @@ type DataPowerAppliance struct {
 }
 
 //var Cmd = Command{Viewer: "less", Editor: "vi"}
-var Conf = Config{Cmd: Command{Viewer: "less", Editor: "vi"}, Log: Log{MaxEntrySize: logging.MaxEntrySize}, Sync: Sync{Seconds: 4}, DataPowerAppliances: make(map[string]DataPowerAppliance)}
+var Conf = Config{
+	Cmd: Command{
+		Viewer: "less", Editor: "vi", Diff: "ldiff"},
+	Log:                 Log{MaxEntrySize: logging.MaxEntrySize},
+	Sync:                Sync{Seconds: 4},
+	DataPowerAppliances: make(map[string]DataPowerAppliance)}
 
 var k *confident.Confident
 

@@ -1,16 +1,23 @@
 package extprogs
 
 import (
-	"github.com/nsf/termbox-go"
+	"errors"
+	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/nsf/termbox-go"
 	"io/ioutil"
 	"os"
 	"os/exec"
 )
 
 // View shows given bytes in external text editor
-func View(name string, content []byte) {
+func View(name string, content []byte) error {
+	logging.LogDebug("extprogs.View() ", name)
+	if config.Conf.Cmd.Viewer == "" {
+		return errors.New("Viewer command not configured.")
+	}
+
 	termbox.Close()
 	defer termbox.Init()
 
@@ -32,11 +39,18 @@ func View(name string, content []byte) {
 	if err != nil {
 		logging.LogFatal("extprogs.View() ", err)
 	}
+
+	return nil
 }
 
 // Edit shows given bytes in external text editor and returns changed contents
 // of file if file is changed
-func Edit(name string, content []byte) (changed bool, newContent []byte) {
+func Edit(name string, content []byte) (returnError error, changed bool, newContent []byte) {
+	logging.LogDebug("extprogs.Edit() ", name)
+	if config.Conf.Cmd.Editor == "" {
+		return errors.New("Editor command not configured."), false, nil
+	}
+
 	termbox.Close()
 	defer termbox.Init()
 
@@ -75,7 +89,52 @@ func Edit(name string, content []byte) (changed bool, newContent []byte) {
 		if err != nil {
 			logging.LogFatal("extprogs.Edit(): ", err)
 		}
-		return true, newContent
+		return nil, true, newContent
 	}
-	return false, nil
+
+	return nil, false, nil
+}
+
+// CreateTempDir creates temporary directory required for Diff()
+func CreateTempDir(dirPrefix string) string {
+	dir, err := ioutil.TempDir(".", dirPrefix)
+	if err != nil {
+		logging.LogFatal("extprogs.CreateTempDir() ", err)
+	}
+	return dir
+}
+
+// DeleteTempDir deletes temporary directory created for Diff()
+func DeleteTempDir(dirPath string) string {
+	err := os.RemoveAll(dirPath)
+	if err != nil {
+		logging.LogDebug("extprogs.DeleteTempDir() ", err)
+		return fmt.Sprintf("Error deleting '%s' dir.", dirPath)
+	}
+	return ""
+}
+
+// Diff compares files/directories in external diff
+func Diff(leftPath string, rightPath string) error {
+	logging.LogDebug("extprogs.Diff() ", leftPath, " - ", rightPath)
+	if config.Conf.Cmd.Diff == "" {
+		return errors.New("Diff command not configured.")
+	}
+
+	termbox.Close()
+	defer termbox.Init()
+	diffCmd := exec.Command(config.Conf.Cmd.Diff, leftPath, rightPath)
+
+	diffCmd.Stdout = os.Stdout
+	diffCmd.Stderr = os.Stderr
+	diffCmd.Stdin = os.Stdin
+
+	logging.LogDebug("extprogs.Diff() before run")
+	err := diffCmd.Run()
+	logging.LogDebug("extprogs.Diff() after run")
+	if err != nil {
+		logging.LogFatal("extprogs.Diff() ", err)
+	}
+
+	return nil
 }

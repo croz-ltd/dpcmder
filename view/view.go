@@ -157,6 +157,8 @@ loop:
 			editCurrent(m)
 		case key.F5, key.Ch5:
 			copyCurrent(m)
+		case key.Chd:
+			diffCurrent(m)
 		case key.F7, key.Ch7:
 			createDirectory(m)
 		case key.Del, key.Chx:
@@ -390,15 +392,19 @@ func enterCurrentDirectory(m *model.Model) {
 func viewCurrent(m *model.Model) {
 	ci := m.CurrItem()
 	logging.LogDebug("view.viewCurrent(), item: ", ci, ", type: ", ci.Type)
+	var err error
 	if ci.IsFile() {
 		fileContent := repos[m.CurrSide()].GetFile(m, m.CurrPath(), ci.Name)
 		if fileContent != nil {
-			extprogs.View(ci.Name, fileContent)
+			err = extprogs.View(ci.Name, fileContent)
 		} else {
 			currentStatus = fmt.Sprintf("Can't fetch file '%s' from path '%s'.", ci.Name, m.CurrPath())
 		}
 	} else if ci.IsDpAppliance() {
-		extprogs.View(ci.Name, config.Conf.GetDpApplianceConfig(ci.Name))
+		err = extprogs.View(ci.Name, config.Conf.GetDpApplianceConfig(ci.Name))
+	}
+	if err != nil {
+		currentStatus = err.Error()
 	}
 }
 
@@ -406,7 +412,10 @@ func editCurrent(m *model.Model) {
 	if m.CurrItem().IsFile() {
 		fileName := m.CurrItem().Name
 		fileContent := repos[m.CurrSide()].GetFile(m, m.CurrPath(), fileName)
-		changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
+		err, changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
+		if err != nil {
+			currentStatus = err.Error()
+		}
 		if changed {
 			repos[m.CurrSide()].UpdateFile(m, m.CurrPath(), fileName, newFileContent)
 			repos[m.CurrSide()].LoadCurrent(m)
@@ -488,6 +497,31 @@ func copyCurrent(m *model.Model) {
 	}
 
 	repos[toSide].LoadCurrent(m)
+}
+
+func diffCurrent(m *model.Model) {
+	logging.LogDebug("view.diffCurrent()")
+	dpBasePath := m.CurrPathForSide(model.Left)
+	localBasePath := m.CurrPathForSide(model.Right)
+
+	dpItem := m.CurrItemForSide(model.Left)
+	localItem := m.CurrItemForSide(model.Right)
+
+	if dpItem.Type == localItem.Type {
+		dpCopyDir := extprogs.CreateTempDir("dp")
+		copyItem(m, &dp.Repo, localfs.Repo, dpBasePath, dpCopyDir, *dpItem, "y")
+		dpCopyItemPath := dp.Repo.GetFilePath(dpCopyDir, dpItem.Name)
+		localItemPath := localfs.Repo.GetFilePath(localBasePath, localItem.Name)
+		err := extprogs.Diff(dpCopyItemPath, localItemPath)
+		if err != nil {
+			currentStatus = err.Error()
+		}
+		extprogs.DeleteTempDir(dpCopyDir)
+		logging.LogDebug("view.diffCurrent() after DeleteTempDir")
+	} else {
+		currentStatus = fmt.Sprintf("Can't compare different file types '%s' (%s) to '%s' (%s)",
+			dpItem.Name, string(dpItem.Type), localItem.Name, string(localItem.Type))
+	}
 }
 
 func currentPath(m *model.Model, fileName string) string {
