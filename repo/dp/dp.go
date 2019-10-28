@@ -331,7 +331,7 @@ func (r *DpRepo) GetFilePath(parentPath, relativePath string) string {
 	} else if relativePath == "" {
 		return parentPath
 	} else {
-		// For case we get relativPath from Windwos local fs
+		// For case we get relativPath from Windows local fs
 		return parentPath + "/" + strings.Replace(relativePath, "\\", "/", -1)
 	}
 }
