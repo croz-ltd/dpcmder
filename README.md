@@ -113,8 +113,12 @@ F2/2                - refresh focused pane (reload files/dirs)
 F3/3                - view current file
 F4/4                - edit file
 F5/5                - copy selected (or current if none selected) directories and files
+                    - if selected is DataPower domain create export of domain (TODO)
+                    - if selected is DataPower configuration create export of whole appliance (TODO)
 F7/7                - create directory
 DEL/x               - delete selected (or current if none selected) directories and files
+d                   - diff current files/directories
+                      ("blocking" diff command have to be used, for example script ldiff.sh containing "diff $1 $2 | less")
 /                   - find string
 n                   - find next string
 p                   - find previous string
