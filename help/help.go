@@ -52,11 +52,14 @@ u i o
 j k l
 a   z
 
-Custom Viewer/Editor commands:
+Custom external (Viewer/Editor/Diff) commands:
 dpcmder configuration is saved to ~/.dpcmder/config.json where commands used for
-calling viewer and editor are set. By default these are "less" and "vi" but could
-be any commands although edit command should not be started in background (for
-example: a new tab in editor which is already open) for editing to work as expected.
+calling external commands are set. By default these are "less", "vi" and "ldiff"
+but could be any commands. All of those commands should be started in foreground
+and should wait for user's input to complete. For example for viewer "less" or
+"more" can be used while "cat" will not work. For file comparison normal "diff"
+command can't be used but "blocking" diff script must be prepared
+(something like: diff "$1" "$2" | less).
 
 SOMA (+ AMP) vs REST:
 SOMA and AMP interfaces have one shortcoming - you can't see domain list if you
@@ -64,6 +67,7 @@ don't have proper rights. With REST you can get domain list without any credenti
 
 TODO:
 
+- refactoring/clean up
 - add domain/appliance export
 - add default value for input questions (set it after first user selection), for example:
   - Are you sure you want to disable sync mode [y/n] (): y
