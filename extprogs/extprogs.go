@@ -23,7 +23,8 @@ func View(name string, content []byte) error {
 
 	f, err := ioutil.TempFile(".", name)
 	if err != nil {
-		logging.LogFatal("extprogs.View() ", err)
+		logging.LogDebug("extprogs.View() ", err)
+		return err
 	}
 	f.Write(content)
 	f.Close()
@@ -37,10 +38,10 @@ func View(name string, content []byte) error {
 
 	err = viewCmd.Run()
 	if err != nil {
-		logging.LogFatal("extprogs.View() ", err)
+		logging.LogDebug("extprogs.View() ", err)
 	}
 
-	return nil
+	return err
 }
 
 // Edit shows given bytes in external text editor and returns changed contents
@@ -56,7 +57,8 @@ func Edit(name string, content []byte) (returnError error, changed bool, newCont
 
 	f, err := ioutil.TempFile(".", name)
 	if err != nil {
-		logging.LogFatal("extprogs.Edit() ", err)
+		logging.LogDebug("extprogs.Edit() ", err)
+		return err, false, nil
 	}
 	f.Write(content)
 	f.Close()
@@ -64,7 +66,8 @@ func Edit(name string, content []byte) (returnError error, changed bool, newCont
 
 	fileInfo, err := os.Stat(f.Name())
 	if err != nil {
-		logging.LogFatal("extprogs.Edit() ", err)
+		logging.LogDebug("extprogs.Edit() ", err)
+		return err, false, nil
 	}
 	time1 := fileInfo.ModTime()
 
@@ -76,18 +79,21 @@ func Edit(name string, content []byte) (returnError error, changed bool, newCont
 
 	err = viewCmd.Run()
 	if err != nil {
-		logging.LogFatal("extprogs.Edit() ", err)
+		logging.LogDebug("extprogs.Edit() ", err)
+		return err, false, nil
 	}
 
 	fileInfo, err = os.Stat(f.Name())
 	if err != nil {
-		logging.LogFatal("extprogs.Edit() ", err)
+		logging.LogDebug("extprogs.Edit() ", err)
+		return err, false, nil
 	}
 	time2 := fileInfo.ModTime()
 	if time1 != time2 {
 		newContent, err := ioutil.ReadFile(f.Name())
 		if err != nil {
-			logging.LogFatal("extprogs.Edit(): ", err)
+			logging.LogDebug("extprogs.Edit(): ", err)
+			return err, false, nil
 		}
 		return nil, true, newContent
 	}
@@ -129,12 +135,10 @@ func Diff(leftPath string, rightPath string) error {
 	diffCmd.Stderr = os.Stderr
 	diffCmd.Stdin = os.Stdin
 
-	logging.LogDebug("extprogs.Diff() before run")
 	err := diffCmd.Run()
-	logging.LogDebug("extprogs.Diff() after run")
 	if err != nil {
-		logging.LogFatal("extprogs.Diff() ", err)
+		logging.LogDebug("extprogs.Diff() err: ", err)
 	}
 
-	return nil
+	return err
 }
