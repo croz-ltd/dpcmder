@@ -71,7 +71,7 @@ func (r LocalRepo) String() string {
 func (r LocalRepo) ListFiles(m *model.Model, dirPath string) []model.Item {
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
-		logging.LogFatal("localfs.ListFiles(): ", err)
+		logging.LogFatal("repo.localfs.ListFiles(): ", err)
 	}
 
 	items := make(model.ItemList, len(files))
@@ -109,7 +109,7 @@ func (r LocalRepo) LoadCurrent(m *model.Model) {
 func (r LocalRepo) InitialLoad(m *model.Model) {
 	currPath, err := filepath.Abs(*config.LocalFolderPath)
 	if err != nil {
-		logging.LogFatal("localfs.InitialLoad(): ", err)
+		logging.LogFatal("repo.localfs.InitialLoad(): ", err)
 	}
 
 	m.SetCurrPathForSide(localSide, currPath)
@@ -179,7 +179,7 @@ func (r LocalRepo) GetFileType(m *model.Model, parentPath, fileName string) byte
 func (r LocalRepo) GetFileByPath(filePath string) []byte {
 	result, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		logging.LogFatal(fmt.Sprintf("localfs.GetFileByPath('%s'): ", filePath), err)
+		logging.LogFatal(fmt.Sprintf("repo.localfs.GetFileByPath('%s'): ", filePath), err)
 	}
 	return result
 }
@@ -192,7 +192,7 @@ func (r LocalRepo) UpdateFile(m *model.Model, parentPath, fileName string, newFi
 	filePath := r.GetFilePath(parentPath, fileName)
 	err := ioutil.WriteFile(filePath, newFileContent, os.ModePerm)
 	if err != nil {
-		logging.LogFatal(fmt.Sprintf("localfs.UpdateFile('%s', '%s'): ", parentPath, fileName), err)
+		logging.LogFatal(fmt.Sprintf("repo.localfs.UpdateFile('%s', '%s'): ", parentPath, fileName), err)
 	}
 
 	return true
@@ -201,14 +201,14 @@ func (r LocalRepo) UpdateFile(m *model.Model, parentPath, fileName string, newFi
 func (r LocalRepo) Delete(m *model.Model, parentPath, fileName string) bool {
 	fileType := r.GetFileType(m, parentPath, fileName)
 	filePath := r.GetFilePath(parentPath, fileName)
-	logging.LogDebug(fmt.Sprintf("localfs.Delete(%s, %s), fileType: %s\n", parentPath, fileName, string(fileType)))
+	logging.LogDebug(fmt.Sprintf("repo.localfs.Delete(%s, %s), fileType: %s\n", parentPath, fileName, string(fileType)))
 
 	if fileType == 'f' {
 		os.Remove(filePath)
 	} else if fileType == 'd' {
 		subFiles, err := ioutil.ReadDir(filePath)
 		if err != nil {
-			logging.LogFatal(fmt.Sprintf("localfs.Delete('%s', '%s'): ", parentPath, fileName), err)
+			logging.LogFatal(fmt.Sprintf("repo.localfs.Delete('%s', '%s'): ", parentPath, fileName), err)
 		}
 		for _, subFile := range subFiles {
 			r.Delete(m, filePath, subFile.Name())
@@ -222,12 +222,12 @@ func (r LocalRepo) Delete(m *model.Model, parentPath, fileName string) bool {
 func (r LocalRepo) CreateDir(m *model.Model, parentPath, dirName string) bool {
 	fi, err := os.Stat(parentPath)
 	if err != nil {
-		logging.LogFatal(fmt.Sprintf("localfs.CreateDir('%s', '%s'): ", parentPath, dirName), err)
+		logging.LogFatal(fmt.Sprintf("repo.localfs.CreateDir('%s', '%s'): ", parentPath, dirName), err)
 	}
 	dirPath := r.GetFilePath(parentPath, dirName)
 	err = os.Mkdir(dirPath, fi.Mode())
 	if err != nil {
-		logging.LogFatal(fmt.Sprintf("localfs.CreateDir('%s', '%s'): ", parentPath, dirName), err)
+		logging.LogFatal(fmt.Sprintf("repo.localfs.CreateDir('%s', '%s'): ", parentPath, dirName), err)
 	}
 	return true
 }
@@ -236,7 +236,7 @@ func (r LocalRepo) IsEmptyDir(m *model.Model, parentPath, dirName string) bool {
 	dirPath := r.GetFilePath(parentPath, dirName)
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
-		logging.LogFatal("localfs.IsEmptyDir(): ", err)
+		logging.LogFatal("repo.localfs.IsEmptyDir(): ", err)
 	}
 
 	return len(files) == 0
@@ -248,15 +248,15 @@ func (r LocalRepo) LoadTree(pathFromRoot, filePath string) (LocalfsTree, error) 
 
 	fi, err := os.Stat(filePath)
 	if err != nil {
-		errorMsg = fmt.Sprintf("localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
-		logging.LogDebug("localfs.LoadTree(), err: ", err)
+		errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
+		logging.LogDebug("repo.localfs.LoadTree(), err: ", err)
 	}
 
 	if fi.IsDir() {
 		tree.Dir = true
 	} else if fi.Name() == "" {
-		errorMsg = fmt.Sprintf("localfs.LoadTree('%s', '%s'): fi.Name() not found.", pathFromRoot, filePath)
-		logging.LogDebug("localfs.LoadTree() fi.Name() not found.")
+		errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): fi.Name() not found.", pathFromRoot, filePath)
+		logging.LogDebug("repo.localfs.LoadTree() fi.Name() not found.")
 	}
 
 	tree.Name = fi.Name()
@@ -267,8 +267,8 @@ func (r LocalRepo) LoadTree(pathFromRoot, filePath string) (LocalfsTree, error) 
 	if tree.Dir {
 		files, err := ioutil.ReadDir(filePath)
 		if err != nil {
-			errorMsg = fmt.Sprintf("localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
-			logging.LogDebug("localfs.LoadTree(): ", err)
+			errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
+			logging.LogDebug("repo.localfs.LoadTree(): ", err)
 		}
 
 		tree.Children = make([]LocalfsTree, len(files))
@@ -278,13 +278,13 @@ func (r LocalRepo) LoadTree(pathFromRoot, filePath string) (LocalfsTree, error) 
 			childRelPath := r.GetFilePath(pathFromRoot, file.Name())
 			tree.Children[i], err = r.LoadTree(childRelPath, childPath)
 			if err != nil {
-				errorMsg = fmt.Sprintf("localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
-				logging.LogDebug("localfs.LoadTree(): ", err)
+				errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
+				logging.LogDebug("repo.localfs.LoadTree(): ", err)
 			}
 		}
 	}
 
-	// logging.LogDebug("localfs.LoadTree(), tree: ", tree)
+	// logging.LogDebug("repo.localfs.LoadTree(), tree: ", tree)
 	if errorMsg != "" {
 		return tree, &LocalfsError{errorMsg}
 	} else {
