@@ -58,7 +58,7 @@ func InitNetworkSettings() {
 }
 
 func httpRequest(urlFullPath, method, body string) string {
-	logging.LogDebug(fmt.Sprintf("dp.httpRequest(%s, %s, '%s')", urlFullPath, method, body))
+	logging.LogDebug(fmt.Sprintf("repo.dp.httpRequest(%s, %s, '%s')", urlFullPath, method, body))
 
 	client := &http.Client{}
 	var bodyReader io.Reader
@@ -67,7 +67,7 @@ func httpRequest(urlFullPath, method, body string) string {
 	}
 	req, err := http.NewRequest(method, urlFullPath, bodyReader)
 	if err != nil {
-		logging.LogFatal("dp Can't prepare request: ", err)
+		logging.LogFatal("repo.dp.httpRequest() - Can't prepare request: ", err)
 	}
 
 	// logging.LogDebug(fmt.Sprintf("dp username:password: '%s:%s'", *config.DpUsername, config.DpPassword()))
@@ -75,7 +75,7 @@ func httpRequest(urlFullPath, method, body string) string {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		logging.LogFatal("dp Can't send request: ", err)
+		logging.LogFatal("repo.dp.httpRequest() - Can't send request: ", err)
 		// 2019/10/22 08:39:14 dp Can't send request: Post https://10.123.56.55:5550/service/mgmt/current: dial tcp 10.123.56.55:5550: i/o timeout
 		//exit status 1
 	}
@@ -84,21 +84,23 @@ func httpRequest(urlFullPath, method, body string) string {
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			logging.LogFatal("dp Can't read response: ", err)
+			logging.LogFatal("repo.dp.httpRequest() - Can't read response: ", err)
 		}
-		logging.LogDebug(fmt.Sprintf("dp httpResponse: '%s'", string(bodyBytes)))
+		logging.LogDebug(fmt.Sprintf("repo.dp.httpRequest() - httpResponse: '%s'", string(bodyBytes)))
 		return string(bodyBytes)
 	} else {
-		logging.LogDebug(fmt.Sprintf("dp resp.StatusCode: '%d'", resp.StatusCode))
+		logging.LogDebug(fmt.Sprintf("repo.dp.httpRequest() - resp.StatusCode: '%d'", resp.StatusCode))
 		if resp.StatusCode == 403 || resp.StatusCode == 404 {
 			return ""
 		}
-		logging.LogFatal("HTTP " + method + " call to '" + urlFullPath + "' returned HTTP StatusCode " + string(resp.StatusCode) + "(" + resp.Status + ")")
+		logging.LogFatal(fmt.Sprintf("repo.dp.httpRequest() - HTTP %s call to '%s' returned HTTP StatusCode %v (%s)",
+			method, urlFullPath, resp.StatusCode, resp.Status))
 		return ""
 	}
 }
 
 func fetchDpDomains() []string {
+	logging.LogDebug(fmt.Sprintf("repo.dp.fetchDpDomains()"))
 	domains := make([]string, 0)
 
 	if config.DpUseRest() {
@@ -109,7 +111,7 @@ func fetchDpDomains() []string {
 		if err != nil {
 			logging.LogFatal(err)
 		}
-		list := jsonquery.Find(doc, "/domain/*/name")
+		list := jsonquery.Find(doc, "/domain/name")
 		for _, n := range list {
 			domains = append(domains, n.InnerText())
 		}
@@ -132,7 +134,7 @@ func fetchDpDomains() []string {
 }
 
 func (r *DpRepo) InitialLoad(m *model.Model) {
-	logging.LogDebug(fmt.Sprintf("InitialLoad(), m.DpDomain(): %s, %s", m.DpAppliance(), m.DpDomain()))
+	logging.LogDebug(fmt.Sprintf("repo.dp.InitialLoad(), m.DpDomain(): %s, %s", m.DpAppliance(), m.DpDomain()))
 
 	m.SetCurrPathForSide(dpSide, "")
 	setTitle(m, "")
@@ -141,7 +143,7 @@ func (r *DpRepo) InitialLoad(m *model.Model) {
 }
 
 func (r *DpRepo) LoadCurrent(m *model.Model) {
-	logging.LogDebug(fmt.Sprintf("LoadCurrent(), dpSide: %v", dpSide))
+	logging.LogDebug(fmt.Sprintf("repo.dp.LoadCurrent(), dpSide: %v", dpSide))
 
 	currPath := m.CurrPathForSide(dpSide)
 	if *config.DpUsername == "" {
@@ -195,7 +197,7 @@ func (r *DpRepo) EnterCurrentDirectory(m *model.Model) {
 	currPath := m.CurrPathForSide(dpSide)
 	dirName := m.CurrItemForSide(dpSide).Name
 	logging.LogDebug(fmt.Sprintf(
-		"dp.EnterCurrentDirectory() dpAppliance: '%s', dpDomain: '%s', currPath '%s', dirName: '%s'",
+		"repo.dp.EnterCurrentDirectory() dpAppliance: '%s', dpDomain: '%s', currPath '%s', dirName: '%s'",
 		dpAppliance, dpDomain, currPath, dirName))
 	newCurrentItemName := ".."
 	if dpAppliance == "" {
@@ -209,7 +211,7 @@ func (r *DpRepo) EnterCurrentDirectory(m *model.Model) {
 			m.SetDpAppliance("")
 			config.ClearDpConfig()
 			logging.LogDebug(fmt.Sprintf(
-				"dp.EnterCurrentDirectory() dpAppliance: '%s', dpDomain: '%s', currPath '%s', dirName: '%s'",
+				"repo.dp.EnterCurrentDirectory() dpAppliance: '%s', dpDomain: '%s', currPath '%s', dirName: '%s'",
 				dpAppliance, dpDomain, currPath, dirName))
 		} else if currPath == "" {
 			m.SetDpDomain("")
@@ -320,7 +322,7 @@ func (r *DpRepo) GetFileName(filePath string) string {
 }
 
 func (r *DpRepo) GetFilePath(parentPath, relativePath string) string {
-	logging.LogDebug(fmt.Sprintf("dp.GetFilePath('%s', '%s')\n", parentPath, relativePath))
+	logging.LogDebug(fmt.Sprintf("repo.dp.GetFilePath('%s', '%s')\n", parentPath, relativePath))
 	if relativePath == ".." {
 		lastSlashIdx := strings.LastIndex(parentPath, "/")
 		if lastSlashIdx != -1 && len(parentPath) > 1 {
@@ -337,14 +339,14 @@ func (r *DpRepo) GetFilePath(parentPath, relativePath string) string {
 }
 
 func (r *DpRepo) GetFileTypeFromPath(m *model.Model, filePath string) byte {
-	logging.LogDebug(fmt.Sprintf("dp.GetFileTypeFromPath('%s')\n", filePath))
+	logging.LogDebug(fmt.Sprintf("repo.dp.GetFileTypeFromPath('%s')\n", filePath))
 	parentPath, fileName := utils.SplitOnLast(filePath, "/")
 	return r.GetFileType(m, parentPath, fileName)
 }
 
 func (r *DpRepo) GetFileType(m *model.Model, parentPath, fileName string) byte {
 	filePath := r.GetFilePath(parentPath, fileName)
-	logging.LogDebug(fmt.Sprintf("dp.GetFileType('%s', '%s')\n", parentPath, fileName))
+	logging.LogDebug(fmt.Sprintf("repo.dp.GetFileType('%s', '%s')\n", parentPath, fileName))
 
 	if config.DpUseRest() {
 		restPath := r.makeRestPath(m, filePath)
@@ -370,7 +372,7 @@ func (r *DpRepo) GetFileType(m *model.Model, parentPath, fileName string) byte {
 			return ' '
 		}
 
-		logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType(.., '%s', '%s') - wrong response: '%s'", parentPath, fileName, jsonString))
+		logging.LogFatal(fmt.Sprintf("repo.dp.GetFileType(.., '%s', '%s') - wrong response: '%s'", parentPath, fileName, jsonString))
 	} else if config.DpUseSoma() {
 		if parentPath != "" {
 			dpFilestoreLocation, _ := utils.SplitOnFirst(parentPath, "/")
@@ -402,7 +404,7 @@ func (r *DpRepo) GetFileType(m *model.Model, parentPath, fileName string) byte {
 				return ' '
 			}
 
-			logging.LogFatal(fmt.Sprintf("ERROR: repo.dp.GetFileType(.., '%s', '%s') - wrong response: '%s'", parentPath, fileName, r.dpFilestoreXml))
+			logging.LogFatal(fmt.Sprintf("repo.dp.GetFileType(.., '%s', '%s') - wrong response: '%s'", parentPath, fileName, r.dpFilestoreXml))
 		} else {
 			if m.DpDomain() != "" {
 				return 'd'
@@ -482,7 +484,7 @@ func (r *DpRepo) UpdateFileByPath(m *model.Model, dpPath string, newFileContent 
 	return r.UpdateFile(m, parentPath, fileName, newFileContent)
 }
 func (r *DpRepo) UpdateFile(m *model.Model, parentPath, fileName string, newFileContent []byte) bool {
-	logging.LogDebug(fmt.Sprintf("dp.UpdateFile(%s, %s)\n", parentPath, fileName))
+	logging.LogDebug(fmt.Sprintf("repo.dp.UpdateFile(%s, %s)\n", parentPath, fileName))
 	fileType := r.GetFileType(m, parentPath, fileName)
 
 	if config.DpUseRest() {
@@ -492,7 +494,7 @@ func (r *DpRepo) UpdateFile(m *model.Model, parentPath, fileName string, newFile
 			updateFilePath = r.GetFilePath(parentPath, fileName)
 			restMethod = "PUT"
 		} else if fileType == 'd' {
-			logging.LogFatal(fmt.Sprintf("ERROR: can't upload file '%s' to '%s', directory with same name exists.", fileName, parentPath))
+			logging.LogFatal(fmt.Sprintf("repo.dp.UpdateFile() - can't upload file '%s' to '%s', directory with same name exists.", fileName, parentPath))
 		}
 		requestBody := "{\"file\":{\"name\":\"" + fileName + "\",\"content\":\"" + base64.StdEncoding.EncodeToString(newFileContent) + "\"}}"
 
@@ -506,13 +508,13 @@ func (r *DpRepo) UpdateFile(m *model.Model, parentPath, fileName string, newFile
 
 		jsonError := jsonquery.Find(doc, "/error")
 		if len(jsonError) != 0 {
-			logging.LogFatal(fmt.Sprintf("ERROR uploading file '%s' to '%s', returned '%s'.", fileName, parentPath, jsonString))
+			logging.LogFatal(fmt.Sprintf("repo.dp.UpdateFile() - uploading file '%s' to '%s', returned '%s'.", fileName, parentPath, jsonString))
 		}
 
 		return true
 	} else if config.DpUseSoma() {
 		if fileType == 'd' {
-			logging.LogFatal(fmt.Sprintf("ERROR: can't upload file '%s' to '%s', directory with same name exists.", fileName, parentPath))
+			logging.LogFatal(fmt.Sprintf("repo.dp.UpdateFile() - can't upload file '%s' to '%s', directory with same name exists.", fileName, parentPath))
 		} else {
 			filePath := r.GetFilePath(parentPath, fileName)
 			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
@@ -590,7 +592,7 @@ func (r *DpRepo) CreateDirByPath(m *model.Model, dirPath string) bool {
 }
 func (r *DpRepo) CreateDir(m *model.Model, parentPath, dirName string) bool {
 	fileType := r.GetFileType(m, parentPath, dirName)
-	logging.LogDebug(fmt.Sprintf("dp.CreateDir(m, ''%s', ''%s')", parentPath, dirName))
+	logging.LogDebug(fmt.Sprintf("repo.dp.CreateDir(m, ''%s', ''%s')", parentPath, dirName))
 
 	if fileType == '0' {
 		if config.DpUseRest() {
@@ -608,7 +610,7 @@ func (r *DpRepo) CreateDir(m *model.Model, parentPath, dirName string) bool {
 			if len(error) == 0 {
 				return true
 			} else {
-				logging.LogFatal(fmt.Sprintf("ERROR: can't create dir '%s' at '%s', json returned : '%s'.", dirName, parentPath, jsonString))
+				logging.LogFatal(fmt.Sprintf("repo.dp.CreateDir() - can't create dir '%s' at '%s', json returned : '%s'.", dirName, parentPath, jsonString))
 			}
 		} else if config.DpUseSoma() {
 			dirPath := r.GetFilePath(parentPath, dirName)
@@ -630,7 +632,7 @@ func (r *DpRepo) CreateDir(m *model.Model, parentPath, dirName string) bool {
 			}
 		}
 	} else if fileType == 'f' {
-		logging.LogFatal(fmt.Sprintf("ERROR: can't create dir '%s' at '%s', file with same name exists.", dirName, parentPath))
+		logging.LogFatal(fmt.Sprintf("repo.dp.CreateDir() - can't create dir '%s' at '%s', file with same name exists.", dirName, parentPath))
 	}
 
 	return false
@@ -651,7 +653,7 @@ func (r *DpRepo) makeRestPath(m *model.Model, filePath string) string {
 // loadAppliances loads DataPower appliances from configuration.
 func (r *DpRepo) loadAppliances(m *model.Model) {
 	appliances := config.Conf.DataPowerAppliances
-	logging.LogDebug(fmt.Sprintf("dp.loadAppliances(), appliances: %v", appliances))
+	logging.LogDebug(fmt.Sprintf("repo.dp.loadAppliances(), appliances: %v", appliances))
 
 	items := make(model.ItemList, len(appliances))
 	idx := 0
@@ -660,11 +662,11 @@ func (r *DpRepo) loadAppliances(m *model.Model) {
 		idx = idx + 1
 	}
 
-	logging.LogDebug(fmt.Sprintf("dp.loadAppliances(), items: %v", items))
+	logging.LogDebug(fmt.Sprintf("repo.dp.loadAppliances(), items: %v", items))
 
 	sort.Sort(items)
 
-	logging.LogDebug(fmt.Sprintf("dp.loadAppliances(), items: %v", items))
+	logging.LogDebug(fmt.Sprintf("repo.dp.loadAppliances(), items: %v", items))
 
 	m.SetItems(dpSide, items)
 }
@@ -672,7 +674,7 @@ func (r *DpRepo) loadAppliances(m *model.Model) {
 // loadDomains loads DataPower domains from current DataPower.
 func (r *DpRepo) loadDomains(m *model.Model) {
 	domainNames := fetchDpDomains()
-	logging.LogDebug(fmt.Sprintf("loadDomains(), domainNames: %v", domainNames))
+	logging.LogDebug(fmt.Sprintf("repo.dp.loadDomains(), domainNames: %v", domainNames))
 
 	items := make(model.ItemList, len(domainNames)+1)
 	items[0] = model.Item{Type: 'A', Name: "..", Size: "", Modified: "", Selected: false}
@@ -760,7 +762,7 @@ func (r *DpRepo) loadCurrentPath(m *model.Model) {
 	dpDomain := m.DpDomain()
 	currPath := m.CurrPathForSide(dpSide)
 	logging.LogDebug(fmt.Sprintf(
-		"dp.loadCurrentPath() dpAppliance: '%s', dpDomain: '%s', currPath '%s'",
+		"repo.dp.loadCurrentPath() dpAppliance: '%s', dpDomain: '%s', currPath '%s'",
 		dpAppliance, dpDomain, currPath))
 	setTitle(m, currPath)
 
