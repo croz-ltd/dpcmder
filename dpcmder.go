@@ -2,8 +2,6 @@ package main
 
 import (
 	"github.com/croz-ltd/dpcmder/config"
-	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/repo/dp"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view"
 	"github.com/nsf/termbox-go"
@@ -15,15 +13,16 @@ import (
 func main() {
 	config.Init()
 	config.PrintConfig()
-	dp.InitNetworkSettings()
-	model.M.SetDpDomain(*config.DpDomain)
-	if *config.DpUsername != "" {
-		model.M.SetDpAppliance(config.PreviousAppliance)
-	}
+	// dp.InitNetworkSettings()
+	// model.M.SetDpDomain(*config.DpDomain)
+	// if *config.DpUsername != "" {
+	// 	model.M.SetDpAppliance(config.PreviousAppliance)
+	// }
 
 	setupCloseHandler()
 
-	view.Init()
+	eventChan := make(chan string, 1)
+	view.Init(eventChan)
 	// model.M.Print()
 	logging.LogDebug("...dpcmder ending.")
 }

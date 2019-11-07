@@ -93,9 +93,9 @@ func confidentBootstrap() {
 	k.Path = configDirPathEnsureExists()
 	k.Permission = os.FileMode(0644)
 	// </Optional>
-	logging.LogDebug("Conf before read: ", Conf)
+	logging.LogDebug("config/confidentBootstrap() - Conf before read: ", Conf)
 	k.Read()
-	logging.LogDebug("Conf after read: ", Conf)
+	logging.LogDebug("config/confidentBootstrap() - Conf after read: ", Conf)
 	if *DpRestURL != "" || *DpSomaURL != "" {
 		if *DpConfigName != "" {
 			Conf.DataPowerAppliances[*DpConfigName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
@@ -103,7 +103,7 @@ func confidentBootstrap() {
 			Conf.DataPowerAppliances[PreviousAppliance] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
 		}
 		k.Persist()
-		logging.LogDebug("Conf after persist: ", Conf)
+		logging.LogDebug("config/confidentBootstrap() - Conf after persist: ", Conf)
 	}
 }
 
@@ -128,7 +128,7 @@ func parseProgramArgs() {
 func Init() {
 	parseProgramArgs()
 	logging.DebugLogFile = *DebugLogFile
-	logging.LogDebug("dpcmder starting...")
+	logging.LogDebug("config/Init() - dpcmder starting...")
 	validateProgramArgs()
 	confidentBootstrap()
 	validatePassword()
@@ -196,10 +196,10 @@ func validatePassword() {
 func configDirPath() string {
 	usr, err := user.Current()
 	if err != nil {
-		logging.LogFatal("Can't find current user: ", err)
+		logging.LogFatal("config/configDirPath() - Can't find current user: ", err)
 	}
 
-	println("usr.HomeDir: ", usr.HomeDir)
+	// println("usr.HomeDir: ", usr.HomeDir)
 	configDirPath := utils.GetFilePath(usr.HomeDir, configDirName)
 
 	return configDirPath
@@ -212,7 +212,7 @@ func configDirPathEnsureExists() string {
 	if err != nil {
 		err = os.Mkdir(configDirPath, os.ModePerm)
 		if err != nil {
-			logging.LogFatal("Can't create configuration directory: ", err)
+			logging.LogFatal("config/configDirPathEnsureExists() - Can't create configuration directory: ", err)
 		}
 	}
 
@@ -236,7 +236,7 @@ func SetDpPassword(password string) {
 func DpPassword() string {
 	passBytes, err := base32.StdEncoding.DecodeString(*dpPassword)
 	if err != nil {
-		logging.LogFatal("Can't decode password: ", err)
+		logging.LogFatal("config/DpPassword() - Can't decode password: ", err)
 	}
 	return string(passBytes)
 }
@@ -249,7 +249,8 @@ func (c *Config) GetDpApplianceConfig(name string) []byte {
 	dpAppliance := c.DataPowerAppliances[name]
 	json, err := json.MarshalIndent(dpAppliance, "", "  ")
 	if err != nil {
-		logging.LogFatal("Can't unmarshal DataPower appliance configuration: ", err)
+		logging.LogFatal(fmt.Sprintf(
+			"config/GetDpApplianceConfig(%s) - Can't unmarshal DataPower appliance configuration: ", name), err)
 	}
 	return json
 }
