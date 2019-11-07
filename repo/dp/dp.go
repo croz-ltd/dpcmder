@@ -111,7 +111,7 @@ func fetchDpDomains() []string {
 		if err != nil {
 			logging.LogFatal(err)
 		}
-		list := jsonquery.Find(doc, "/domain/name")
+		list := jsonquery.Find(doc, "/domain//name")
 		for _, n := range list {
 			domains = append(domains, n.InnerText())
 		}
