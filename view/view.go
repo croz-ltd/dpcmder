@@ -1,24 +1,20 @@
 package view
 
 import (
-	"fmt"
+	"github.com/croz-ltd/dpcmder/events"
+	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in"
 	"github.com/croz-ltd/dpcmder/view/out"
-	"github.com/nsf/termbox-go"
 )
 
-func Init(eventChan chan string) {
-	fmt.Println("view/Init()")
+func Start(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
+	logging.LogDebug("view/Start()")
 
-	err := termbox.Init()
-	if err != nil {
-		panic(err)
-	}
-	defer termbox.Close()
-	// setScreenSize(m)
-	// draw(m)
-	//
-	// keyPressedLoop(m)
-	out.Init(eventChan)
-	in.Start(eventChan)
+	out.Init(updateViewEventChan)
+	defer out.Stop()
+	in.Start(keyPressedEventChan)
+}
+
+func Stop() {
+	out.Stop()
 }

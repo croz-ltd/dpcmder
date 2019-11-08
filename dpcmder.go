@@ -2,9 +2,10 @@ package main
 
 import (
 	"github.com/croz-ltd/dpcmder/config"
+	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view"
-	"github.com/nsf/termbox-go"
+	"github.com/croz-ltd/dpcmder/worker"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,10 +22,12 @@ func main() {
 
 	setupCloseHandler()
 
-	eventChan := make(chan string, 1)
-	view.Init(eventChan)
+	keyPressedEventChan := make(chan events.KeyPressedEvent, 1)
+	updateViewEventChan := make(chan events.UpdateViewEvent, 1)
+	worker.Init(keyPressedEventChan, updateViewEventChan)
+	view.Start(keyPressedEventChan, updateViewEventChan)
 	// model.M.Print()
-	logging.LogDebug("...dpcmder ending.")
+	logging.LogDebug("main/main() - ...dpcmder ending.")
 }
 
 // SetupCloseHandler creates a 'listener' on a new goroutine which will notify the
@@ -37,8 +40,8 @@ func setupCloseHandler() {
 	signal.Notify(c, os.Interrupt, syscall.SIGHUP)
 	go func() {
 		s := <-c
-		logging.LogDebug("System interrupt signal received, dpcmder ending. s: ", s)
-		termbox.Close()
+		logging.LogDebug("main/setupCloseHandler() - System interrupt signal received, dpcmder ending. s: ", s)
+		go view.Stop()
 		os.Exit(0)
 	}()
 }
