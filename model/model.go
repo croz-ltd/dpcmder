@@ -19,6 +19,10 @@ const (
 // ItemType is used for defining type of Item (or current "directory")
 type ItemType byte
 
+func (it ItemType) String() string {
+	return string(it)
+}
+
 // Available types of Item
 const (
 	ItemDirectory       = ItemType('d')
@@ -42,11 +46,20 @@ type Item struct {
 // ItemList is slice extended as a sortable list of Items (implements sort.Interface).
 type ItemList []Item
 
+// CurrentView is a structure with information about currently showing view
+// (DataPower or local filesystem panel). It can be one of: ItemDpConfiguration,
+// ItemDpDomain, ItemDpFilestore, ItemDirectory or ItemNone.
+type CurrentView struct {
+	Type        ItemType
+	Path        string
+	DpAppliance string
+	DpDomain    string
+}
+
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
-	dpAppliance         string
-	dpDomain            string
+	currentView         [2]CurrentView
 	title               [2]string
 	items               [2]ItemList
 	allItems            [2]ItemList
@@ -124,26 +137,6 @@ func (items ItemList) Swap(i, j int) {
 }
 
 // Model methods
-
-// DpAppliance returns name of configuration of current DataPower configuration.
-func (m *Model) DpAppliance() string {
-	return m.dpAppliance
-}
-
-// SetDpAppliance sets name of configuration of current DataPower configuration.
-func (m *Model) SetDpAppliance(dpAppliance string) {
-	m.dpAppliance = dpAppliance
-}
-
-// DpDomain returns name of current DataPower domain.
-func (m *Model) DpDomain() string {
-	return m.dpDomain
-}
-
-// SetDpDomain sets name of current DataPower domain.
-func (m *Model) SetDpDomain(dpDomain string) {
-	m.dpDomain = dpDomain
-}
 
 // SetItems changes list of items for given side.
 func (m *Model) SetItems(side Side, items []Item) {

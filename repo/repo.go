@@ -6,6 +6,12 @@ import (
 
 // Repo is a common repository methods implemented by local filesystem and DataPower
 type Repo interface {
+	// new methods
+	GetInitialParent() model.CurrentView
+	GetList(currentView model.CurrentView) model.ItemList
+	GetTitle(view model.CurrentView) string
+
+	// deprecated below
 	InitialLoad(m *model.Model)
 	LoadCurrent(m *model.Model)
 	EnterCurrentDirectoryMissingPassword(m *model.Model) bool

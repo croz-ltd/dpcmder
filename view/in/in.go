@@ -33,11 +33,12 @@ loop:
 			panic(err)
 		}
 		hexBytesRead := hex.EncodeToString(bytesRead[0:bytesReadCount])
-		keyEvent := events.KeyPressedEvent{HexBytes: hexBytesRead}
+		keyCode := key.KeyCode(hexBytesRead)
+		keyEvent := events.KeyPressedEvent{KeyCode: keyCode}
 		logging.LogDebug("hexBytesRead: ", hexBytesRead, "keyEvent: ", keyEvent)
 
 		keyPressedEventChan <- keyEvent
-		switch hexBytesRead {
+		switch keyCode {
 		case key.Chq:
 			break loop
 		}

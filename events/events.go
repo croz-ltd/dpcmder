@@ -1,11 +1,23 @@
 package events
 
+import (
+	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/view/in/key"
+)
+
 type KeyPressedEvent struct {
-	HexBytes string
+	KeyCode key.KeyCode
 }
 
+type UpdateViewEventType int
+
+const (
+	UpdateViewScreenSize UpdateViewEventType = UpdateViewEventType(0)
+)
+
 type UpdateViewEvent struct {
-	Txt string
+	Type  UpdateViewEventType
+	Model model.Model
 }
 
 type ActionEvent struct {

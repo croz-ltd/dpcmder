@@ -6,10 +6,25 @@ import (
 	"testing"
 )
 
+// ItemType methods tests
+
+func TestItemTypeString(t *testing.T) {
+	types := []ItemType{ItemFile, ItemDirectory, ItemDpConfiguration, ItemDpDomain, ItemDpFilestore, ItemNone}
+	wantArr := []string{"f", "d", "A", "D", "F", "0"}
+
+	for idx, gotType := range types {
+		got := gotType.String()
+		want := wantArr[idx]
+		if got != want {
+			t.Errorf("Got: %s, want: %s.", got, want)
+		}
+	}
+}
+
 // Item methods tests
 
 func TestItemString(t *testing.T) {
-	item := Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
+	item := Item{Type: ItemFile, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
 
 	got := item.String()
 	want := "f       3000 2019-02-06 14:06:10 master"
@@ -100,25 +115,25 @@ func TestItemIsDpFilestore(t *testing.T) {
 
 func prepareItemList() ItemList {
 	return ItemList{
-		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'd', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
-		Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemDirectory, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemDirectory, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
 	}
 }
 
 func prepareAllTypesItemList() ItemList {
 	return ItemList{
-		Item{Type: 'A', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'D', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'F', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: ItemDpConfiguration, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: ItemDpDomain, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: ItemDpFilestore, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Type: ItemDirectory, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Type: ItemFile, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
 	}
 }
 func TestItemListLen(t *testing.T) {
@@ -161,7 +176,7 @@ func TestItemListSwap(t *testing.T) {
 	itemList.Swap(0, 4)
 
 	gotItem := itemList[0]
-	expectedItem := Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
+	expectedItem := Item{Type: ItemFile, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
 
 	if gotItem != expectedItem {
 		t.Errorf("Got item: %v, want item: %v.", gotItem, expectedItem)
@@ -174,34 +189,6 @@ func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
 	if got != want {
 		t.Errorf("checkCurr - got '%v' but want '%v' (%s).", got, want, msg)
-	}
-}
-
-func TestModelDpAppliance(t *testing.T) {
-	model := Model{}
-
-	if model.DpAppliance() != "" {
-		t.Errorf("Initial model DpAppliance should be '' but is '%s'.", model.DpAppliance())
-	}
-
-	applianceName := "MyLocalDp"
-	model.SetDpAppliance(applianceName)
-	if model.DpAppliance() != applianceName {
-		t.Errorf("Changed model DpAppliance should be '%s' but is '%s'.", applianceName, model.DpAppliance())
-	}
-}
-
-func TestModelDpDomain(t *testing.T) {
-	model := Model{}
-
-	if model.DpDomain() != "" {
-		t.Errorf("Initial model DpDomain should be '' but is '%s'.", model.DpDomain())
-	}
-
-	domainName := "my domain name"
-	model.SetDpDomain(domainName)
-	if model.DpDomain() != domainName {
-		t.Errorf("Changed model DpDomain should be '%s' but is '%s'.", domainName, model.DpDomain())
 	}
 }
 
