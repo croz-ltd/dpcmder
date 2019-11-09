@@ -6,7 +6,7 @@ import (
 
 // Repo is a common repository methods implemented by local filesystem and DataPower
 type Repo interface {
-	GetInitialParent() model.CurrentView
+	GetInitialView() model.CurrentView
 	GetList(currentView model.CurrentView) model.ItemList
 	GetTitle(view model.CurrentView) string
 }

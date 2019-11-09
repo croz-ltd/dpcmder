@@ -28,27 +28,27 @@ func runWorkerInit(keyPressedEventChan chan events.KeyPressedEvent, updateViewEv
 
 func initialLoadDp() {
 	logging.LogDebug("worker/initialLoadDp()")
-	initialParent := dp.Repo.GetInitialParent()
-	logging.LogDebug("worker/initialLoadDp(), initialParent: ", initialParent)
+	initialView := dp.Repo.GetInitialView()
+	logging.LogDebug("worker/initialLoadDp(), initialView: ", initialView)
 	workingModel.SetCurrPathForSide(model.Left, "")
 
-	title := dp.Repo.GetTitle(initialParent)
+	title := dp.Repo.GetTitle(initialView)
 	workingModel.SetTitle(model.Left, title)
 
-	itemList := dp.Repo.GetList(initialParent)
+	itemList := dp.Repo.GetList(initialView)
 	workingModel.SetItems(model.Left, itemList)
 }
 
 func initialLoadLocalfs() {
 	logging.LogDebug("worker/initialLoadLocalfs()")
-	initialParent := localfs.Repo.GetInitialParent()
-	logging.LogDebug("worker/initialLoadLocalfs(), initialParent: ", initialParent)
-	workingModel.SetCurrPathForSide(model.Right, initialParent.Path)
+	initialView := localfs.Repo.GetInitialView()
+	logging.LogDebug("worker/initialLoadLocalfs(), initialView: ", initialView)
+	workingModel.SetCurrPathForSide(model.Right, initialView.Path)
 
-	title := localfs.Repo.GetTitle(initialParent)
+	title := localfs.Repo.GetTitle(initialView)
 	workingModel.SetTitle(model.Right, title)
 
-	itemList := localfs.Repo.GetList(initialParent)
+	itemList := localfs.Repo.GetList(initialView)
 	workingModel.SetItems(model.Right, itemList)
 }
 

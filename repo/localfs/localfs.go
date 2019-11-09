@@ -18,12 +18,12 @@ type LocalRepo struct {
 // Repo is localfs implementation of repo/Repo interface.
 var Repo = LocalRepo{name: "LocalRepo"}
 
-// GetInitialParent returns initialy opened local directory info.
-func (r LocalRepo) GetInitialParent() model.CurrentView {
-	logging.LogDebug("repo/localfs/GetInitialParent()")
+// GetInitialView returns initialy opened local directory info.
+func (r LocalRepo) GetInitialView() model.CurrentView {
+	logging.LogDebug("repo/localfs/GetInitialView()")
 	currPath, err := filepath.Abs(*config.LocalFolderPath)
 	if err != nil {
-		logging.LogFatal("repo/localfs/GetInitialParent(): ", err)
+		logging.LogFatal("repo/localfs/GetInitialView(): ", err)
 	}
 
 	initialView := model.CurrentView{Path: currPath}

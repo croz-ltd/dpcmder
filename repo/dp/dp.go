@@ -24,7 +24,7 @@ func InitNetworkSettings() {
 	dpnet.InitNetworkSettings()
 }
 
-func (r *DpRepo) GetInitialParent() model.CurrentView {
+func (r *DpRepo) GetInitialView() model.CurrentView {
 	initialView := model.CurrentView{
 		Type:        model.ItemNone,
 		Path:        "",
