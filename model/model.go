@@ -56,6 +56,10 @@ type CurrentView struct {
 	DpDomain    string
 }
 
+func (cv CurrentView) String() string {
+	return fmt.Sprintf("CurrentView(%s, '%s', '%s', '%s')", cv.Type, cv.Path, cv.DpAppliance, cv.DpDomain)
+}
+
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
@@ -182,6 +186,16 @@ func (m *Model) CurrSide() Side {
 // CurrSide returns currently non-used Side.
 func (m *Model) OtherSide() Side {
 	return 1 - m.currSide
+}
+
+// CurrentView returns current view for given Side.
+func (m *Model) CurrentView(side Side) CurrentView {
+	return m.currentView[side]
+}
+
+// SetCurrentView sets current view for given Side.
+func (m *Model) SetCurrentView(side Side, view CurrentView) {
+	m.currentView[side] = view
 }
 
 // Title returns title for given Side.

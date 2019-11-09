@@ -9,4 +9,5 @@ type Repo interface {
 	GetInitialView() model.CurrentView
 	GetList(currentView model.CurrentView) model.ItemList
 	GetTitle(view model.CurrentView) string
+	NextView(currView model.CurrentView, selectedItem model.Item) model.CurrentView
 }

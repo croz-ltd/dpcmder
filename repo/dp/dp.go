@@ -60,6 +60,10 @@ func (r *DpRepo) GetList(currentView model.CurrentView) model.ItemList {
 	}
 }
 
+func (r *DpRepo) NextView(currView model.CurrentView, selectedItem model.Item) model.CurrentView {
+	return model.CurrentView{}
+}
+
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
 func (r *DpRepo) listAppliances() model.ItemList {
 	appliances := config.Conf.DataPowerAppliances

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"io/ioutil"
 	"path/filepath"
@@ -47,6 +48,14 @@ func (r LocalRepo) GetList(currentView model.CurrentView) model.ItemList {
 
 func (r LocalRepo) GetTitle(view model.CurrentView) string {
 	return view.Path
+}
+
+func (r LocalRepo) NextView(currView model.CurrentView, selectedItem model.Item) model.CurrentView {
+	logging.LogDebug(fmt.Sprintf("repo/localfs/NextView(%v, %v)", currView, selectedItem))
+	newPath := utils.GetFilePath(currView.Path, selectedItem.Name)
+	newView := model.CurrentView{Type: selectedItem.Type, Path: newPath}
+	logging.LogDebug("repo/localfs/NextView(), newView: ", newView)
+	return newView
 }
 
 func listFiles(dirPath string) []model.Item {
