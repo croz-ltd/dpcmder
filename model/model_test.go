@@ -23,10 +23,10 @@ func TestItemTypeString(t *testing.T) {
 
 // Item methods tests
 
-func TestItemString(t *testing.T) {
+func TestItemDisplayString(t *testing.T) {
 	item := Item{Type: ItemFile, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
 
-	got := item.String()
+	got := item.DisplayString()
 	want := "f       3000 2019-02-06 14:06:10 master"
 	if got != want {
 		t.Errorf("Got: %s, want: %s.", got, want)

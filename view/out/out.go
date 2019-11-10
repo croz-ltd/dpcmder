@@ -64,6 +64,7 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 	}
 
 	for idx := 0; idx < m.GetVisibleItemCount(model.Left); idx++ {
+		logging.LogTrace("view/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Left, idx)
 		var fg = fgNormal
 		var bg = bgNormal
@@ -73,10 +74,10 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 		if item.Selected {
 			fg = fgSelected
 		}
-		writeLine(0, idx+2, item.String(), fg, bg)
+		writeLine(0, idx+2, item.DisplayString(), fg, bg)
 	}
 	for idx := 0; idx < m.GetVisibleItemCount(model.Right); idx++ {
-		logging.LogDebug("view/out/draw(), idx: ", idx)
+		logging.LogTrace("view/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Right, idx)
 		var fg = fgNormal
 		var bg = bgNormal
@@ -86,7 +87,7 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 		if item.Selected {
 			fg = fgSelected
 		}
-		writeLine(width/2, idx+2, item.String(), fg, bg)
+		writeLine(width/2, idx+2, item.DisplayString(), fg, bg)
 	}
 
 	// showStatus(m, currentStatus)

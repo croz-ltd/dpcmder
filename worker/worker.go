@@ -142,18 +142,20 @@ func enterCurrentDirectory() {
 	logging.LogDebug("worker/enterCurrentDirectory()")
 	r := repos[workingModel.CurrSide()]
 	item := workingModel.CurrItem()
+	logging.LogDebug("worker/enterCurrentDirectory(), item: ", item)
 	switch item.Type {
-	case model.ItemDpConfiguration:
-	case model.ItemDpDomain:
-	case model.ItemDpFilestore:
-	case model.ItemDirectory:
+	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory, model.ItemNone:
 		currentView := workingModel.CurrentView(workingModel.CurrSide())
 		newView := r.NextView(currentView, *item)
 		itemList := r.GetList(newView)
 		title := r.GetTitle(newView)
+		logging.LogDebug("worker/enterCurrentDirectory(), title: ", title)
+
 		workingModel.SetCurrentView(workingModel.CurrSide(), newView)
 		workingModel.SetItems(workingModel.CurrSide(), itemList)
 		workingModel.SetTitle(workingModel.CurrSide(), title)
+	default:
+		logging.LogDebug("worker/enterCurrentDirectory(), type: ", item.Type)
 	}
 }
 

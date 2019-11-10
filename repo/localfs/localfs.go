@@ -33,8 +33,8 @@ func (r LocalRepo) GetInitialView() model.CurrentView {
 
 // GetList returns list of items for current directory.
 func (r LocalRepo) GetList(currentView model.CurrentView) model.ItemList {
+	logging.LogDebug(fmt.Sprintf("repo/localfs/GetList('%s')", currentView))
 	currPath := currentView.Path
-	logging.LogDebug(fmt.Sprintf("repo/localfs/ListCurrent('%s')", currPath))
 
 	parentDir := model.Item{Type: model.ItemDirectory, Name: "..", Size: "", Modified: "", Selected: false}
 	items := listFiles(currPath)
@@ -52,10 +52,14 @@ func (r LocalRepo) GetTitle(view model.CurrentView) string {
 
 func (r LocalRepo) NextView(currView model.CurrentView, selectedItem model.Item) model.CurrentView {
 	logging.LogDebug(fmt.Sprintf("repo/localfs/NextView(%v, %v)", currView, selectedItem))
-	newPath := utils.GetFilePath(currView.Path, selectedItem.Name)
-	newView := model.CurrentView{Type: selectedItem.Type, Path: newPath}
-	logging.LogDebug("repo/localfs/NextView(), newView: ", newView)
-	return newView
+	if selectedItem.Type == model.ItemDirectory {
+		newPath := utils.GetFilePath(currView.Path, selectedItem.Name)
+		newView := model.CurrentView{Type: selectedItem.Type, Path: newPath}
+		logging.LogDebug("repo/localfs/NextView(), newView: ", newView)
+		return newView
+	}
+
+	return currView
 }
 
 func listFiles(dirPath string) []model.Item {

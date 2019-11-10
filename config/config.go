@@ -26,6 +26,9 @@ var LocalFolderPath *string
 // DebugLogFile enables writing of debug messages to dpcmder.log file in current folder.
 var DebugLogFile *bool
 
+// TraceLogFile enables writing of trace messages to dpcmder.log file in current folder.
+var TraceLogFile *bool
+
 // Help flag shows dpcmder usage help.
 var Help *bool
 
@@ -117,7 +120,8 @@ func parseProgramArgs() {
 	DpDomain = flag.String("d", "", "DataPower domain name")
 	Proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
 	DpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
-	DebugLogFile = flag.Bool("debug", false, "Write dpcmder.log file in current dir")
+	DebugLogFile = flag.Bool("debug", false, "Write debug dpcmder.log file in current dir")
+	TraceLogFile = flag.Bool("trace", false, "Write trace dpcmder.log file in current dir")
 	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
 	flag.Parse()
@@ -128,6 +132,7 @@ func parseProgramArgs() {
 func Init() {
 	parseProgramArgs()
 	logging.DebugLogFile = *DebugLogFile
+	logging.TraceLogFile = *TraceLogFile
 	logging.LogDebug("config/Init() - dpcmder starting...")
 	validateProgramArgs()
 	confidentBootstrap()

@@ -39,8 +39,14 @@ func SplitOnLast(wholeString string, splitterString string) (string, string) {
 
 // GetFilePath generates local os correct path from parentPath and fileName.
 func GetFilePath(parentPath, fileName string) string {
+	return GetFilePathUsingSeparator(parentPath, fileName, string(os.PathSeparator))
+}
+
+// GetFilePathUsingSeparator generates correct path from parentPath and fileName
+//  using given path sepearator.
+func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) string {
 	if fileName == ".." {
-		lastSeparatorIdx := strings.LastIndex(parentPath, string(os.PathSeparator))
+		lastSeparatorIdx := strings.LastIndex(parentPath, pathSeparator)
 		if lastSeparatorIdx != -1 && len(parentPath) > 1 {
 			return parentPath[:lastSeparatorIdx]
 		}
@@ -48,5 +54,5 @@ func GetFilePath(parentPath, fileName string) string {
 	} else if parentPath == "" {
 		return fileName
 	}
-	return parentPath + string(os.PathSeparator) + fileName
+	return parentPath + pathSeparator + fileName
 }

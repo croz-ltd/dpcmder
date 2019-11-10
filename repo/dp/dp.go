@@ -61,7 +61,47 @@ func (r *DpRepo) GetList(currentView model.CurrentView) model.ItemList {
 }
 
 func (r *DpRepo) NextView(currView model.CurrentView, selectedItem model.Item) model.CurrentView {
-	return model.CurrentView{}
+	logging.LogDebug(fmt.Sprintf("repo/dp/NextView(%v, %v)", currView, selectedItem))
+	var newView = currView.Clone()
+	switch selectedItem.Type {
+	case model.ItemNone:
+		newView.Type = selectedItem.Type
+		newView.Path = ""
+		newView.DpAppliance = ""
+		newView.DpDomain = ""
+		newView.DpFilestore = ""
+	case model.ItemDpConfiguration:
+		newView.Type = selectedItem.Type
+		newView.Path = ""
+		if selectedItem.Name != ".." {
+			newView.DpAppliance = selectedItem.Name
+			config.LoadDpConfig(selectedItem.Name)
+		}
+		newView.DpDomain = config.Conf.DataPowerAppliances[selectedItem.Name].Domain
+		newView.DpFilestore = ""
+	case model.ItemDpDomain:
+		newView.Type = selectedItem.Type
+		newView.Path = ""
+		newView.DpAppliance = currView.DpAppliance
+		if selectedItem.Name != ".." {
+			newView.DpDomain = selectedItem.Name
+		}
+		newView.DpFilestore = ""
+	case model.ItemDpFilestore:
+		newView.Type = selectedItem.Type
+		if selectedItem.Name == ".." {
+			newView.Path = currView.DpFilestore
+		} else {
+			newView.Path = selectedItem.Name
+		}
+	case model.ItemDirectory:
+		newView.Path = utils.GetFilePathUsingSeparator(currView.Path, selectedItem.Name, "/")
+	default:
+		return currView
+	}
+
+	logging.LogDebug("repo/dp/NextView(), newView: ", newView)
+	return newView
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
@@ -88,7 +128,7 @@ func (r *DpRepo) listDomains() model.ItemList {
 	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains(), domainNames: %v", domainNames))
 
 	items := make(model.ItemList, len(domainNames)+1)
-	items[0] = model.Item{Type: model.ItemDpConfiguration, Name: "..", Size: "", Modified: "", Selected: false}
+	items[0] = model.Item{Type: model.ItemNone, Name: "..", Size: "", Modified: "", Selected: false}
 
 	for idx, name := range domainNames {
 		items[idx+1] = model.Item{Type: model.ItemDpDomain, Name: name, Size: "", Modified: "", Selected: false}
@@ -114,7 +154,7 @@ func (r *DpRepo) listFilestores(dpDomain string) model.ItemList {
 		filestoreNameNodes := jsonquery.Find(doc, "/filestore/location/*/name")
 
 		items := make(model.ItemList, len(filestoreNameNodes)+1)
-		items[0] = model.Item{Type: model.ItemDpDomain, Name: "..", Size: "", Modified: "", Selected: false}
+		items[0] = model.Item{Type: model.ItemDpConfiguration, Name: "..", Size: "", Modified: "", Selected: false}
 
 		for idx, node := range filestoreNameNodes {
 			// "local:"
@@ -158,7 +198,13 @@ func (r *DpRepo) listFilestores(dpDomain string) model.ItemList {
 // listDpDir loads DataPower directory (local:, local:///test,..).
 func (r *DpRepo) listDpDir(dpDomain string, currPath string) model.ItemList {
 	logging.LogDebug(fmt.Sprintf("repo/dp/listDpDir('%s', '%s')", dpDomain, currPath))
-	parentDir := model.Item{Type: model.ItemDirectory, Name: "..", Size: "", Modified: "", Selected: false}
+	var parentType model.ItemType
+	if strings.Contains(currPath, "/") {
+		parentType = model.ItemDirectory
+	} else {
+		parentType = model.ItemDpDomain
+	}
+	parentDir := model.Item{Type: parentType, Name: "..", Size: "", Modified: "", Selected: false}
 	filesDirs := r.listFiles(dpDomain, currPath)
 
 	itemsWithParentDir := make([]model.Item, 0)
@@ -276,6 +322,8 @@ func fetchDpDomains() []string {
 		for _, n := range list {
 			domains = append(domains, n.InnerText())
 		}
+	} else {
+		logging.LogDebug("repo/dp/fetchDpDomains(), using neither REST neither SOMA.")
 	}
 
 	return domains

@@ -55,10 +55,15 @@ type CurrentView struct {
 	Path        string
 	DpAppliance string
 	DpDomain    string
+	DpFilestore string
 }
 
 func (cv CurrentView) String() string {
-	return fmt.Sprintf("CurrentView(%s, '%s', '%s', '%s')", cv.Type, cv.Path, cv.DpAppliance, cv.DpDomain)
+	return fmt.Sprintf("CurrentView(%s, '%s', '%s', '%s', '%s')", cv.Type, cv.Path, cv.DpAppliance, cv.DpDomain, cv.DpFilestore)
+}
+
+func (cv CurrentView) Clone() CurrentView {
+	return CurrentView{Type: cv.Type, Path: cv.Path, DpAppliance: cv.DpAppliance, DpDomain: cv.DpDomain, DpFilestore: cv.DpFilestore}
 }
 
 // Model is a structure representing our dpcmder view of files,
@@ -81,8 +86,13 @@ type Model struct {
 
 // Item methods
 
-// String method returns formatted string representing how item will be shown.
-func (item *Item) String() string {
+// String method returns Item details.
+func (i Item) String() string {
+	return fmt.Sprintf("Item(%s, '%s', '%s', '%s', %t)", i.Type, i.Name, i.Size, i.Modified, i.Selected)
+}
+
+// DisplayString method returns formatted string representing how item will be shown.
+func (item *Item) DisplayString() string {
 	return fmt.Sprintf("%s %10s %19s %s", item.GetDisplayableType(), item.Size, item.Modified, item.Name)
 }
 
@@ -152,14 +162,14 @@ func (m *Model) SetItems(side Side, items []Item) {
 
 // SetItemsMaxSize sets maximum number of items which can be shown on screen.
 func (m *Model) SetItemsMaxSize(itemMaxRows, itemMaxCols int) {
-	logging.LogDebug("model/SetItemsMaxSize(), itemMaxRows: ", itemMaxRows, ", itemMaxCols: ", itemMaxCols)
+	logging.LogTrace("model/SetItemsMaxSize(), itemMaxRows: ", itemMaxRows, ", itemMaxCols: ", itemMaxCols)
 	m.itemMaxRows, m.itemMaxCols = itemMaxRows, itemMaxCols
 }
 
 // GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
-	logging.LogDebug("model/GetVisibleItemCount(", side, "), visibleItemCount: ", visibleItemCount, ", m.itemMaxRows: ", m.itemMaxRows)
+	logging.LogTrace("model/GetVisibleItemCount(", side, "), visibleItemCount: ", visibleItemCount, ", m.itemMaxRows: ", m.itemMaxRows)
 	if m.itemMaxRows < visibleItemCount {
 		return m.itemMaxRows
 	} else {
@@ -170,7 +180,7 @@ func (m *Model) GetVisibleItemCount(side Side) int {
 // GetVisibleItem returns (visible) item from given side at given index.
 func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	itemIdx := rowIdx + m.currFirstRowItemIdx[side]
-	logging.LogDebug("model/GetVisibleItem(), rowIdx: ", rowIdx, ", itemIdx: ", itemIdx)
+	logging.LogTrace("model/GetVisibleItem(), rowIdx: ", rowIdx, ", itemIdx: ", itemIdx)
 
 	item := m.items[side][itemIdx]
 
@@ -399,7 +409,7 @@ func (m *Model) SelToBottom() {
 
 func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
-	logging.LogDebug("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
+	logging.LogTrace("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	if newCurr < 0 {
 		newCurr = 0
@@ -415,7 +425,7 @@ func (m *Model) navUpDown(side Side, move int) {
 	} else if newCurr < minIdx {
 		m.currFirstRowItemIdx[side] = newCurr
 	}
-	logging.LogDebug("model/navUpDown(), newCurr: ", newCurr, ", minIdx: ", minIdx, ", maxIdx: ", maxIdx, ", maxRows: ", maxRows, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
+	logging.LogTrace("model/navUpDown(), newCurr: ", newCurr, ", minIdx: ", minIdx, ", maxIdx: ", maxIdx, ", maxRows: ", maxRows, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	m.currItemIdx[side] = newCurr
 }
