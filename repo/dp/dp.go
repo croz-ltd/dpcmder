@@ -70,6 +70,7 @@ func (r *DpRepo) NextView(currView model.CurrentView, selectedItem model.Item) m
 		newView.DpAppliance = ""
 		newView.DpDomain = ""
 		newView.DpFilestore = ""
+		config.ClearDpConfig()
 	case model.ItemDpConfiguration:
 		newView.Type = selectedItem.Type
 		newView.Path = ""
