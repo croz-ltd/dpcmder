@@ -24,8 +24,9 @@ func main() {
 
 	keyPressedEventChan := make(chan events.KeyPressedEvent, 1)
 	updateViewEventChan := make(chan events.UpdateViewEvent, 1)
+	view.Init(updateViewEventChan)
 	worker.Init(keyPressedEventChan, updateViewEventChan)
-	view.Start(keyPressedEventChan, updateViewEventChan)
+	view.Start(keyPressedEventChan)
 	// model.M.Print()
 	logging.LogDebug("main/main() - ...dpcmder ending.")
 }

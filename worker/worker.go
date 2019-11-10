@@ -8,6 +8,7 @@ import (
 	"github.com/croz-ltd/dpcmder/repo/localfs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in/key"
+	"github.com/croz-ltd/dpcmder/view/out"
 )
 
 // repos contains references to DataPower and local filesystem repositories.
@@ -64,6 +65,7 @@ func initialLoad(updateViewEventChan chan events.UpdateViewEvent) {
 	initialLoadDp()
 	initialLoadLocalfs()
 
+	setScreenSize()
 	updateViewEvent := events.UpdateViewEvent{Model: workingModel}
 	updateViewEventChan <- updateViewEvent
 }
@@ -75,16 +77,58 @@ loop:
 		logging.LogDebug("worker/processInputEvent(), waiting key pressed event.")
 		keyPressedEvent := <-keyPressedEventChan
 		logging.LogDebug("worker/processInputEvent(), keyPressedEvent:", keyPressedEvent)
-		shouldUpdateView := false
+
+		setScreenSize()
+
+		shouldUpdateView := true
 		switch keyPressedEvent.KeyCode {
 		case key.Chq:
 			break loop
 		case key.Tab:
 			workingModel.ToggleSide()
-			shouldUpdateView = true
 		case key.Return:
 			enterCurrentDirectory()
-			shouldUpdateView = true
+		case key.Space:
+			workingModel.ToggleCurrItem()
+		// case key.Dot:
+		// 	enterPath(m)
+		// case key.ArrowLeft, key.Chj:
+		// 	horizScroll -= 10
+		// 	if horizScroll < 0 {
+		// 		horizScroll = 0
+		// 	}
+		// case key.ArrowRight, key.Chl:
+		// 	horizScroll += 10
+		case key.ArrowUp, key.Chi:
+			workingModel.NavUp()
+		case key.ArrowDown, key.Chk:
+			workingModel.NavDown()
+		case key.ShiftArrowUp, key.ChI:
+			workingModel.ToggleCurrItem()
+			workingModel.NavUp()
+		case key.ShiftArrowDown, key.ChK:
+			workingModel.ToggleCurrItem()
+			workingModel.NavDown()
+		case key.PgUp, key.Chu:
+			workingModel.NavPgUp()
+		case key.PgDown, key.Cho:
+			workingModel.NavPgDown()
+		case key.ShiftPgUp, key.ChU:
+			workingModel.SelPgUp()
+			workingModel.NavPgUp()
+		case key.ShiftPgDown, key.ChO:
+			workingModel.SelPgDown()
+			workingModel.NavPgDown()
+		case key.Home, key.Cha:
+			workingModel.NavTop()
+		case key.End, key.Chz:
+			workingModel.NavBottom()
+		case key.ShiftHome, key.ChA:
+			workingModel.SelToTop()
+			workingModel.NavTop()
+		case key.ShiftEnd, key.ChZ:
+			workingModel.SelToBottom()
+			workingModel.NavBottom()
 		}
 
 		if shouldUpdateView {
@@ -111,4 +155,9 @@ func enterCurrentDirectory() {
 		workingModel.SetItems(workingModel.CurrSide(), itemList)
 		workingModel.SetTitle(workingModel.CurrSide(), title)
 	}
+}
+
+func setScreenSize() {
+	width, height := out.GetScreenSize()
+	workingModel.SetItemsMaxSize(height-3, width)
 }

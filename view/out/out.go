@@ -21,10 +21,6 @@ func Init(updateViewEventChan chan events.UpdateViewEvent) {
 	if err != nil {
 		panic(err)
 	}
-	// setScreenSize(m)
-	// draw(m)
-	//
-	// keyPressedLoop(m)
 
 	go drawLoop(updateViewEventChan)
 }
@@ -33,8 +29,17 @@ func Stop() {
 	termbox.Close()
 }
 
+func GetScreenSize() (width, height int) {
+	width, height = termbox.Size()
+	logging.LogDebug("view/out/GetScreenSize(), width: ", width, ", height: ", height)
+	return width, height
+}
+
 func drawLoop(updateViewEventChan chan events.UpdateViewEvent) {
 	logging.LogDebug("view/out/drawLoop()")
+
+	defer termbox.Close()
+
 	for {
 		logging.LogDebug("view/out/drawLoop(), waiting update event.")
 		updateViewEvent := <-updateViewEventChan
@@ -45,7 +50,6 @@ func drawLoop(updateViewEventChan chan events.UpdateViewEvent) {
 
 func draw(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebug("view/out/draw(", updateViewEvent, ")")
-	setScreenSize(&updateViewEvent.Model)
 	m := updateViewEvent.Model
 
 	termbox.Clear(fgNormal, bgNormal)
@@ -72,6 +76,7 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 		writeLine(0, idx+2, item.String(), fg, bg)
 	}
 	for idx := 0; idx < m.GetVisibleItemCount(model.Right); idx++ {
+		logging.LogDebug("view/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Right, idx)
 		var fg = fgNormal
 		var bg = bgNormal
@@ -142,8 +147,3 @@ func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursor
 // 	writeLine(0, h-1, statusMsg, termbox.ColorDefault, termbox.ColorDefault)
 // 	termbox.Flush()
 // }
-
-func setScreenSize(m *model.Model) {
-	width, height := termbox.Size()
-	m.SetItemsMaxSize(height-3, width)
-}

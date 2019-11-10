@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/croz-ltd/dpcmder/utils/logging"
 	"reflect"
 	"sort"
 	"strings"
@@ -151,12 +152,14 @@ func (m *Model) SetItems(side Side, items []Item) {
 
 // SetItemsMaxSize sets maximum number of items which can be shown on screen.
 func (m *Model) SetItemsMaxSize(itemMaxRows, itemMaxCols int) {
+	logging.LogDebug("model/SetItemsMaxSize(), itemMaxRows: ", itemMaxRows, ", itemMaxCols: ", itemMaxCols)
 	m.itemMaxRows, m.itemMaxCols = itemMaxRows, itemMaxCols
 }
 
 // GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
+	logging.LogDebug("model/GetVisibleItemCount(", side, "), visibleItemCount: ", visibleItemCount, ", m.itemMaxRows: ", m.itemMaxRows)
 	if m.itemMaxRows < visibleItemCount {
 		return m.itemMaxRows
 	} else {
@@ -167,6 +170,7 @@ func (m *Model) GetVisibleItemCount(side Side) int {
 // GetVisibleItem returns (visible) item from given side at given index.
 func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	itemIdx := rowIdx + m.currFirstRowItemIdx[side]
+	logging.LogDebug("model/GetVisibleItem(), rowIdx: ", rowIdx, ", itemIdx: ", itemIdx)
 
 	item := m.items[side][itemIdx]
 
@@ -395,6 +399,7 @@ func (m *Model) SelToBottom() {
 
 func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
+	logging.LogDebug("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	if newCurr < 0 {
 		newCurr = 0
@@ -410,6 +415,7 @@ func (m *Model) navUpDown(side Side, move int) {
 	} else if newCurr < minIdx {
 		m.currFirstRowItemIdx[side] = newCurr
 	}
+	logging.LogDebug("model/navUpDown(), newCurr: ", newCurr, ", minIdx: ", minIdx, ", maxIdx: ", maxIdx, ", maxRows: ", maxRows, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	m.currItemIdx[side] = newCurr
 }
