@@ -179,7 +179,7 @@ func (r *DpRepo) listFilestores(dpDomain string) model.ItemList {
 		filestoreNameNodes := xmlquery.Find(doc, "//*[local-name()='location']/@name")
 
 		items := make(model.ItemList, len(filestoreNameNodes)+1)
-		items[0] = model.Item{Type: model.ItemDpDomain, Name: "..", Size: "", Modified: "", Selected: false}
+		items[0] = model.Item{Type: model.ItemDpConfiguration, Name: "..", Size: "", Modified: "", Selected: false}
 
 		for idx, node := range filestoreNameNodes {
 			// "local:"
