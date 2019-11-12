@@ -41,7 +41,7 @@ func Soma(body string) string {
 }
 
 func httpRequest(urlFullPath, method, body string) string {
-	logging.LogDebug(fmt.Sprintf("repo/dp/httpRequest(%s, %s, '%s')", urlFullPath, method, body))
+	logging.LogTrace(fmt.Sprintf("repo/dp/dpnet/httpRequest(%s, %s, '%s')", urlFullPath, method, body))
 
 	client := &http.Client{}
 	var bodyReader io.Reader
@@ -50,7 +50,7 @@ func httpRequest(urlFullPath, method, body string) string {
 	}
 	req, err := http.NewRequest(method, urlFullPath, bodyReader)
 	if err != nil {
-		logging.LogFatal("repo/dp/httpRequest() - Can't prepare request: ", err)
+		logging.LogFatal("repo/dp/dpnet/httpRequest() - Can't prepare request: ", err)
 	}
 
 	// logging.LogDebug(fmt.Sprintf("dp username:password: '%s:%s'", *config.DpUsername, config.DpPassword()))
@@ -58,7 +58,7 @@ func httpRequest(urlFullPath, method, body string) string {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		logging.LogFatal("repo/dp/httpRequest() - Can't send request: ", err)
+		logging.LogFatal("repo/dp/dpnet/httpRequest() - Can't send request: ", err)
 		// 2019/10/22 08:39:14 dp Can't send request: Post https://10.123.56.55:5550/service/mgmt/current: dial tcp 10.123.56.55:5550: i/o timeout
 		//exit status 1
 	}
@@ -67,16 +67,16 @@ func httpRequest(urlFullPath, method, body string) string {
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			logging.LogFatal("repo/dp/httpRequest() - Can't read response: ", err)
+			logging.LogFatal("repo/dp/dpnet/httpRequest() - Can't read response: ", err)
 		}
-		logging.LogDebug(fmt.Sprintf("repo/dp/httpRequest() - httpResponse: '%s'", string(bodyBytes)))
+		logging.LogTrace(fmt.Sprintf("repo/dp/dpnet/httpRequest() - httpResponse: '%s'", string(bodyBytes)))
 		return string(bodyBytes)
 	} else {
-		logging.LogDebug(fmt.Sprintf("repo/dp/httpRequest() - resp.StatusCode: '%d'", resp.StatusCode))
+		logging.LogTrace(fmt.Sprintf("repo/dp/dpnet/httpRequest() - resp.StatusCode: '%d'", resp.StatusCode))
 		if resp.StatusCode == 403 || resp.StatusCode == 404 {
 			return ""
 		}
-		logging.LogFatal(fmt.Sprintf("repo/dp/httpRequest() - HTTP %s call to '%s' returned HTTP StatusCode %v (%s)",
+		logging.LogFatal(fmt.Sprintf("repo/dp/dpnet/httpRequest() - HTTP %s call to '%s' returned HTTP StatusCode %v (%s)",
 			method, urlFullPath, resp.StatusCode, resp.Status))
 		return ""
 	}
