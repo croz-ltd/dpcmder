@@ -31,45 +31,34 @@ const (
 	ItemDpConfiguration = ItemType('A')
 	ItemDpDomain        = ItemType('D')
 	ItemDpFilestore     = ItemType('F')
-	ItemNone            = ItemType('0')
+	ItemNone            = ItemType('-')
 )
 
 // Item contains information about File, Directory, DataPower filestore,
 // DataPower domain or DataPower configuration.
 type Item struct {
-	Type     ItemType
 	Name     string
 	Size     string
 	Modified string
 	Selected bool
+	Config   *ItemConfig
 }
 
-// ItemList is slice extended as a sortable list of Items (implements sort.Interface).
-type ItemList []Item
-
-// CurrentView is a structure with information about currently showing view
-// (DataPower or local filesystem panel). It can be one of: ItemDpConfiguration,
-// ItemDpDomain, ItemDpFilestore, ItemDirectory or ItemNone.
-type CurrentView struct {
+type ItemConfig struct {
 	Type        ItemType
 	Path        string
 	DpAppliance string
 	DpDomain    string
 	DpFilestore string
+	Parent      *ItemConfig
 }
 
-func (cv CurrentView) String() string {
-	return fmt.Sprintf("CurrentView(%s, '%s', '%s', '%s', '%s')", cv.Type, cv.Path, cv.DpAppliance, cv.DpDomain, cv.DpFilestore)
-}
-
-func (cv CurrentView) Clone() CurrentView {
-	return CurrentView{Type: cv.Type, Path: cv.Path, DpAppliance: cv.DpAppliance, DpDomain: cv.DpDomain, DpFilestore: cv.DpFilestore}
-}
+// ItemList is slice extended as a sortable list of Items (implements sort.Interface).
+type ItemList []Item
 
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
-	currentView         [2]CurrentView
 	title               [2]string
 	items               [2]ItemList
 	allItems            [2]ItemList
@@ -84,11 +73,20 @@ type Model struct {
 	itemMaxCols         int
 }
 
+// ItemConfig methods
+
+// String method returns ItemConfig details.
+func (ic ItemConfig) String() string {
+	return fmt.Sprintf("IC(%s, '%s', '%s', '%s', '%s', %s)",
+		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
+}
+
 // Item methods
 
 // String method returns Item details.
-func (i Item) String() string {
-	return fmt.Sprintf("Item(%s, '%s', '%s', '%s', %t)", i.Type, i.Name, i.Size, i.Modified, i.Selected)
+func (item Item) String() string {
+	return fmt.Sprintf("Item('%s', '%s', '%s', %t, %s)",
+		item.Name, item.Size, item.Modified, item.Selected, item.Config)
 }
 
 // DisplayString method returns formatted string representing how item will be shown.
@@ -96,40 +94,9 @@ func (item *Item) DisplayString() string {
 	return fmt.Sprintf("%s %10s %19s %s", item.GetDisplayableType(), item.Size, item.Modified, item.Name)
 }
 
-// GetDisplayableType retuns "f" for files, "" for configuration and "d" for all other.
+// GetDisplayableType retuns single character string representation of Item type.
 func (item *Item) GetDisplayableType() string {
-	if item.Type == ItemFile {
-		return "f"
-	} else if item.Type == ItemDirectory {
-		return "d"
-	} else {
-		return ""
-	}
-}
-
-// IsFile returns true if Item is a file.
-func (item *Item) IsFile() bool {
-	return item.Type == ItemFile
-}
-
-// IsDirectory returns true if Item is a directory.
-func (item *Item) IsDirectory() bool {
-	return item.Type == ItemDirectory
-}
-
-// IsDpAppliance returns true if Item is a DataPower appliance configuration.
-func (item *Item) IsDpAppliance() bool {
-	return item.Type == ItemDpConfiguration
-}
-
-// IsDpDomain returns true if Item is a DataPower domain.
-func (item *Item) IsDpDomain() bool {
-	return item.Type == ItemDpDomain
-}
-
-// IsDpFilestore returns true if Item is a DataPower filestore (cert:, local:,..).
-func (item *Item) IsDpFilestore() bool {
-	return item.Type == ItemDpFilestore
+	return string(item.Config.Type)
 }
 
 // ItemList methods (implements sort.Interface)
@@ -141,8 +108,8 @@ func (items ItemList) Len() int {
 
 // Less returns true if item at first index should be before second one.
 func (items ItemList) Less(i, j int) bool {
-	return items[i].Type < items[j].Type ||
-		(items[i].Type == items[j].Type &&
+	return items[i].Config.Type < items[j].Config.Type ||
+		(items[i].Config.Type == items[j].Config.Type &&
 			strings.ToLower(items[i].Name) < strings.ToLower(items[j].Name))
 }
 
@@ -200,16 +167,6 @@ func (m *Model) CurrSide() Side {
 // CurrSide returns currently non-used Side.
 func (m *Model) OtherSide() Side {
 	return 1 - m.currSide
-}
-
-// CurrentView returns current view for given Side.
-func (m *Model) CurrentView(side Side) CurrentView {
-	return m.currentView[side]
-}
-
-// SetCurrentView sets current view for given Side.
-func (m *Model) SetCurrentView(side Side, view CurrentView) {
-	m.currentView[side] = view
 }
 
 // Title returns title for given Side.

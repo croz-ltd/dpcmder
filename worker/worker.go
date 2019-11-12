@@ -18,7 +18,6 @@ var repos = []repo.Repo{model.Left: &dp.Repo, model.Right: &localfs.Repo}
 // local filesystem we are showing in dpcmder.
 var workingModel model.Model = model.Model{} //{currSide: model.Left}
 
-
 // Init initializes DataPower and local filesystem access and load initial views.
 func Init(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
 	logging.LogDebug("worker/Init()")
@@ -27,6 +26,7 @@ func Init(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan c
 
 func runWorkerInit(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
 	logging.LogDebug("worker/runWorkerInit()")
+	defer out.Stop()
 	dp.InitNetworkSettings()
 	initialLoad(updateViewEventChan)
 	processInputEvent(keyPressedEventChan, updateViewEventChan)
@@ -34,29 +34,28 @@ func runWorkerInit(keyPressedEventChan chan events.KeyPressedEvent, updateViewEv
 
 func initialLoadDp() {
 	logging.LogDebug("worker/initialLoadDp()")
-	initialView := dp.Repo.GetInitialView()
-	workingModel.SetCurrentView(model.Left, initialView)
-	logging.LogDebug("worker/initialLoadDp(), initialView: ", initialView)
+	initialItem := dp.Repo.GetInitialItem()
+	logging.LogDebug("worker/initialLoadDp(), initialItem: ", initialItem)
 	workingModel.SetCurrPathForSide(model.Left, "")
 
-	title := dp.Repo.GetTitle(initialView)
+	title := dp.Repo.GetTitle(initialItem)
 	workingModel.SetTitle(model.Left, title)
 
-	itemList := dp.Repo.GetList(initialView)
+	itemList := dp.Repo.GetList(initialItem)
 	workingModel.SetItems(model.Left, itemList)
 }
 
 func initialLoadLocalfs() {
 	logging.LogDebug("worker/initialLoadLocalfs()")
-	initialView := localfs.Repo.GetInitialView()
-	logging.LogDebug("worker/initialLoadLocalfs(), initialView: ", initialView)
-	workingModel.SetCurrentView(model.Right, initialView)
-	workingModel.SetCurrPathForSide(model.Right, initialView.Path)
+	initialItem := localfs.Repo.GetInitialItem()
+	logging.LogDebug("worker/initialLoadLocalfs(), initialItem: ", initialItem)
+	// workingModel.SetCurrentView(model.Right, initialItem)
+	workingModel.SetCurrPathForSide(model.Right, initialItem.Config.Path)
 
-	title := localfs.Repo.GetTitle(initialView)
+	title := localfs.Repo.GetTitle(initialItem)
 	workingModel.SetTitle(model.Right, title)
 
-	itemList := localfs.Repo.GetList(initialView)
+	itemList := localfs.Repo.GetList(initialItem)
 	workingModel.SetItems(model.Right, itemList)
 }
 
@@ -143,19 +142,17 @@ func enterCurrentDirectory() {
 	r := repos[workingModel.CurrSide()]
 	item := workingModel.CurrItem()
 	logging.LogDebug("worker/enterCurrentDirectory(), item: ", item)
-	switch item.Type {
+	switch item.Config.Type {
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory, model.ItemNone:
-		currentView := workingModel.CurrentView(workingModel.CurrSide())
-		newView := r.NextView(currentView, *item)
-		itemList := r.GetList(newView)
-		title := r.GetTitle(newView)
+		itemList := r.GetList(*item)
+		logging.LogDebug("worker/enterCurrentDirectory(), itemList: ", itemList)
+		title := r.GetTitle(*item)
 		logging.LogDebug("worker/enterCurrentDirectory(), title: ", title)
 
-		workingModel.SetCurrentView(workingModel.CurrSide(), newView)
 		workingModel.SetItems(workingModel.CurrSide(), itemList)
 		workingModel.SetTitle(workingModel.CurrSide(), title)
 	default:
-		logging.LogDebug("worker/enterCurrentDirectory(), type: ", item.Type)
+		logging.LogDebug("worker/enterCurrentDirectory(), unknown type: ", item.Config.Type)
 	}
 }
 

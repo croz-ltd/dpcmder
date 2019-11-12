@@ -140,6 +140,7 @@ func Init() {
 }
 
 func ClearDpConfig() {
+	logging.LogDebug("config/ClearDpConfig()")
 	*DpRestURL = ""
 	*DpSomaURL = ""
 	*DpUsername = ""
@@ -148,6 +149,7 @@ func ClearDpConfig() {
 	*Proxy = ""
 }
 func LoadDpConfig(configName string) {
+	logging.LogDebug(fmt.Sprintf("config/LoadDpConfig('%s')", configName))
 	appliance := Conf.DataPowerAppliances[configName]
 
 	*DpRestURL = appliance.RestUrl

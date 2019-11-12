@@ -20,23 +20,25 @@ type LocalRepo struct {
 var Repo = LocalRepo{name: "LocalRepo"}
 
 // GetInitialView returns initialy opened local directory info.
-func (r LocalRepo) GetInitialView() model.CurrentView {
-	logging.LogDebug("repo/localfs/GetInitialView()")
+func (r LocalRepo) GetInitialItem() model.Item {
+	logging.LogDebug("repo/localfs/GetInitialItem()")
 	currPath, err := filepath.Abs(*config.LocalFolderPath)
 	if err != nil {
-		logging.LogFatal("repo/localfs/GetInitialView(): ", err)
+		logging.LogFatal("repo/localfs/GetInitialItem(): ", err)
 	}
 
-	initialView := model.CurrentView{Path: currPath}
-	return initialView
+	initialItem := model.Item{Config: &model.ItemConfig{Path: currPath}}
+	return initialItem
 }
 
 // GetList returns list of items for current directory.
-func (r LocalRepo) GetList(currentView model.CurrentView) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/localfs/GetList('%s')", currentView))
-	currPath := currentView.Path
+func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
+	logging.LogDebug(fmt.Sprintf("repo/localfs/GetList('%s')", itemToShow))
+	currPath := itemToShow.Config.Path
 
-	parentDir := model.Item{Type: model.ItemDirectory, Name: "..", Size: "", Modified: "", Selected: false}
+	parentDir := model.Item{Name: "..",
+		Config: &model.ItemConfig{
+			Type: model.ItemDirectory, Path: utils.GetFilePath(currPath, "..")}}
 	items := listFiles(currPath)
 
 	itemsWithParentDir := make([]model.Item, 0)
@@ -46,20 +48,8 @@ func (r LocalRepo) GetList(currentView model.CurrentView) model.ItemList {
 	return itemsWithParentDir
 }
 
-func (r LocalRepo) GetTitle(view model.CurrentView) string {
-	return view.Path
-}
-
-func (r LocalRepo) NextView(currView model.CurrentView, selectedItem model.Item) model.CurrentView {
-	logging.LogDebug(fmt.Sprintf("repo/localfs/NextView(%v, %v)", currView, selectedItem))
-	if selectedItem.Type == model.ItemDirectory {
-		newPath := utils.GetFilePath(currView.Path, selectedItem.Name)
-		newView := model.CurrentView{Type: selectedItem.Type, Path: newPath}
-		logging.LogDebug("repo/localfs/NextView(), newView: ", newView)
-		return newView
-	}
-
-	return currView
+func (r LocalRepo) GetTitle(itemToShow model.Item) string {
+	return itemToShow.Config.Path
 }
 
 func listFiles(dirPath string) []model.Item {
@@ -78,7 +68,10 @@ func listFiles(dirPath string) []model.Item {
 		} else {
 			dirType = model.ItemFile
 		}
-		items[idx] = model.Item{Type: dirType, Name: file.Name(), Size: strconv.FormatInt(file.Size(), 10), Modified: file.ModTime().Format("2006-01-02 15:04:05"), Selected: false}
+		items[idx] = model.Item{Name: file.Name(), Size: strconv.FormatInt(file.Size(), 10),
+			Modified: file.ModTime().Format("2006-01-02 15:04:05"),
+			Config: &model.ItemConfig{
+				Type: dirType, Path: utils.GetFilePath(dirPath, file.Name())}}
 	}
 
 	sort.Sort(items)
