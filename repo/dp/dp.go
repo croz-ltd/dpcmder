@@ -51,13 +51,13 @@ func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
 	switch itemToShow.Config.Type {
 	case model.ItemNone:
 		config.ClearDpConfig()
-		return r.listAppliances()
+		return listAppliances()
 	case model.ItemDpConfiguration:
 		config.LoadDpConfig(itemToShow.Config.DpAppliance)
 		if itemToShow.Config.DpDomain != "" {
 			return r.listFilestores(itemToShow)
 		} else {
-			return r.listDomains(itemToShow)
+			return listDomains(itemToShow)
 		}
 	case model.ItemDpDomain:
 		return r.listFilestores(itemToShow)
@@ -71,7 +71,7 @@ func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
-func (r *DpRepo) listAppliances() model.ItemList {
+func listAppliances() model.ItemList {
 	appliances := config.Conf.DataPowerAppliances
 	logging.LogDebug(fmt.Sprintf("repo/dp/listAppliances(), appliances: %v", appliances))
 
@@ -91,7 +91,7 @@ func (r *DpRepo) listAppliances() model.ItemList {
 }
 
 // listDomains loads DataPower domains from current DataPower.
-func (r *DpRepo) listDomains(selectedItem model.Item) model.ItemList {
+func listDomains(selectedItem model.Item) model.ItemList {
 	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s')", selectedItem))
 	domainNames := fetchDpDomains()
 	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s'), domainNames: %v", selectedItem, domainNames))
@@ -143,6 +143,16 @@ func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
 			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItem.Config.DpDomain + "\">" +
 			"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\"/></dp:request>" +
 			"</soapenv:Body></soapenv:Envelope>"
+		// In SOMA response we receive whole hierarchy of subdirectories and subfiles.
+		// TODO - check if it would be better to fetch each filestore hierarchy when needed.
+		// <xsd:element name="get-filestore">
+		// 	<xsd:complexType>
+		// 		<xsd:attribute name="location" type="tns:filestore-location"/> - enum (local:, store:,..)
+		// 		<xsd:attribute name="annotated" type="xsd:boolean"/>
+		// 		<xsd:attribute name="layout-only" type="xsd:boolean"/>
+		// 		<xsd:attribute name="no-subdirectories" type="xsd:boolean"/>
+		// 	</xsd:complexType>
+		// </xsd:element>
 		r.dpFilestoreXml = dpnet.Soma(somaRequest)
 		doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
 		if err != nil {
@@ -173,12 +183,6 @@ func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
 // listDpDir loads DataPower directory (local:, local:///test,..).
 func (r *DpRepo) listDpDir(selectedItem model.Item) model.ItemList {
 	logging.LogDebug(fmt.Sprintf("repo/dp/listDpDir('%s')", selectedItem))
-	// var parentType model.ItemType
-	// if strings.Contains(currPath, "/") {
-	// 	parentType = model.ItemDirectory
-	// } else {
-	// 	parentType = model.ItemDpDomain
-	// }
 	parentDir := model.Item{Name: "..", Config: selectedItem.Config.Parent}
 	filesDirs := r.listFiles(selectedItem)
 
@@ -203,8 +207,7 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			logging.LogFatal(err)
 		}
 
-		// .filestore.location.directory /name
-		// work-around - for one directory we get JSON object, for multiple directories we get JSON array
+		// "//" - work-around - for one directory we get JSON object, for multiple directories we get JSON array
 		dirNodes := jsonquery.Find(doc, "/filestore/location/directory//name/..")
 		for _, n := range dirNodes {
 			dirDpPath := n.SelectElement("name").InnerText()
@@ -216,7 +219,7 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			filesDirs = append(filesDirs, item)
 		}
 
-		// .filestore.location.file      /name, /size, /modified
+		// "//" - work-around - for one file we get JSON object, for multiple files we get JSON array
 		fileNodes := jsonquery.Find(doc, "/filestore/location/file//name/..")
 		for _, n := range fileNodes {
 			fileName := n.SelectElement("name").InnerText()
