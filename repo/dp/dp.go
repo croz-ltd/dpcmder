@@ -14,8 +14,9 @@ import (
 )
 
 type DpRepo struct {
-	name           string
-	dpFilestoreXml string
+	name            string
+	dpFilestoreXml  string
+	invalidateCache bool
 }
 
 var Repo = DpRepo{name: "DpRepo"}
@@ -55,18 +56,24 @@ func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
 	case model.ItemDpConfiguration:
 		config.LoadDpConfig(itemToShow.Config.DpAppliance)
 		if itemToShow.Config.DpDomain != "" {
-			return r.listFilestores(itemToShow)
+			return r.listFilestores(itemToShow.Config)
 		} else {
-			return listDomains(itemToShow)
+			return listDomains(itemToShow.Config)
 		}
 	case model.ItemDpDomain:
-		return r.listFilestores(itemToShow)
+		return r.listFilestores(itemToShow.Config)
 	case model.ItemDpFilestore:
-		return r.listDpDir(itemToShow)
+		return r.listDpDir(itemToShow.Config)
 	case model.ItemDirectory:
-		return r.listDpDir(itemToShow)
+		return r.listDpDir(itemToShow.Config)
 	default:
 		return model.ItemList{}
+	}
+}
+
+func (r *DpRepo) InvalidateCache() {
+	if config.DpUseSoma() {
+		r.invalidateCache = true
 	}
 }
 
@@ -91,17 +98,17 @@ func listAppliances() model.ItemList {
 }
 
 // listDomains loads DataPower domains from current DataPower.
-func listDomains(selectedItem model.Item) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s')", selectedItem))
+func listDomains(selectedItemConfig *model.ItemConfig) model.ItemList {
+	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s')", selectedItemConfig))
 	domainNames := fetchDpDomains()
-	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s'), domainNames: %v", selectedItem, domainNames))
+	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s'), domainNames: %v", selectedItemConfig, domainNames))
 
 	items := make(model.ItemList, len(domainNames)+1)
-	items[0] = model.Item{Name: "..", Config: selectedItem.Config.Parent}
+	items[0] = model.Item{Name: "..", Config: selectedItemConfig.Parent}
 
 	for idx, name := range domainNames {
 		itemConfig := model.ItemConfig{Type: model.ItemDpDomain,
-			DpAppliance: selectedItem.Config.DpAppliance, DpDomain: name, Parent: selectedItem.Config}
+			DpAppliance: selectedItemConfig.DpAppliance, DpDomain: name, Parent: selectedItemConfig}
 		items[idx+1] = model.Item{Name: name, Config: &itemConfig}
 	}
 
@@ -111,10 +118,10 @@ func listDomains(selectedItem model.Item) model.ItemList {
 }
 
 // listFilestores loads DataPower filestores in current domain (cert:, local:,..).
-func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listFilestores('%s')", selectedItem))
+func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.ItemList {
+	logging.LogDebug(fmt.Sprintf("repo/dp/listFilestores('%s')", selectedItemConfig))
 	if config.DpUseRest() {
-		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItem.Config.DpDomain)
+		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
 		// println("jsonString: " + jsonString)
 
 		// .filestore.location[]?.name
@@ -125,13 +132,13 @@ func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
 		filestoreNameNodes := jsonquery.Find(doc, "/filestore/location/*/name")
 
 		items := make(model.ItemList, len(filestoreNameNodes)+1)
-		items[0] = model.Item{Name: "..", Config: selectedItem.Config.Parent}
+		items[0] = model.Item{Name: "..", Config: selectedItemConfig.Parent}
 
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore, DpAppliance: selectedItem.Config.DpAppliance,
-				DpDomain: selectedItem.Config.DpDomain, Path: filestoreName, Parent: selectedItem.Config}
+			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore, DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain: selectedItemConfig.DpDomain, Path: filestoreName, Parent: selectedItemConfig}
 			items[idx+1] = model.Item{Name: filestoreName, Config: &itemConfig}
 		}
 
@@ -140,7 +147,7 @@ func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
 		return items
 	} else if config.DpUseSoma() {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItem.Config.DpDomain + "\">" +
+			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
 			"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\"/></dp:request>" +
 			"</soapenv:Body></soapenv:Envelope>"
 		// In SOMA response we receive whole hierarchy of subdirectories and subfiles.
@@ -161,13 +168,13 @@ func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
 		filestoreNameNodes := xmlquery.Find(doc, "//*[local-name()='location']/@name")
 
 		items := make(model.ItemList, len(filestoreNameNodes)+1)
-		items[0] = model.Item{Name: "..", Config: selectedItem.Config.Parent}
+		items[0] = model.Item{Name: "..", Config: selectedItemConfig.Parent}
 
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore, DpAppliance: selectedItem.Config.DpAppliance,
-				DpDomain: selectedItem.Config.DpDomain, Path: filestoreName, Parent: selectedItem.Config}
+			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore, DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain: selectedItemConfig.DpDomain, Path: filestoreName, Parent: selectedItemConfig}
 			items[idx+1] = model.Item{Name: filestoreName, Config: &itemConfig}
 		}
 
@@ -181,10 +188,10 @@ func (r *DpRepo) listFilestores(selectedItem model.Item) model.ItemList {
 }
 
 // listDpDir loads DataPower directory (local:, local:///test,..).
-func (r *DpRepo) listDpDir(selectedItem model.Item) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listDpDir('%s')", selectedItem))
-	parentDir := model.Item{Name: "..", Config: selectedItem.Config.Parent}
-	filesDirs := r.listFiles(selectedItem)
+func (r *DpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList {
+	logging.LogDebug(fmt.Sprintf("repo/dp/listDpDir('%s')", selectedItemConfig))
+	parentDir := model.Item{Name: "..", Config: selectedItemConfig.Parent}
+	filesDirs := r.listFiles(selectedItemConfig)
 
 	itemsWithParentDir := make([]model.Item, 0)
 	itemsWithParentDir = append(itemsWithParentDir, parentDir)
@@ -193,13 +200,13 @@ func (r *DpRepo) listDpDir(selectedItem model.Item) model.ItemList {
 	return itemsWithParentDir
 }
 
-func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listFiles('%s')", selectedItem))
+func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
+	logging.LogDebug(fmt.Sprintf("repo/dp/listFiles('%s')", selectedItemConfig))
 	filesDirs := make(model.ItemList, 0)
 
 	if config.DpUseRest() {
-		currRestDirPath := strings.Replace(selectedItem.Config.Path, ":", "", 1)
-		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItem.Config.DpDomain + "/" + currRestDirPath)
+		currRestDirPath := strings.Replace(selectedItemConfig.Path, ":", "", 1)
+		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
 		// println("jsonString: " + jsonString)
 
 		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
@@ -213,8 +220,8 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			dirDpPath := n.SelectElement("name").InnerText()
 			_, dirName := utils.SplitOnLast(dirDpPath, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
-				DpAppliance: selectedItem.Config.DpAppliance, DpDomain: selectedItem.Config.DpDomain,
-				Path: dirDpPath, Parent: selectedItem.Config}
+				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
+				Path: dirDpPath, Parent: selectedItemConfig}
 			item := model.Item{Name: dirName, Config: &itemConfig}
 			filesDirs = append(filesDirs, item)
 		}
@@ -226,14 +233,23 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			fileSize := n.SelectElement("size").InnerText()
 			fileModified := n.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
-				DpAppliance: selectedItem.Config.DpAppliance, DpDomain: selectedItem.Config.DpDomain,
-				Path: utils.GetDpPath(selectedItem.Config.Path, fileName), Parent: selectedItem.Config}
+				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
+				Path: utils.GetDpPath(selectedItemConfig.Path, fileName), Parent: selectedItemConfig}
 			item := model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
 			filesDirs = append(filesDirs, item)
 		}
 	} else if config.DpUseSoma() {
-		dpFilestoreLocation, _ := utils.SplitOnFirst(selectedItem.Config.Path, "/")
-		dpFilestoreIsRoot := !strings.Contains(selectedItem.Config.Path, "/")
+		if r.invalidateCache {
+			domainItemConfig := findItemConfigParentDomain(selectedItemConfig)
+			if domainItemConfig != nil {
+				r.listFilestores(domainItemConfig)
+				r.invalidateCache = false
+			} else {
+				logging.LogDebug("Can't find parent domain for ", selectedItemConfig)
+			}
+		}
+		dpFilestoreLocation, _ := utils.SplitOnFirst(selectedItemConfig.Path, "/")
+		dpFilestoreIsRoot := !strings.Contains(selectedItemConfig.Path, "/")
 		var dpDirNodes []*xmlquery.Node
 		var dpFileNodes []*xmlquery.Node
 		if dpFilestoreIsRoot {
@@ -249,8 +265,8 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			if err != nil {
 				logging.LogFatal(err)
 			}
-			dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+selectedItem.Config.Path+"']/directory")
-			dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+selectedItem.Config.Path+"']/file")
+			dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+selectedItemConfig.Path+"']/directory")
+			dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+selectedItemConfig.Path+"']/file")
 		}
 
 		dirNum := len(dpDirNodes)
@@ -260,9 +276,9 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			dirFullName := node.SelectAttr("name")
 			_, dirName := utils.SplitOnLast(dirFullName, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
-				DpAppliance: selectedItem.Config.DpAppliance, DpDomain: selectedItem.Config.DpDomain,
-				Path: dirFullName, Parent: selectedItem.Config}
-			// Path: selectedItem.Config.Path
+				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
+				Path: dirFullName, Parent: selectedItemConfig}
+			// Path: selectedItemConfig.Path
 			items[idx] = model.Item{Name: dirName, Config: &itemConfig}
 		}
 
@@ -272,9 +288,9 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 			fileSize := node.SelectElement("size").InnerText()
 			fileModified := node.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
-				DpAppliance: selectedItem.Config.DpAppliance, DpDomain: selectedItem.Config.DpDomain,
-				Path: selectedItem.Config.Path, Parent: selectedItem.Config}
-			// selectedItem.Config.Path
+				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
+				Path: selectedItemConfig.Path, Parent: selectedItemConfig}
+			// selectedItemConfig.Path
 			items[idx+dirNum] = model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
 		}
 
@@ -284,6 +300,16 @@ func (r *DpRepo) listFiles(selectedItem model.Item) []model.Item {
 	sort.Sort(filesDirs)
 
 	return filesDirs
+}
+
+func findItemConfigParentDomain(itemConfig *model.ItemConfig) *model.ItemConfig {
+	if itemConfig.Type == model.ItemDpDomain {
+		return itemConfig
+	}
+	if itemConfig.Parent == nil {
+		return nil
+	}
+	return findItemConfigParentDomain(itemConfig.Parent)
 }
 
 func fetchDpDomains() []string {

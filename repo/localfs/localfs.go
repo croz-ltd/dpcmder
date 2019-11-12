@@ -31,6 +31,10 @@ func (r LocalRepo) GetInitialItem() model.Item {
 	return initialItem
 }
 
+func (r LocalRepo) GetTitle(itemToShow model.Item) string {
+	return itemToShow.Config.Path
+}
+
 // GetList returns list of items for current directory.
 func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
 	logging.LogDebug(fmt.Sprintf("repo/localfs/GetList('%s')", itemToShow))
@@ -48,9 +52,7 @@ func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
 	return itemsWithParentDir
 }
 
-func (r LocalRepo) GetTitle(itemToShow model.Item) string {
-	return itemToShow.Config.Path
-}
+func (r LocalRepo) InvalidateCache() {}
 
 func listFiles(dirPath string) []model.Item {
 	logging.LogDebug(fmt.Sprintf("repo/localfs/listFiles('%s')", dirPath))
