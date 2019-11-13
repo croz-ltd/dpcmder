@@ -152,7 +152,7 @@ func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.Item
 	} else if config.DpUseSoma() {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
 			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
-			"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\"/></dp:request>" +
+			"<dp:get-filestore layout-only=\"true\" no-subdirectories=\"true\"/></dp:request>" +
 			"</soapenv:Body></soapenv:Envelope>"
 		// In SOMA response we receive whole hierarchy of subdirectories and subfiles.
 		// TODO - check if it would be better to fetch each filestore hierarchy when needed.
@@ -164,8 +164,8 @@ func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.Item
 		// 		<xsd:attribute name="no-subdirectories" type="xsd:boolean"/>
 		// 	</xsd:complexType>
 		// </xsd:element>
-		r.dpFilestoreXml = dpnet.Soma(somaRequest)
-		doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+		dpFilestoresXML := dpnet.Soma(somaRequest)
+		doc, err := xmlquery.Parse(strings.NewReader(dpFilestoresXML))
 		if err != nil {
 			logging.LogFatal(err)
 		}
@@ -206,9 +206,9 @@ func (r *DpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList 
 
 func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 	logging.LogDebugf("repo/dp/listFiles('%s')", selectedItemConfig)
-	filesDirs := make(model.ItemList, 0)
 
 	if config.DpUseRest() {
+		items := make(model.ItemList, 0)
 		currRestDirPath := strings.Replace(selectedItemConfig.Path, ":", "", 1)
 		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
 		// println("jsonString: " + jsonString)
@@ -227,7 +227,7 @@ func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
 				Path: dirDpPath, Parent: selectedItemConfig}
 			item := model.Item{Name: dirName, Config: &itemConfig}
-			filesDirs = append(filesDirs, item)
+			items = append(items, item)
 		}
 
 		// "//" - work-around - for one file we get JSON object, for multiple files we get JSON array
@@ -240,22 +240,27 @@ func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
 				Path: utils.GetDpPath(selectedItemConfig.Path, fileName), Parent: selectedItemConfig}
 			item := model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
-			filesDirs = append(filesDirs, item)
+			items = append(items, item)
 		}
+
+		sort.Sort(items)
+		return items
 	} else if config.DpUseSoma() {
-		if r.invalidateCache {
-			domainItemConfig := findItemConfigParentDomain(selectedItemConfig)
-			if domainItemConfig != nil {
-				r.listFilestores(domainItemConfig)
-				r.invalidateCache = false
-			} else {
-				logging.LogDebug("Can't find parent domain for ", selectedItemConfig)
-			}
-		}
 		dpFilestoreLocation, _ := utils.SplitOnFirst(selectedItemConfig.Path, "/")
 		dpFilestoreIsRoot := !strings.Contains(selectedItemConfig.Path, "/")
 		var dpDirNodes []*xmlquery.Node
 		var dpFileNodes []*xmlquery.Node
+
+		// If we open filestore or open file but want to reload - refresh current filestore XML cache.
+		if dpFilestoreIsRoot || r.invalidateCache {
+			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
+				"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\" location=\"" + dpFilestoreLocation + "\"/></dp:request>" +
+				"</soapenv:Body></soapenv:Envelope>"
+			r.dpFilestoreXml = dpnet.Soma(somaRequest)
+			r.invalidateCache = false
+		}
+
 		if dpFilestoreIsRoot {
 			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
 			if err != nil {
@@ -274,7 +279,8 @@ func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 		}
 
 		dirNum := len(dpDirNodes)
-		items := make(model.ItemList, dirNum+len(dpFileNodes))
+		fileNum := len(dpFileNodes)
+		items := make(model.ItemList, dirNum+fileNum)
 		for idx, node := range dpDirNodes {
 			// "local:"
 			dirFullName := node.SelectAttr("name")
@@ -298,12 +304,12 @@ func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 			items[idx+dirNum] = model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
 		}
 
+		sort.Sort(items)
 		return items
+	} else {
+		logging.LogDebug("repo/dp/listFiles(), using neither REST neither SOMA.")
+		return model.ItemList{}
 	}
-
-	sort.Sort(filesDirs)
-
-	return filesDirs
 }
 
 func findItemConfigParentDomain(itemConfig *model.ItemConfig) *model.ItemConfig {
