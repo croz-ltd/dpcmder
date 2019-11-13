@@ -31,8 +31,19 @@ func (r *DpRepo) String() string {
 
 func (r *DpRepo) GetInitialItem() model.Item {
 	logging.LogDebug("repo/dp/GetInitialItem()")
-	initialItem := model.Item{
-		Config: &model.ItemConfig{Type: model.ItemNone}}
+	var initialConfig model.ItemConfig
+	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
+	if config.DpUseRest() || config.DpUseSoma() || *config.DpUsername != "" {
+		initialConfig = model.ItemConfig{
+			Type:        model.ItemDpConfiguration,
+			DpAppliance: config.PreviousAppliance,
+			DpDomain:    *config.DpDomain,
+			Parent:      &initialConfigTop}
+	} else {
+		initialConfig = initialConfigTop
+	}
+	initialItem := model.Item{Config: &initialConfig}
+
 	return initialItem
 }
 
@@ -41,14 +52,16 @@ func (r *DpRepo) GetTitle(itemToShow model.Item) string {
 	dpDomain := itemToShow.Config.DpDomain
 	currPath := itemToShow.Config.Path
 
-	var url *string
-	if *config.DpRestURL != "" {
-		url = config.DpRestURL
+	var url string
+	if config.DpUseRest() {
+		url = *config.DpRestURL
+	} else if config.DpUseSoma() {
+		url = *config.DpSomaURL
 	} else {
-		url = config.DpSomaURL
+		logging.LogDebug("repo/dp/GetTitle(), using neither REST neither SOMA.")
 	}
 
-	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, *url, dpDomain, currPath)
+	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, url, dpDomain, currPath)
 }
 func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)

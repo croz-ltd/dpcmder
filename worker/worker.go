@@ -36,7 +36,6 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	logging.LogDebugf("worker/initialLoadRepo(%v, %v)", side, repo)
 	initialItem := repo.GetInitialItem()
 	logging.LogDebugf("worker/initialLoadRepo(%v, %v), initialItem: %v", side, repo, initialItem)
-	workingModel.SetCurrPathForSide(side, "")
 
 	title := repo.GetTitle(initialItem)
 	workingModel.SetCurrentView(side, initialItem.Config, title)
