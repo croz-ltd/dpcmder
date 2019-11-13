@@ -39,7 +39,7 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	workingModel.SetCurrPathForSide(side, "")
 
 	title := repo.GetTitle(initialItem)
-	workingModel.SetTitle(side, *initialItem.Config, title)
+	workingModel.SetCurrentView(side, initialItem.Config, title)
 
 	itemList := repo.GetList(initialItem)
 	workingModel.SetItems(side, itemList)
@@ -143,11 +143,11 @@ func enterCurrentDirectory() {
 
 		oldViewConfig := workingModel.ViewConfig(workingModel.CurrSide())
 		workingModel.SetItems(workingModel.CurrSide(), itemList)
-		workingModel.SetTitle(workingModel.CurrSide(), *item.Config, title)
+		workingModel.SetCurrentView(workingModel.CurrSide(), item.Config, title)
 		if item.Name != ".." {
 			workingModel.NavTop()
 		} else {
-			workingModel.SetCurrItemForSideAndConfig(workingModel.CurrSide(), &oldViewConfig)
+			workingModel.SetCurrItemForSideAndConfig(workingModel.CurrSide(), oldViewConfig)
 		}
 	default:
 		logging.LogDebug("worker/enterCurrentDirectory(), unknown type: ", item.Config.Type)
