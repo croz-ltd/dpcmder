@@ -19,6 +19,10 @@ type LocalRepo struct {
 // Repo is localfs implementation of repo/Repo interface.
 var Repo = LocalRepo{name: "LocalRepo"}
 
+func (r *LocalRepo) String() string {
+	return r.name
+}
+
 // GetInitialView returns initialy opened local directory info.
 func (r LocalRepo) GetInitialItem() model.Item {
 	logging.LogDebug("repo/localfs/GetInitialItem()")

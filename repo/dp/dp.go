@@ -25,6 +25,10 @@ func InitNetworkSettings() {
 	dpnet.InitNetworkSettings()
 }
 
+func (r *DpRepo) String() string {
+	return r.name
+}
+
 func (r *DpRepo) GetInitialItem() model.Item {
 	logging.LogDebug("repo/dp/GetInitialItem()")
 	initialItem := model.Item{
