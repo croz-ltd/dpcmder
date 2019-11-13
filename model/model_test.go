@@ -21,6 +21,46 @@ func TestItemTypeString(t *testing.T) {
 	}
 }
 
+// ItemConfig methods tests
+
+func TestItemConfigEquals(t *testing.T) {
+	itemDp1a := ItemConfig{DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{}}
+	itemDp1b := ItemConfig{DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{DpAppliance: "other"}}
+	itemDp2 := ItemConfig{DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello", Parent: &ItemConfig{}}
+	itemLocal1a := ItemConfig{Path: "/hello/world/dir", Parent: &ItemConfig{}}
+	itemLocal1b := ItemConfig{Path: "/hello/world/dir", Parent: &ItemConfig{Path: "/asdf"}}
+	itemLocal2 := ItemConfig{Path: "/hello/world/dirother", Parent: &ItemConfig{Path: "/asdf"}}
+
+	testDataMatrix := []struct {
+		one   ItemConfig
+		other *ItemConfig
+		res   bool
+	}{
+		{itemDp1a, nil, false},
+		{itemDp1a, &itemDp1b, true},
+		{itemDp1a, &itemDp1a, true},
+		{itemDp1b, &itemDp1a, true},
+		{itemDp1a, &itemDp2, false},
+		{itemDp1a, &itemLocal1a, false},
+		{itemDp1a, &itemLocal2, false},
+		{itemLocal1a, nil, false},
+		{itemLocal1a, &itemLocal1a, true},
+		{itemLocal1a, &itemLocal1b, true},
+		{itemLocal1b, &itemLocal1a, true},
+		{itemLocal1a, &itemLocal2, false},
+		{itemLocal1a, &itemDp1a, false},
+	}
+
+	for _, testRow := range testDataMatrix {
+		gotRes := testRow.one.Equals(testRow.other)
+		extectedRes := testRow.res
+		if gotRes != extectedRes {
+			t.Errorf("Got res: %v, want res: %v (%v equals %v).",
+				gotRes, extectedRes, testRow.one, testRow.other)
+		}
+	}
+}
+
 // Item methods tests
 
 func TestItemDisplayString(t *testing.T) {
@@ -50,15 +90,15 @@ func TestItemGetDisplayableType(t *testing.T) {
 
 func prepareItemList() ItemList {
 	return ItemList{
-		Item{Config: &ItemConfig{Type: ItemDirectory}, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemDirectory}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDirectory, Path: "/path1"}, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDirectory, Path: "/path2"}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path3"}, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path4"}, Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path5"}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path6"}, Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path7"}, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path8"}, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path9"}, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
 	}
 }
 
@@ -111,7 +151,7 @@ func TestItemListSwap(t *testing.T) {
 	itemList.Swap(0, 4)
 
 	gotItem := itemList[0]
-	expectedItem := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
+	expectedItem := Item{Config: &ItemConfig{Type: ItemFile, Path: "/path5"}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
 
 	if !reflect.DeepEqual(gotItem, expectedItem) {
 		t.Errorf("Got item: %v, want item: %v.", gotItem, expectedItem)
@@ -136,13 +176,25 @@ func TestModelTitle(t *testing.T) {
 			t.Errorf("Model Title(%v) should be '%s' but is '%s'.", side, wantedTitle, model.Title(side))
 		}
 	}
+	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig) {
+		t.Helper()
+		if model.ViewConfig(side) != wantedViewConfig {
+			t.Errorf("Model ViewConfig(%v) should be '%s' but is '%s'.", side, wantedViewConfig, model.ViewConfig(side))
+		}
+	}
 	checkTitle(Left, "")
 	checkTitle(Right, "")
+	checkViewConfig(Left, nil)
+	checkViewConfig(Right, nil)
 
-	model.SetTitle(Left, "Left Title")
-	model.SetTitle(Right, "Right Title")
+	itemConfig1 := &ItemConfig{Path: "/path/1"}
+	itemConfig2 := &ItemConfig{Path: "/path/2"}
+	model.SetCurrentView(Left, itemConfig1, "Left Title")
+	model.SetCurrentView(Right, itemConfig2, "Right Title")
 	checkTitle(Left, "Left Title")
 	checkTitle(Right, "Right Title")
+	checkViewConfig(Left, itemConfig1)
+	checkViewConfig(Right, itemConfig2)
 }
 
 func TestModelToggleSide(t *testing.T) {
@@ -421,6 +473,24 @@ func TestModelSetCurrItemForSide(t *testing.T) {
 	checkCurrentRow(t, model, side, 3, false)
 
 	checkCurrItem(t, model, items[6], "")
+}
+
+func TestModelSetCurrItemForSideAndConfig(t *testing.T) {
+	model := Model{}
+	side := model.CurrSide()
+
+	model.SetItemsMaxSize(4, 30)
+	items := prepareItemList()
+	model.SetItems(side, items)
+
+	checkCurrentRow(t, model, side, 0, true)
+
+	itemConfig := ItemConfig{Path: "/path4"}
+	model.SetCurrItemForSideAndConfig(side, &itemConfig)
+	checkCurrentRow(t, model, side, 0, false)
+	checkCurrentRow(t, model, side, 3, true)
+
+	checkCurrItem(t, model, items[3], "")
 }
 
 func TestModelSortSide(t *testing.T) {

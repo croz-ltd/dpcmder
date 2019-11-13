@@ -30,7 +30,8 @@ func (r LocalRepo) GetInitialItem() model.Item {
 		logging.LogFatal("repo/localfs/GetInitialItem(): ", err)
 	}
 
-	initialItem := model.Item{Config: &model.ItemConfig{Path: currPath}}
+	parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: utils.GetFilePath(currPath, "..")}
+	initialItem := model.Item{Config: &model.ItemConfig{Type: model.ItemDirectory, Path: currPath, Parent: &parentConfig}}
 	return initialItem
 }
 
@@ -73,10 +74,11 @@ func listFiles(dirPath string) []model.Item {
 		} else {
 			dirType = model.ItemFile
 		}
+		parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: dirPath}
 		items[idx] = model.Item{Name: file.Name(), Size: strconv.FormatInt(file.Size(), 10),
 			Modified: file.ModTime().Format("2006-01-02 15:04:05"),
 			Config: &model.ItemConfig{
-				Type: dirType, Path: utils.GetFilePath(dirPath, file.Name())}}
+				Type: dirType, Path: utils.GetFilePath(dirPath, file.Name()), Parent: &parentConfig}}
 	}
 
 	sort.Sort(items)

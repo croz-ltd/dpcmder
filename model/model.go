@@ -59,6 +59,7 @@ type ItemList []Item
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
+	viewConfig          [2]*ItemConfig
 	title               [2]string
 	items               [2]ItemList
 	allItems            [2]ItemList
@@ -79,6 +80,14 @@ type Model struct {
 func (ic ItemConfig) String() string {
 	return fmt.Sprintf("IC(%s, '%s', '%s', '%s', '%s', %s)",
 		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
+}
+
+// Equals method returns true if other object is refering to same ItemConfig.
+func (ic *ItemConfig) Equals(other *ItemConfig) bool {
+	if other == nil {
+		return false
+	}
+	return ic.Path == other.Path && ic.DpAppliance == other.DpAppliance && ic.DpDomain == other.DpDomain && ic.DpFilestore == other.DpFilestore
 }
 
 // Item methods
@@ -173,10 +182,14 @@ func (m *Model) OtherSide() Side {
 func (m *Model) Title(side Side) string {
 	return m.title[side]
 }
+func (m *Model) ViewConfig(side Side) *ItemConfig {
+	return m.viewConfig[side]
+}
 
 // SetTitle sets title for given Side.
-func (m *Model) SetTitle(side Side, title string) {
-	m.title[side] = title
+func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
+	m.title[side] = viewTitle
+	m.viewConfig[side] = viewConfig
 }
 
 // IsCurrentSide returns true if given side is currently used.
@@ -204,13 +217,25 @@ func (m *Model) CurrItemForSide(side Side) *Item {
 func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 	itemIdx := 0
 	for idx, item := range m.items[side] {
-		// DebugInfo += "itemName: " + itemName + ", idx: " + strconv.Itoa(idx) + ", item.Name: " + item.Name + "\n"
 		if item.Name == itemName {
 			itemIdx = idx
 			break
 		}
 	}
 	m.currItemIdx[side] = itemIdx
+}
+
+// SetCurrItemForSideAndConfig sets current item under cursor for Side to ItemConfig.
+func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
+	itemIdx := 0
+	for idx, item := range m.items[m.currSide] {
+		if item.Config.Equals(config) {
+			itemIdx = idx
+			break
+		}
+	}
+	logging.LogDebugf("model/SetCurrItemForSideAndConfig(%v, %v), itemIdx: %v", side, config, itemIdx)
+	m.currItemIdx[m.currSide] = itemIdx
 }
 
 // CurrItem returns current item under cursor for used side.
