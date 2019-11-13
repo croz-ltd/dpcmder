@@ -149,7 +149,7 @@ func ClearDpConfig() {
 	*Proxy = ""
 }
 func LoadDpConfig(configName string) {
-	logging.LogDebug(fmt.Sprintf("config/LoadDpConfig('%s')", configName))
+	logging.LogDebugf("config/LoadDpConfig('%s')", configName)
 	appliance := Conf.DataPowerAppliances[configName]
 
 	*DpRestURL = appliance.RestUrl

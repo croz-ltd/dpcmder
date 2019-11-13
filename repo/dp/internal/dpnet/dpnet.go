@@ -41,7 +41,7 @@ func Soma(body string) string {
 }
 
 func httpRequest(urlFullPath, method, body string) string {
-	logging.LogTrace(fmt.Sprintf("repo/dp/dpnet/httpRequest(%s, %s, '%s')", urlFullPath, method, body))
+	logging.LogTracef("repo/dp/dpnet/httpRequest(%s, %s, '%s')", urlFullPath, method, body)
 
 	client := &http.Client{}
 	var bodyReader io.Reader
@@ -53,7 +53,7 @@ func httpRequest(urlFullPath, method, body string) string {
 		logging.LogFatal("repo/dp/dpnet/httpRequest() - Can't prepare request: ", err)
 	}
 
-	// logging.LogDebug(fmt.Sprintf("dp username:password: '%s:%s'", *config.DpUsername, config.DpPassword()))
+	// logging.LogDebugf("dp username:password: '%s:%s'", *config.DpUsername, config.DpPassword())
 	req.SetBasicAuth(*config.DpUsername, config.DpPassword())
 	resp, err := client.Do(req)
 
@@ -69,10 +69,10 @@ func httpRequest(urlFullPath, method, body string) string {
 		if err != nil {
 			logging.LogFatal("repo/dp/dpnet/httpRequest() - Can't read response: ", err)
 		}
-		logging.LogTrace(fmt.Sprintf("repo/dp/dpnet/httpRequest() - httpResponse: '%s'", string(bodyBytes)))
+		logging.LogTracef("repo/dp/dpnet/httpRequest() - httpResponse: '%s'", string(bodyBytes))
 		return string(bodyBytes)
 	} else {
-		logging.LogTrace(fmt.Sprintf("repo/dp/dpnet/httpRequest() - resp.StatusCode: '%d'", resp.StatusCode))
+		logging.LogTracef("repo/dp/dpnet/httpRequest() - resp.StatusCode: '%d'", resp.StatusCode)
 		if resp.StatusCode == 403 || resp.StatusCode == 404 {
 			return ""
 		}

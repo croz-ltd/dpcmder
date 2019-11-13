@@ -37,7 +37,7 @@ func (r *DpRepo) GetInitialItem() model.Item {
 }
 
 func (r *DpRepo) GetTitle(itemToShow model.Item) string {
-	logging.LogDebug(fmt.Sprintf("repo/dp/GetTitle(%v)", itemToShow))
+	logging.LogDebugf("repo/dp/GetTitle(%v)", itemToShow)
 	dpDomain := itemToShow.Config.DpDomain
 	currPath := itemToShow.Config.Path
 
@@ -51,7 +51,7 @@ func (r *DpRepo) GetTitle(itemToShow model.Item) string {
 	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, *url, dpDomain, currPath)
 }
 func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/GetList(%v)", itemToShow))
+	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
 	switch itemToShow.Config.Type {
 	case model.ItemNone:
@@ -84,7 +84,7 @@ func (r *DpRepo) InvalidateCache() {
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
 func listAppliances() model.ItemList {
 	appliances := config.Conf.DataPowerAppliances
-	logging.LogDebug(fmt.Sprintf("repo/dp/listAppliances(), appliances: %v", appliances))
+	logging.LogDebugf("repo/dp/listAppliances(), appliances: %v", appliances)
 
 	appliancesConfig := model.ItemConfig{Type: model.ItemNone}
 	items := make(model.ItemList, len(appliances))
@@ -96,16 +96,16 @@ func listAppliances() model.ItemList {
 	}
 
 	sort.Sort(items)
-	logging.LogDebug(fmt.Sprintf("repo/dp/listAppliances(), items: %v", items))
+	logging.LogDebugf("repo/dp/listAppliances(), items: %v", items)
 
 	return items
 }
 
 // listDomains loads DataPower domains from current DataPower.
 func listDomains(selectedItemConfig *model.ItemConfig) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s')", selectedItemConfig))
+	logging.LogDebugf("repo/dp/listDomains('%s')", selectedItemConfig)
 	domainNames := fetchDpDomains()
-	logging.LogDebug(fmt.Sprintf("repo/dp/listDomains('%s'), domainNames: %v", selectedItemConfig, domainNames))
+	logging.LogDebugf("repo/dp/listDomains('%s'), domainNames: %v", selectedItemConfig, domainNames)
 
 	items := make(model.ItemList, len(domainNames)+1)
 	items[0] = model.Item{Name: "..", Config: selectedItemConfig.Parent}
@@ -123,7 +123,7 @@ func listDomains(selectedItemConfig *model.ItemConfig) model.ItemList {
 
 // listFilestores loads DataPower filestores in current domain (cert:, local:,..).
 func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listFilestores('%s')", selectedItemConfig))
+	logging.LogDebugf("repo/dp/listFilestores('%s')", selectedItemConfig)
 	if config.DpUseRest() {
 		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
 		// println("jsonString: " + jsonString)
@@ -193,7 +193,7 @@ func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.Item
 
 // listDpDir loads DataPower directory (local:, local:///test,..).
 func (r *DpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listDpDir('%s')", selectedItemConfig))
+	logging.LogDebugf("repo/dp/listDpDir('%s')", selectedItemConfig)
 	parentDir := model.Item{Name: "..", Config: selectedItemConfig.Parent}
 	filesDirs := r.listFiles(selectedItemConfig)
 
@@ -205,7 +205,7 @@ func (r *DpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList 
 }
 
 func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
-	logging.LogDebug(fmt.Sprintf("repo/dp/listFiles('%s')", selectedItemConfig))
+	logging.LogDebugf("repo/dp/listFiles('%s')", selectedItemConfig)
 	filesDirs := make(model.ItemList, 0)
 
 	if config.DpUseRest() {
@@ -317,7 +317,7 @@ func findItemConfigParentDomain(itemConfig *model.ItemConfig) *model.ItemConfig 
 }
 
 func fetchDpDomains() []string {
-	logging.LogDebug(fmt.Sprintf("repo/dp/fetchDpDomains()"))
+	logging.LogDebug("repo/dp/fetchDpDomains()")
 	domains := make([]string, 0)
 
 	if config.DpUseRest() {

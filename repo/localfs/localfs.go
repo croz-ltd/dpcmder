@@ -1,7 +1,6 @@
 package localfs
 
 import (
-	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils"
@@ -41,7 +40,7 @@ func (r LocalRepo) GetTitle(itemToShow model.Item) string {
 
 // GetList returns list of items for current directory.
 func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
-	logging.LogDebug(fmt.Sprintf("repo/localfs/GetList('%s')", itemToShow))
+	logging.LogDebugf("repo/localfs/GetList('%s')", itemToShow)
 	currPath := itemToShow.Config.Path
 
 	parentDir := model.Item{Name: "..",
@@ -59,7 +58,7 @@ func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
 func (r LocalRepo) InvalidateCache() {}
 
 func listFiles(dirPath string) []model.Item {
-	logging.LogDebug(fmt.Sprintf("repo/localfs/listFiles('%s')", dirPath))
+	logging.LogDebugf("repo/localfs/listFiles('%s')", dirPath)
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
 		logging.LogFatal("repo/localfs/listFiles(): ", err)
