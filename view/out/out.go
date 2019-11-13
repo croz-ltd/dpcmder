@@ -3,6 +3,7 @@ package out
 import (
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/nsf/termbox-go"
 )
@@ -52,15 +53,18 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebug("view/out/draw(", updateViewEvent, ")")
 	switch updateViewEvent.Type {
 	case events.UpdateViewRefresh:
-		refreshScreen(updateViewEvent.Model)
+		refreshScreen(*updateViewEvent.Model)
+	case events.UpdateViewShowDialog:
+		showQuestionDialog(updateViewEvent.DialogQuestion)
 	}
 }
 
 func refreshScreen(m model.Model) {
+	logging.LogDebugf("view/out/refreshScreen('%v')", m)
+
 	termbox.Clear(fgNormal, bgNormal)
 
 	width, _ := termbox.Size()
-	// logging.LogDebug("view/out/draw(), width: ", width)
 	if m.IsCurrentSide(model.Left) {
 		writeLine(0, 0, m.Title(model.Left), fgNormal, bgCurrent)
 		writeLine(width/2, 0, m.Title(model.Right), fgNormal, bgNormal)
@@ -97,6 +101,24 @@ func refreshScreen(m model.Model) {
 	}
 
 	// showStatus(m, currentStatus)
+
+	termbox.Flush()
+}
+
+func showQuestionDialog(question string) {
+	logging.LogDebugf("view/out/showQuestionDialog('%s')", question)
+
+	// termbox.Clear(fgNormal, bgNormal)
+	width, height := termbox.Size()
+	x := 10
+	y := height/2 - 2
+	dialogWidth := width - 20
+	writeLine(x, y-2, utils.BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y-1, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y+1, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y+2, utils.BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
+	writeLineWithCursor(x+2, y, question, fgNormal, bgNormal, x+2+len(question), termbox.AttrReverse, termbox.AttrReverse)
 
 	termbox.Flush()
 }
