@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+// Error type is used to create constant errors.
+type Error string
+
+func (e Error) Error() string { return string(e) }
+
 // SplitOnFirst splits given string in two parts (prefix, suffix) where prefix is
 // part of the string before first found splitterString and suffix is part of string
 // after first found splitterString.
@@ -66,4 +71,9 @@ func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) strin
 		return parentPath + fileName
 	}
 	return parentPath + pathSeparator + fileName
+}
+
+func BuildLine(first, middle, last string, length int) string {
+	middleLen := (length - len(first) - len(last)) / len(middle)
+	return first + strings.Repeat(middle, middleLen) + last
 }
