@@ -32,31 +32,25 @@ func runWorkerInit(keyPressedEventChan chan events.KeyPressedEvent, updateViewEv
 	processInputEvent(keyPressedEventChan, updateViewEventChan)
 }
 
+func initialLoadRepo(side model.Side, repo repo.Repo) {
+	logging.LogDebugf("worker/initialLoadRepo(%v, %v)", side, repo)
+	initialItem := repo.GetInitialItem()
+	logging.LogDebugf("worker/initialLoadRepo(%v, %v), initialItem: %v", side, repo, initialItem)
+	workingModel.SetCurrPathForSide(side, "")
+
+	title := repo.GetTitle(initialItem)
+	workingModel.SetTitle(side, title)
+
+	itemList := repo.GetList(initialItem)
+	workingModel.SetItems(side, itemList)
+}
+
 func initialLoadDp() {
-	logging.LogDebug("worker/initialLoadDp()")
-	initialItem := dp.Repo.GetInitialItem()
-	logging.LogDebug("worker/initialLoadDp(), initialItem: ", initialItem)
-	workingModel.SetCurrPathForSide(model.Left, "")
-
-	title := dp.Repo.GetTitle(initialItem)
-	workingModel.SetTitle(model.Left, title)
-
-	itemList := dp.Repo.GetList(initialItem)
-	workingModel.SetItems(model.Left, itemList)
+	initialLoadRepo(model.Left, &dp.Repo)
 }
 
 func initialLoadLocalfs() {
-	logging.LogDebug("worker/initialLoadLocalfs()")
-	initialItem := localfs.Repo.GetInitialItem()
-	logging.LogDebug("worker/initialLoadLocalfs(), initialItem: ", initialItem)
-	// workingModel.SetCurrentView(model.Right, initialItem)
-	workingModel.SetCurrPathForSide(model.Right, initialItem.Config.Path)
-
-	title := localfs.Repo.GetTitle(initialItem)
-	workingModel.SetTitle(model.Right, title)
-
-	itemList := localfs.Repo.GetList(initialItem)
-	workingModel.SetItems(model.Right, itemList)
+	initialLoadRepo(model.Right, &localfs.Repo)
 }
 
 func initialLoad(updateViewEventChan chan events.UpdateViewEvent) {
