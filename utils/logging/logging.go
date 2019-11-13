@@ -31,10 +31,30 @@ func LogDebug(v ...interface{}) {
 	}
 }
 
+// LogDebugf logs formatted debug message to log file.
+func LogDebugf(v ...interface{}) {
+	if DebugLogFile || TraceLogFile {
+		format := v[0].(string)
+		rest := v[1:]
+
+		logInternal(fmt.Sprintf(format, rest...))
+	}
+}
+
 // LogTrace logs trace message to log file.
 func LogTrace(v ...interface{}) {
 	if TraceLogFile {
 		logInternal(v...)
+	}
+}
+
+// LogTracef logs trace message to log file.
+func LogTracef(v ...interface{}) {
+	if TraceLogFile {
+		format := v[0].(string)
+		rest := v[1:]
+
+		logInternal(fmt.Sprintf(format, rest...))
 	}
 }
 
