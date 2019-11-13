@@ -50,9 +50,15 @@ func drawLoop(updateViewEventChan chan events.UpdateViewEvent) {
 
 func draw(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebug("view/out/draw(", updateViewEvent, ")")
-	m := updateViewEvent.Model
+	switch updateViewEvent.Type {
+	case events.UpdateViewRefresh:
+		refreshScreen(updateViewEvent.Model)
+	}
+}
 
+func refreshScreen(m model.Model) {
 	termbox.Clear(fgNormal, bgNormal)
+
 	width, _ := termbox.Size()
 	// logging.LogDebug("view/out/draw(), width: ", width)
 	if m.IsCurrentSide(model.Left) {

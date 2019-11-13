@@ -65,8 +65,7 @@ func initialLoad(updateViewEventChan chan events.UpdateViewEvent) {
 	initialLoadLocalfs()
 
 	setScreenSize()
-	updateViewEvent := events.UpdateViewEvent{Model: workingModel}
-	updateViewEventChan <- updateViewEvent
+	updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: workingModel}
 }
 
 func processInputEvent(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
@@ -131,8 +130,7 @@ loop:
 		}
 
 		if shouldUpdateView {
-			updateViewEvent := events.UpdateViewEvent{Model: workingModel}
-			updateViewEventChan <- updateViewEvent
+			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: workingModel}
 		}
 	}
 }

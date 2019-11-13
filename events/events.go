@@ -13,6 +13,8 @@ type UpdateViewEventType int
 
 const (
 	UpdateViewScreenSize UpdateViewEventType = UpdateViewEventType(0)
+	UpdateViewRefresh    UpdateViewEventType = UpdateViewEventType(1)
+	UpdateViewShowDialog UpdateViewEventType = UpdateViewEventType(2)
 )
 
 type UpdateViewEvent struct {
