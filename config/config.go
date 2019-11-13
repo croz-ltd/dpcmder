@@ -160,6 +160,8 @@ func LoadDpConfig(configName string) {
 	}
 	*DpDomain = appliance.Domain
 	*Proxy = appliance.Proxy
+
+	LogConfig()
 }
 
 // validateProgramArgs validate parsed program arguments and/or shows usage
@@ -273,6 +275,19 @@ func PrintConfig() {
 	fmt.Println("Proxy: ", *Proxy)
 	fmt.Println("DpConfigName: ", *DpConfigName)
 	fmt.Println("Help: ", *Help)
+}
+
+// PrintConfig prints configuration values to console.
+func LogConfig() {
+	logging.LogDebug("LocalFolderPath: ", *LocalFolderPath)
+	logging.LogDebug("DpRestURL: ", *DpRestURL)
+	logging.LogDebug("DpSomaURL: ", *DpSomaURL)
+	logging.LogDebug("DpUsername: ", *DpUsername)
+	logging.LogDebug("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
+	logging.LogDebug("DpDomain: ", *DpDomain)
+	logging.LogDebug("Proxy: ", *Proxy)
+	logging.LogDebug("DpConfigName: ", *DpConfigName)
+	logging.LogDebug("Help: ", *Help)
 }
 
 func usage(exitStatus int) {
