@@ -21,6 +21,7 @@ type UpdateViewEvent struct {
 	Type           UpdateViewEventType
 	Model          *model.Model
 	DialogQuestion string
+	DialogAnswer   string
 }
 
 type ActionEvent struct {

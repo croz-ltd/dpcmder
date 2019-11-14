@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"encoding/hex"
+	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/view/in/key"
 	"os"
 	"strings"
 )
@@ -73,7 +76,29 @@ func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) strin
 	return parentPath + pathSeparator + fileName
 }
 
+// BuildLine creats line with given length and given start of line string,
+// middle string and end of line string. For example:
+// BuildLine("<", "-", ">", 10) -> "<-------->".
 func BuildLine(first, middle, last string, length int) string {
 	middleLen := (length - len(first) - len(last)) / len(middle)
 	return first + strings.Repeat(middle, middleLen) + last
+}
+
+func ConvertKeyCodeStringToString(code key.KeyCode) string {
+	logging.LogDebugf("utils/ConvertKeyCodeStringToString(%s)", code)
+	switch code {
+	case key.Esc, key.Return, key.Tab,
+		key.ArrowDown, key.ArrowUp, key.ArrowLeft, key.ArrowRight,
+		key.ShiftArrowUp, key.ShiftArrowDown,
+		key.PgUp, key.PgDown, key.ShiftPgUp, key.ShiftPgDown,
+		key.Backspace, key.BackspaceWin,
+		key.Home, key.End, key.ShiftHome, key.ShiftEnd, key.Del:
+		return ""
+	default:
+		res, err := hex.DecodeString(string(code))
+		if err != nil {
+			logging.LogDebugf("utils/ConvertKeyCodeStringToString(%s), err: %v", code, err)
+		}
+		return string(res)
+	}
 }

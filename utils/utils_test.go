@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/croz-ltd/dpcmder/view/in/key"
 	"testing"
 )
 
@@ -88,6 +89,40 @@ func TestBuildLine(t *testing.T) {
 		got := BuildLine(row.first, row.middle, row.last, row.length)
 		if got != row.result {
 			t.Errorf("for BuildLine('%s', '%s', '%s', %d): got '%s', want '%s'", row.first, row.middle, row.last, row.length, got, row.result)
+		}
+	}
+}
+
+func TestConvertKeyCodeStringToString(t *testing.T) {
+	testDataMatrix := [][]string{
+		{"6e", "n"},
+		{"65", "e"},
+		{"32", "2"},
+		{"20", " "},
+		{"41", "A"},
+		{"0d", ""},
+		{"09", ""},
+		{"1b", ""},
+		{"Z", ""},
+		{string(key.ArrowLeft), ""},
+		{string(key.ArrowRight), ""},
+		{string(key.ArrowUp), ""},
+		{string(key.ArrowDown), ""},
+		{string(key.Return), ""},
+		{string(key.Esc), ""},
+		{string(key.Del), ""},
+		{string(key.Backspace), ""},
+		{string(key.BackspaceWin), ""},
+		{string(key.Home), ""},
+		{string(key.End), ""},
+	}
+
+	for _, row := range testDataMatrix {
+		input := row[0]
+		got := ConvertKeyCodeStringToString(key.KeyCode(input))
+		want := row[1]
+		if got != want {
+			t.Errorf("for ConvertKeyCodeStringToString('%s'): got '%s', want '%s'", input, got, want)
 		}
 	}
 }

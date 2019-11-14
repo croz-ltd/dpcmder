@@ -76,6 +76,11 @@ type DataPowerAppliance struct {
 	Proxy    string
 }
 
+func (dpa *DataPowerAppliance) SetDpPlaintextPassword(password string) {
+	b32password := base32.StdEncoding.EncodeToString([]byte(password))
+	dpa.Password = b32password
+}
+
 //var Cmd = Command{Viewer: "less", Editor: "vi"}
 var Conf = Config{
 	Cmd: Command{
