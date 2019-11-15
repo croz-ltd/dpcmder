@@ -12,6 +12,7 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in/key"
 	"github.com/croz-ltd/dpcmder/view/out"
+	"unicode/utf8"
 )
 
 // DpMissingPasswordError is constant error returned if DataPower password is
@@ -189,7 +190,6 @@ func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userD
 }
 
 func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) events.UpdateViewEvent {
-	dialogSession.inputAnswer = dialogSession.inputAnswer + utils.ConvertKeyCodeStringToString(keyCode)
 	logging.LogDebug("worker/processInputEvent(): '%s'", dialogSession)
 	switch keyCode {
 	case key.Backspace, key.BackspaceWin:
@@ -203,10 +203,23 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 			dialogSession.inputAnswer = changedAnswer
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
 		}
+	case key.ArrowLeft:
+		if dialogSession.inputAnswerCursorIdx > 0 {
+			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
+		}
+	case key.ArrowRight:
+		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
+			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
+		}
+	case key.Home:
+		dialogSession.inputAnswerCursorIdx = 0
+	case key.End:
+		dialogSession.inputAnswerCursorIdx = utf8.RuneCountInString(dialogSession.inputAnswer)
 	case key.Esc:
 		logging.LogDebug("worker/processInputEvent() canceling user input: '%s'", dialogSession)
 		dialogSession.userInputActive = false
 		dialogSession.inputAnswer = ""
+		dialogSession.inputAnswerCursorIdx = 0
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	case key.Return:
 		logging.LogDebug("worker/processInputEvent() accepting user input: '%s'", dialogSession)
@@ -223,6 +236,20 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 		dialogSession.userInputActive = false
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	default:
+		changedAnswer := ""
+		answerLen := utf8.RuneCountInString(dialogSession.inputAnswer)
+		runeIdx := 0
+		for _, runeVal := range dialogSession.inputAnswer {
+			if runeIdx == dialogSession.inputAnswerCursorIdx {
+				changedAnswer = changedAnswer + utils.ConvertKeyCodeStringToString(keyCode)
+			}
+			changedAnswer = changedAnswer + string(runeVal)
+			runeIdx = runeIdx + 1
+		}
+		if answerLen == runeIdx && runeIdx == dialogSession.inputAnswerCursorIdx {
+			changedAnswer = changedAnswer + utils.ConvertKeyCodeStringToString(keyCode)
+		}
+		dialogSession.inputAnswer = changedAnswer
 		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
 	}
 
