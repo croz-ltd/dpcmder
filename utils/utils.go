@@ -6,6 +6,7 @@ import (
 	"github.com/croz-ltd/dpcmder/view/in/key"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 // Error type is used to create constant errors.
@@ -80,7 +81,7 @@ func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) strin
 // middle string and end of line string. For example:
 // BuildLine("<", "-", ">", 10) -> "<-------->".
 func BuildLine(first, middle, last string, length int) string {
-	middleLen := (length - len(first) - len(last)) / len(middle)
+	middleLen := (length - utf8.RuneCountInString(first) - utf8.RuneCountInString(last)) / utf8.RuneCountInString(middle)
 	return first + strings.Repeat(middle, middleLen) + last
 }
 

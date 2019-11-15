@@ -22,25 +22,33 @@ func Start(keyPressedEventChan chan events.KeyPressedEvent) {
 }
 
 func keyPressedLoop(keyPressedEventChan chan events.KeyPressedEvent) {
-	logging.LogDebug("view/in/keyPressedLoop()")
+	logging.LogDebug("view/in/keyPressedLoop() starting")
 	var bytesRead = make([]byte, 6)
 	reader := bufio.NewReader(os.Stdin)
 
 loop:
 	for {
+		logging.LogDebug("view/in/keyPressedLoop(), waiting to read...")
 		bytesReadCount, err := reader.Read(bytesRead)
+		logging.LogDebugf("view/in/keyPressedLoop(), bytesReadCount: %d, err: %v", bytesReadCount, err)
 		if err != nil {
 			panic(err)
 		}
 		hexBytesRead := hex.EncodeToString(bytesRead[0:bytesReadCount])
 		keyCode := key.KeyCode(hexBytesRead)
 		keyEvent := events.KeyPressedEvent{KeyCode: keyCode}
-		logging.LogDebug("hexBytesRead: ", hexBytesRead, "keyEvent: ", keyEvent)
+		logging.LogDebug("view/in/keyPressedLoop(), hexBytesRead: ", hexBytesRead, ", keyEvent: ", keyEvent, ", events.Quit: ", events.Quit)
+
+		if events.Quit == true {
+			break loop
+		}
 
 		keyPressedEventChan <- keyEvent
-		switch keyCode {
-		case key.Chq:
+		logging.LogDebug("view/in/keyPressedLoop(), event sent to channel, events.Quit: ", events.Quit)
+
+		if events.Quit == true {
 			break loop
 		}
 	}
+	logging.LogDebug("view/in/keyPressedLoop() stopping")
 }

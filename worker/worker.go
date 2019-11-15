@@ -83,7 +83,7 @@ func initialLoad(updateViewEventChan chan events.UpdateViewEvent) {
 }
 
 func processInputEvent(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("worker/processInputEvent()")
+	logging.LogDebug("worker/processInputEvent() starting")
 
 	// Dialog with user - question asked, user's answer and active state.
 	var dialogSession = userDialogInputSessionInfo{}
@@ -102,6 +102,7 @@ loop:
 			shouldUpdateView := true
 			switch keyPressedEvent.KeyCode {
 			case key.Chq:
+				events.Quit = true
 				break loop
 			case key.Tab:
 				workingModel.ToggleSide()
@@ -166,6 +167,9 @@ loop:
 			}
 		}
 	}
+	logging.LogDebug("worker/processInputEvent() sending events.UpdateViewQuit")
+	updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewQuit}
+	logging.LogDebug("worker/processInputEvent() stopping")
 }
 
 func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) events.UpdateViewEvent {

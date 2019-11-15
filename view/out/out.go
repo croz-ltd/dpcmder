@@ -5,7 +5,9 @@ import (
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/utils/screen"
 	"github.com/nsf/termbox-go"
+	"unicode/utf8"
 )
 
 const (
@@ -27,7 +29,10 @@ func Init(updateViewEventChan chan events.UpdateViewEvent) {
 }
 
 func Stop() {
-	termbox.Close()
+	logging.LogDebug("view/out/Stop()")
+	logging.LogDebug("view/out/Stop(), termbox.IsInit: ", termbox.IsInit)
+	screen.TermboxClose()
+	logging.LogDebug("view/out/Stop() end")
 }
 
 func GetScreenSize() (width, height int) {
@@ -37,16 +42,21 @@ func GetScreenSize() (width, height int) {
 }
 
 func drawLoop(updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("view/out/drawLoop()")
+	logging.LogDebug("view/out/drawLoop() starting")
 
-	defer termbox.Close()
-
+	defer screen.TermboxClose()
+loop:
 	for {
 		logging.LogDebug("view/out/drawLoop(), waiting update event.")
 		updateViewEvent := <-updateViewEventChan
 		logging.LogDebug("view/out/drawLoop(), updateViewEvent: ", updateViewEvent)
+		if updateViewEvent.Type == events.UpdateViewQuit {
+			logging.LogDebug("view/out/drawLoop() received events.UpdateViewQuit")
+			break loop
+		}
 		draw(updateViewEvent)
 	}
+	logging.LogDebug("view/out/drawLoop() stopping")
 }
 
 func draw(updateViewEvent events.UpdateViewEvent) {
@@ -114,7 +124,7 @@ func showQuestionDialog(question, answer string) {
 	y := height/2 - 2
 	dialogWidth := width - 20
 	line := question + answer
-	lineLen := len(line)
+	lineLen := utf8.RuneCountInString(line)
 	writeLine(x, y-2, utils.BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
 	writeLine(x, y-1, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
 	writeLine(x, y, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
@@ -132,23 +142,25 @@ func writeLine(x, y int, line string, fg, bg termbox.Attribute) int {
 
 func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
 	// logging.LogDebug("view/out/writeLineWithCursor(", x, ",", y, ",", line, ",", fg, ",", bg, ",", cursorX, ",", cursorFg, ",", cursorBg, ")")
-	var scrolledLine string
 	// var scrollh = horizScroll
-	var scrollh = 0
-	if len(line) < scrollh {
-		scrollh = len(line)
+	scrollh := 0
+	runeCount := utf8.RuneCountInString(line)
+	if runeCount < scrollh {
+		scrollh = runeCount
 		if scrollh < 0 {
 			scrollh = 0
 		}
 	}
-	scrolledLine = line[scrollh:]
+
 	var xpos int
-	for i := 0; i < len(scrolledLine); i++ {
-		xpos = x + i
+	runeIdx := 0
+	for _, runeVal := range line {
+		xpos = x + runeIdx
+		runeIdx = runeIdx + 1
 		if cursorX == xpos {
-			termbox.SetCell(xpos, y, rune(scrolledLine[i]), cursorFg, cursorBg)
+			termbox.SetCell(xpos, y, runeVal, cursorFg, cursorBg)
 		} else {
-			termbox.SetCell(xpos, y, rune(scrolledLine[i]), fg, bg)
+			termbox.SetCell(xpos, y, runeVal, fg, bg)
 		}
 	}
 	// logging.LogDebug("x: ", x, ", scrolledLine: ", scrolledLine, ", len(scrolledLine): ", len(scrolledLine))

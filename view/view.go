@@ -17,8 +17,11 @@ func Start(keyPressedEventChan chan events.KeyPressedEvent) {
 
 	defer out.Stop()
 	in.Start(keyPressedEventChan)
+	logging.LogDebug("view/Start() end")
 }
 
 func Stop() {
+	logging.LogDebug("view/Stop()")
 	out.Stop()
+	logging.LogDebug("view/Stop() end")
 }

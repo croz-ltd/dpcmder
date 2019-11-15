@@ -2,7 +2,7 @@ package logging
 
 import (
 	"fmt"
-	"github.com/nsf/termbox-go"
+	"github.com/croz-ltd/dpcmder/utils/screen"
 	"log"
 	"os"
 	"time"
@@ -20,7 +20,7 @@ var (
 
 // LogFatal logs fatal error message to log file and exits dpcmder.
 func LogFatal(v ...interface{}) {
-	termbox.Close()
+	screen.TermboxClose()
 	log.Fatal(v...)
 }
 

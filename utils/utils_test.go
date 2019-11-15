@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func TestError(t *testing.T) {
+	testErr := Error("my-test-error")
+	if testErr.Error() != "my-test-error" {
+		t.Errorf("Error() produced is not 'my-test-error' but '%s'.", testErr.Error())
+	}
+}
+
 func TestSplitOnFirst(t *testing.T) {
 	testDataMatrix := [][]string{
 		{"/usr/bin/share", "/", "", "usr/bin/share"},
@@ -83,6 +90,7 @@ func TestBuildLine(t *testing.T) {
 		{"=", "=", "=", 20, "===================="},
 		{"=", " ", "=", 20, "=                  ="},
 		{"=+", " ", "+=", 20, "=+                +="},
+		{"Č", "đ", "Ž", 20, "ČđđđđđđđđđđđđđđđđđđŽ"},
 	}
 
 	for _, row := range testDataMatrix {
