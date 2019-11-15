@@ -39,6 +39,11 @@ var repos = []repo.Repo{model.Left: &dp.Repo, model.Right: &localfs.Repo}
 // local filesystem we are showing in dpcmder.
 var workingModel model.Model = model.Model{} //{currSide: model.Left}
 
+var quitting = false
+
+// IsQuitting checks if application is currently quitting.
+func IsQuitting() bool { return quitting }
+
 // Init initializes DataPower and local filesystem access and load initial views.
 func Init(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
 	logging.LogDebug("worker/Init()")
@@ -102,7 +107,7 @@ loop:
 			shouldUpdateView := true
 			switch keyPressedEvent.KeyCode {
 			case key.Chq:
-				events.Quit = true
+				quitting = true
 				break loop
 			case key.Tab:
 				workingModel.ToggleSide()

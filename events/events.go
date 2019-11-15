@@ -24,5 +24,3 @@ type UpdateViewEvent struct {
 	DialogQuestion string
 	DialogAnswer   string
 }
-
-var Quit = false

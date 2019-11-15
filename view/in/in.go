@@ -6,6 +6,7 @@ import (
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in/key"
+	"github.com/croz-ltd/dpcmder/worker"
 	"os"
 )
 
@@ -37,16 +38,16 @@ loop:
 		hexBytesRead := hex.EncodeToString(bytesRead[0:bytesReadCount])
 		keyCode := key.KeyCode(hexBytesRead)
 		keyEvent := events.KeyPressedEvent{KeyCode: keyCode}
-		logging.LogDebug("view/in/keyPressedLoop(), hexBytesRead: ", hexBytesRead, ", keyEvent: ", keyEvent, ", events.Quit: ", events.Quit)
+		logging.LogDebug("view/in/keyPressedLoop(), hexBytesRead: ", hexBytesRead, ", keyEvent: ", keyEvent, ", worker.IsQuitting(): ", worker.IsQuitting())
 
-		if events.Quit == true {
+		if worker.IsQuitting() == true {
 			break loop
 		}
 
 		keyPressedEventChan <- keyEvent
-		logging.LogDebug("view/in/keyPressedLoop(), event sent to channel, events.Quit: ", events.Quit)
+		logging.LogDebug("view/in/keyPressedLoop(), event sent to channel, worker.IsQuitting(): ", worker.IsQuitting())
 
-		if events.Quit == true {
+		if worker.IsQuitting() == true {
 			break loop
 		}
 	}
