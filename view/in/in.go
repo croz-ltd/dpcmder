@@ -47,7 +47,9 @@ loop:
 	logging.LogDebug("view/in/keyPressedLoop() stopping")
 }
 
-// Internals used to implement non-blocking reading of key pressed events.
+////
+// Internal code used to implement non-blocking reading of key pressed events.
+////
 
 // readTimeout is error used to make user input reading non blocking.
 const readTimeout = utils.Error("ReadTimeout")
@@ -61,25 +63,25 @@ type readResult struct {
 // timeoutReader is structure used to implement non-blocking user input reading.
 type timeoutReader struct {
 	reader            io.Reader
+	readResultChannel chan (readResult)
 	bytesRead         []byte
 	bytesReadCount    int
 	err               error
-	timeout           time.Duration
+	waitForInput      time.Duration
 	readFunc          func()
-	readWait          bool
-	readResultChannel chan (readResult)
+	readFuncIsRunning bool
 }
 
 // newTimeoutReader creates new timeoutReader.
 func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 	tr := new(timeoutReader)
 	tr.reader = reader
-	tr.timeout = timeout
+	tr.waitForInput = timeout
 	tr.bytesRead = make([]byte, 6)
 	tr.readResultChannel = make(chan readResult, 1)
 
 	tr.readFunc = func() {
-		tr.readWait = true
+		tr.readFuncIsRunning = true
 		logging.LogTrace("view/in/TimeoutReader.readFunc() begin")
 		// bytesRead := make([]byte, 6)
 		bytesReadCount, err := tr.reader.Read(tr.bytesRead)
@@ -91,7 +93,7 @@ func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 		result := readResult{keyEvent: keyEvent, err: err}
 		tr.readResultChannel <- result
 		logging.LogTrace("view/in/TimeoutReader.readFunc() end")
-		tr.readWait = false
+		tr.readFuncIsRunning = false
 	}
 
 	return tr
@@ -102,9 +104,9 @@ func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 // 2) err passed from unsuccessful user input
 // 3) readTimeout error if user didn't input nothing during timeout period
 func (tr *timeoutReader) readNext() readResult {
-	logging.LogTracef("view/in/TimeoutReader.readNext(), tr.readWait: %v", tr.readWait)
+	logging.LogTracef("view/in/TimeoutReader.readNext(), tr.readFuncIsRunning: %v", tr.readFuncIsRunning)
 
-	if !tr.readWait {
+	if !tr.readFuncIsRunning {
 		go tr.readFunc()
 	}
 
@@ -113,7 +115,7 @@ func (tr *timeoutReader) readNext() readResult {
 	case res := <-tr.readResultChannel:
 		logging.LogTracef("view/in/TimeoutReader.readNext(), res: %v", res)
 		return res
-	case <-time.After(tr.timeout):
+	case <-time.After(tr.waitForInput):
 		logging.LogTrace("view/in/TimeoutReader.readNext(), timeout")
 		return readResult{err: readTimeout}
 	}
