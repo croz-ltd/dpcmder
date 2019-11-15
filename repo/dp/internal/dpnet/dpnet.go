@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// InitNetworkSettings initializes TLS & proxy configuration.
 func InitNetworkSettings() {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	if *config.Proxy != "" {
@@ -23,23 +24,28 @@ func InitNetworkSettings() {
 	}
 }
 
+// rest makes http request from relative URL path given, method and body.
 func rest(urlPath, method, body string) string {
 	fullURL := *config.DpRestURL + urlPath
 	return httpRequest(fullURL, method, body)
 }
 
+// RestGet makes DataPower REST GET request.
 func RestGet(urlPath string) string {
 	return rest(urlPath, "GET", "")
 }
 
+// Amp makes DataPower AMP request.
 func Amp(body string) string {
 	return httpRequest(*config.DpSomaURL+"/service/mgmt/amp/1.0", "POST", body)
 }
 
+// Soma makes DataPower SOMA request.
 func Soma(body string) string {
 	return httpRequest(*config.DpSomaURL+"/service/mgmt/current", "POST", body)
 }
 
+// httpRequest makes DataPower HTTP request.
 func httpRequest(urlFullPath, method, body string) string {
 	logging.LogTracef("repo/dp/dpnet/httpRequest(%s, %s, '%s')", urlFullPath, method, body)
 
@@ -82,6 +88,7 @@ func httpRequest(urlFullPath, method, body string) string {
 	}
 }
 
+// makeRestPath creates DataPower REST path to given domain.
 func makeRestPath(dpDomain, filePath string) string {
 	currRestFilePath := strings.Replace(filePath, ":", "", 1)
 	return "/mgmt/filestore/" + dpDomain + "/" + currRestFilePath
