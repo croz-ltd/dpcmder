@@ -195,10 +195,12 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 	case key.Backspace, key.BackspaceWin:
 		if dialogSession.inputAnswerCursorIdx > 0 {
 			changedAnswer := ""
-			for idx, runeVal := range dialogSession.inputAnswer {
-				if idx+1 != dialogSession.inputAnswerCursorIdx {
+			runeIdx := 0
+			for _, runeVal := range dialogSession.inputAnswer {
+				if runeIdx+1 != dialogSession.inputAnswerCursorIdx {
 					changedAnswer = changedAnswer + string(runeVal)
 				}
+				runeIdx = runeIdx + 1
 			}
 			dialogSession.inputAnswer = changedAnswer
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
@@ -206,10 +208,12 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 	case key.Del:
 		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
 			changedAnswer := ""
-			for idx, runeVal := range dialogSession.inputAnswer {
-				if idx != dialogSession.inputAnswerCursorIdx {
+			runeIdx := 0
+			for _, runeVal := range dialogSession.inputAnswer {
+				if runeIdx != dialogSession.inputAnswerCursorIdx {
 					changedAnswer = changedAnswer + string(runeVal)
 				}
+				runeIdx = runeIdx + 1
 			}
 			dialogSession.inputAnswer = changedAnswer
 		}
