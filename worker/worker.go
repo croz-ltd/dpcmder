@@ -12,6 +12,7 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in/key"
 	"github.com/croz-ltd/dpcmder/view/out"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -122,7 +123,7 @@ loop:
 				err := enterCurrentDirectory()
 				logging.LogDebug("worker/processInputEvent(), err: ", err)
 				if err == dpMissingPasswordError {
-					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ")
+					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", true)
 					updateViewEventChan <- updateView
 					continue
 				}
@@ -177,11 +178,12 @@ loop:
 	logging.LogDebug("worker/processInputEvent() stopping")
 }
 
-func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userDialogType, question string) events.UpdateViewEvent {
+func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userDialogType, question string, answerMasked bool) events.UpdateViewEvent {
 	dialogSession.dialogType = dialogType
 	dialogSession.userInputActive = true
 	dialogSession.inputQuestion = question
 	dialogSession.inputAnswer = ""
+	dialogSession.inputAnswerMasked = answerMasked
 
 	return events.UpdateViewEvent{
 		Type:           events.UpdateViewShowDialog,
@@ -239,13 +241,17 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 		logging.LogDebug("worker/processInputEvent() accepting user input: '%s'", dialogSession)
 		if dialogSession.inputAnswer != "" {
 			item := workingModel.CurrItem()
-			applianceName := item.Name
-			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
-			logging.LogDebug("worker/processInputEvent() applicanceConfig before: '%s'", applicanceConfig)
-			applicanceConfig.SetDpPlaintextPassword(dialogSession.inputAnswer)
-			config.Conf.DataPowerAppliances[applianceName] = applicanceConfig
-			logging.LogDebug("worker/processInputEvent() applicanceConfig after : '%s'", applicanceConfig)
-			// config.SetDpPassword(dialogSession.inputAnswer)
+			switch dialogSession.dialogType {
+			case askDpPassword:
+				applianceName := item.Name
+				applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
+				logging.LogDebug("worker/processInputEvent() applicanceConfig before: '%s'", applicanceConfig)
+				applicanceConfig.SetDpPlaintextPassword(dialogSession.inputAnswer)
+				config.Conf.DataPowerAppliances[applianceName] = applicanceConfig
+				logging.LogDebug("worker/processInputEvent() applicanceConfig after : '%s'", applicanceConfig)
+			default:
+				logging.LogDebug("worker/processInputEvent() unknown input dialog type: '%s'", dialogSession.dialogType)
+			}
 		}
 		dialogSession.userInputActive = false
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
@@ -267,71 +273,16 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
 	}
 
+	answer := dialogSession.inputAnswer
+	if dialogSession.inputAnswerMasked {
+		answerLen := utf8.RuneCountInString(dialogSession.inputAnswer)
+		answer = strings.Repeat("*", answerLen)
+	}
 	return events.UpdateViewEvent{
 		Type:                  events.UpdateViewShowDialog,
 		DialogQuestion:        dialogSession.inputQuestion,
-		DialogAnswer:          dialogSession.inputAnswer,
+		DialogAnswer:          answer,
 		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
-
-	// switch hexBytesRead {
-	// case key.Return:
-	// 	break loop
-	// case key.Backspace, key.BackspaceWin:
-	// 	// Remove character before cursor
-	// 	if rbIdx > 0 {
-	// 		rbSuffix := make([]byte, rbLen-rbIdx)
-	// 		copy(rbSuffix[:], rb[rbIdx:rbLen])
-	// 		copy(rb[rbIdx-1:], rbSuffix[:])
-	// 		rb[rbLen-1] = 0
-	// 		rbIdx--
-	// 		rbLen--
-	// 		if rbIdx < 0 {
-	// 			rbIdx = 0
-	// 		}
-	// 		if rbLen < 0 {
-	// 			rbLen = 0
-	// 		}
-	// 	}
-	// case key.Del:
-	// 	// Remove character at cursor
-	// 	if rbIdx < rbLen {
-	// 		rbSuffix := make([]byte, rbLen-rbIdx-1)
-	// 		copy(rbSuffix[:], rb[rbIdx+1:rbLen])
-	// 		copy(rb[rbIdx:], rbSuffix[:])
-	// 		rb[rbLen-1] = 0
-	// 		rbLen--
-	// 		if rbLen < 0 {
-	// 			rbLen = 0
-	// 		}
-	// 	}
-	// case key.ArrowLeft:
-	// 	rbIdx--
-	// 	if rbIdx < 0 {
-	// 		rbIdx = 0
-	// 	}
-	// case key.ArrowRight:
-	// 	rbIdx++
-	// 	if rbIdx > rbLen {
-	// 		rbIdx = rbLen
-	// 	}
-	// case key.Esc:
-	// 	return ""
-	// default:
-	// 	// Insert string in middle of current string
-	// 	rbSuffix := make([]byte, rbLen-rbIdx)
-	// 	copy(rbSuffix[:], rb[rbIdx:rbLen])
-	// 	copy(rb[rbIdx:rbIdx+bytesReadCount], bytesRead)
-	// 	copy(rb[rbIdx+bytesReadCount:], rbSuffix[:])
-	// 	rbIdx += bytesReadCount
-	// 	rbLen += bytesReadCount
-	// 	if rbLen > len(rb) {
-	// 		rbLen = len(rb)
-	// 	}
-	// 	if rbIdx > rbLen {
-	// 		rbIdx = rbLen
-	// 	}
-	// }
-
 }
 
 func enterCurrentDirectory() error {
