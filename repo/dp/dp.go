@@ -13,23 +13,26 @@ import (
 	"strings"
 )
 
-type DpRepo struct {
+// dpRepo contains basic DataPower repo information and implements Repo interface.
+type dpRepo struct {
 	name            string
 	dpFilestoreXml  string
 	invalidateCache bool
 }
 
-var Repo = DpRepo{name: "DpRepo"}
+// Repo is instance or DataPower repo/Repo interface implementation.
+var Repo = dpRepo{name: "DpRepo"}
 
+// InitNetworkSettings initializes DataPower client network configuration.
 func InitNetworkSettings() {
 	dpnet.InitNetworkSettings()
 }
 
-func (r *DpRepo) String() string {
+func (r *dpRepo) String() string {
 	return r.name
 }
 
-func (r *DpRepo) GetInitialItem() model.Item {
+func (r *dpRepo) GetInitialItem() model.Item {
 	logging.LogDebug("repo/dp/GetInitialItem()")
 	var initialConfig model.ItemConfig
 	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
@@ -47,7 +50,7 @@ func (r *DpRepo) GetInitialItem() model.Item {
 	return initialItem
 }
 
-func (r *DpRepo) GetTitle(itemToShow model.Item) string {
+func (r *dpRepo) GetTitle(itemToShow model.Item) string {
 	logging.LogDebugf("repo/dp/GetTitle(%v)", itemToShow)
 	dpDomain := itemToShow.Config.DpDomain
 	currPath := itemToShow.Config.Path
@@ -63,7 +66,7 @@ func (r *DpRepo) GetTitle(itemToShow model.Item) string {
 
 	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, url, dpDomain, currPath)
 }
-func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
+func (r *dpRepo) GetList(itemToShow model.Item) model.ItemList {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
 	switch itemToShow.Config.Type {
@@ -88,7 +91,7 @@ func (r *DpRepo) GetList(itemToShow model.Item) model.ItemList {
 	}
 }
 
-func (r *DpRepo) InvalidateCache() {
+func (r *dpRepo) InvalidateCache() {
 	if config.DpUseSoma() {
 		r.invalidateCache = true
 	}
@@ -135,7 +138,7 @@ func listDomains(selectedItemConfig *model.ItemConfig) model.ItemList {
 }
 
 // listFilestores loads DataPower filestores in current domain (cert:, local:,..).
-func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.ItemList {
+func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.ItemList {
 	logging.LogDebugf("repo/dp/listFilestores('%s')", selectedItemConfig)
 	if config.DpUseRest() {
 		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
@@ -205,7 +208,7 @@ func (r *DpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.Item
 }
 
 // listDpDir loads DataPower directory (local:, local:///test,..).
-func (r *DpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList {
+func (r *dpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList {
 	logging.LogDebugf("repo/dp/listDpDir('%s')", selectedItemConfig)
 	parentDir := model.Item{Name: "..", Config: selectedItemConfig.Parent}
 	filesDirs := r.listFiles(selectedItemConfig)
@@ -217,7 +220,7 @@ func (r *DpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList 
 	return itemsWithParentDir
 }
 
-func (r *DpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
+func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 	logging.LogDebugf("repo/dp/listFiles('%s')", selectedItemConfig)
 
 	if config.DpUseRest() {

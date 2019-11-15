@@ -11,19 +11,19 @@ import (
 	"strconv"
 )
 
-type LocalRepo struct {
+type localRepo struct {
 	name string
 }
 
-// Repo is localfs implementation of repo/Repo interface.
-var Repo = LocalRepo{name: "LocalRepo"}
+// Repo is instance or local filesystem repo/Repo interface implementation.
+var Repo = localRepo{name: "LocalRepo"}
 
-func (r *LocalRepo) String() string {
+func (r *localRepo) String() string {
 	return r.name
 }
 
 // GetInitialView returns initialy opened local directory info.
-func (r LocalRepo) GetInitialItem() model.Item {
+func (r localRepo) GetInitialItem() model.Item {
 	logging.LogDebug("repo/localfs/GetInitialItem()")
 	currPath, err := filepath.Abs(*config.LocalFolderPath)
 	if err != nil {
@@ -35,12 +35,13 @@ func (r LocalRepo) GetInitialItem() model.Item {
 	return initialItem
 }
 
-func (r LocalRepo) GetTitle(itemToShow model.Item) string {
+// GetTitle returns title for item to show.
+func (r localRepo) GetTitle(itemToShow model.Item) string {
 	return itemToShow.Config.Path
 }
 
 // GetList returns list of items for current directory.
-func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
+func (r localRepo) GetList(itemToShow model.Item) model.ItemList {
 	logging.LogDebugf("repo/localfs/GetList('%s')", itemToShow)
 	currPath := itemToShow.Config.Path
 
@@ -56,7 +57,7 @@ func (r LocalRepo) GetList(itemToShow model.Item) model.ItemList {
 	return itemsWithParentDir
 }
 
-func (r LocalRepo) InvalidateCache() {}
+func (r localRepo) InvalidateCache() {}
 
 func listFiles(dirPath string) []model.Item {
 	logging.LogDebugf("repo/localfs/listFiles('%s')", dirPath)
