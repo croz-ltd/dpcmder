@@ -203,6 +203,16 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 			dialogSession.inputAnswer = changedAnswer
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
 		}
+	case key.Del:
+		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
+			changedAnswer := ""
+			for idx, runeVal := range dialogSession.inputAnswer {
+				if idx != dialogSession.inputAnswerCursorIdx {
+					changedAnswer = changedAnswer + string(runeVal)
+				}
+			}
+			dialogSession.inputAnswer = changedAnswer
+		}
 	case key.ArrowLeft:
 		if dialogSession.inputAnswerCursorIdx > 0 {
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
