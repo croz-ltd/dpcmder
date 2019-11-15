@@ -65,7 +65,7 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 	case events.UpdateViewRefresh:
 		refreshScreen(*updateViewEvent.Model)
 	case events.UpdateViewShowDialog:
-		showQuestionDialog(updateViewEvent.DialogQuestion, updateViewEvent.DialogAnswer)
+		showQuestionDialog(updateViewEvent.DialogQuestion, updateViewEvent.DialogAnswer, updateViewEvent.DialogAnswerCursorIdx)
 	}
 }
 
@@ -115,7 +115,7 @@ func refreshScreen(m model.Model) {
 	termbox.Flush()
 }
 
-func showQuestionDialog(question, answer string) {
+func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	logging.LogDebugf("view/out/showQuestionDialog('%s')", question)
 
 	// termbox.Clear(fgNormal, bgNormal)
@@ -124,13 +124,13 @@ func showQuestionDialog(question, answer string) {
 	y := height/2 - 2
 	dialogWidth := width - 20
 	line := question + answer
-	lineLen := utf8.RuneCountInString(line)
+	cursorIdx := utf8.RuneCountInString(question) + answerCursorIdx
 	writeLine(x, y-2, utils.BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
 	writeLine(x, y-1, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
 	writeLine(x, y, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
 	writeLine(x, y+1, utils.BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
 	writeLine(x, y+2, utils.BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
-	writeLineWithCursor(x+2, y, line, fgNormal, bgNormal, x+2+lineLen, termbox.AttrReverse, termbox.AttrReverse)
+	writeLineWithCursor(x+2, y, line, fgNormal, bgNormal, x+2+cursorIdx, termbox.AttrReverse, termbox.AttrReverse)
 
 	termbox.Flush()
 }

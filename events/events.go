@@ -19,8 +19,9 @@ const (
 )
 
 type UpdateViewEvent struct {
-	Type           UpdateViewEventType
-	Model          *model.Model
-	DialogQuestion string
-	DialogAnswer   string
+	Type                  UpdateViewEventType
+	Model                 *model.Model
+	DialogQuestion        string
+	DialogAnswer          string
+	DialogAnswerCursorIdx int
 }

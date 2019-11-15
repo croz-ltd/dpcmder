@@ -16,20 +16,27 @@ import (
 
 // DpMissingPasswordError is constant error returned if DataPower password is
 // not set and we want to connect to appliance.
-const DpMissingPasswordError = utils.Error("DpMissingPasswordError")
+const dpMissingPasswordError = utils.Error("DpMissingPasswordError")
+
+type userDialogType string
+
+const askDpPassword = userDialogType("askDpPassword")
 
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
 type userDialogInputSessionInfo struct {
+	userInputActive      bool
+	dialogType           userDialogType
 	inputQuestion        string
 	inputAnswer          string
 	inputAnswerCursorIdx int
 	inputAnswerMasked    bool
-	userInputActive      bool
 }
 
 func (ud userDialogInputSessionInfo) String() string {
-	return fmt.Sprintf("Session(%T, q: '%s', a: '%s')", ud.userInputActive, ud.inputQuestion, ud.inputAnswer)
+	return fmt.Sprintf("Session(%T (%s) q: '%s', a: '%s', cur: %d, masked: %T)",
+		ud.userInputActive, ud.dialogType, ud.inputQuestion, ud.inputAnswer,
+		ud.inputAnswerCursorIdx, ud.inputAnswerMasked)
 }
 
 // repos contains references to DataPower and local filesystem repositories.
@@ -104,7 +111,6 @@ loop:
 			updateViewEvent := processInputDialogInput(&dialogSession, keyPressedEvent.KeyCode)
 			updateViewEventChan <- updateViewEvent
 		} else {
-			shouldUpdateView := true
 			switch keyPressedEvent.KeyCode {
 			case key.Chq:
 				quitting = true
@@ -114,15 +120,10 @@ loop:
 			case key.Return:
 				err := enterCurrentDirectory()
 				logging.LogDebug("worker/processInputEvent(), err: ", err)
-				if err == DpMissingPasswordError {
-					dialogSession.userInputActive = true
-					dialogSession.inputQuestion = "Please enter DataPower password: "
-					dialogSession.inputAnswer = ""
-					shouldUpdateView = false
-					updateViewEventChan <- events.UpdateViewEvent{
-						Type:           events.UpdateViewShowDialog,
-						DialogQuestion: dialogSession.inputQuestion,
-						DialogAnswer:   dialogSession.inputAnswer}
+				if err == dpMissingPasswordError {
+					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ")
+					updateViewEventChan <- updateView
+					continue
 				}
 			case key.Space:
 				workingModel.ToggleCurrItem()
@@ -167,9 +168,7 @@ loop:
 				workingModel.NavBottom()
 			}
 
-			if shouldUpdateView {
-				updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
-			}
+			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 		}
 	}
 	logging.LogDebug("worker/processInputEvent() sending events.UpdateViewQuit")
@@ -177,13 +176,33 @@ loop:
 	logging.LogDebug("worker/processInputEvent() stopping")
 }
 
+func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userDialogType, question string) events.UpdateViewEvent {
+	dialogSession.dialogType = dialogType
+	dialogSession.userInputActive = true
+	dialogSession.inputQuestion = question
+	dialogSession.inputAnswer = ""
+
+	return events.UpdateViewEvent{
+		Type:           events.UpdateViewShowDialog,
+		DialogQuestion: dialogSession.inputQuestion,
+		DialogAnswer:   dialogSession.inputAnswer}
+}
+
 func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) events.UpdateViewEvent {
 	dialogSession.inputAnswer = dialogSession.inputAnswer + utils.ConvertKeyCodeStringToString(keyCode)
 	logging.LogDebug("worker/processInputEvent(): '%s'", dialogSession)
 	switch keyCode {
-	// case key.Backspace, key.BackspaceWin:
-	// 	if dialogSession.inputAnswerCursorIdx > 0:
-	// 	dialogSession.inputAnswer = strings.
+	case key.Backspace, key.BackspaceWin:
+		if dialogSession.inputAnswerCursorIdx > 0 {
+			changedAnswer := ""
+			for idx, runeVal := range dialogSession.inputAnswer {
+				if idx+1 != dialogSession.inputAnswerCursorIdx {
+					changedAnswer = changedAnswer + string(runeVal)
+				}
+			}
+			dialogSession.inputAnswer = changedAnswer
+			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
+		}
 	case key.Esc:
 		logging.LogDebug("worker/processInputEvent() canceling user input: '%s'", dialogSession)
 		dialogSession.userInputActive = false
@@ -204,16 +223,14 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 		dialogSession.userInputActive = false
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	default:
-		return events.UpdateViewEvent{
-			Type:           events.UpdateViewShowDialog,
-			DialogQuestion: dialogSession.inputQuestion,
-			DialogAnswer:   dialogSession.inputAnswer}
+		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
 	}
 
 	return events.UpdateViewEvent{
-		Type:           events.UpdateViewShowDialog,
-		DialogQuestion: dialogSession.inputQuestion,
-		DialogAnswer:   dialogSession.inputAnswer}
+		Type:                  events.UpdateViewShowDialog,
+		DialogQuestion:        dialogSession.inputQuestion,
+		DialogAnswer:          dialogSession.inputAnswer,
+		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
 
 	// switch hexBytesRead {
 	// case key.Return:
@@ -287,7 +304,7 @@ func enterCurrentDirectory() error {
 			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
 			logging.LogDebugf("worker/enterCurrentDirectory(), applicanceConfig: '%s'", applicanceConfig)
 			if applicanceConfig.Password == "" {
-				return DpMissingPasswordError
+				return dpMissingPasswordError
 			}
 		}
 	}
