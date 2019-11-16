@@ -8,7 +8,7 @@ import (
 	"github.com/croz-ltd/dpcmder/repo"
 	"github.com/croz-ltd/dpcmder/repo/dp"
 	"github.com/croz-ltd/dpcmder/repo/localfs"
-	"github.com/croz-ltd/dpcmder/utils"
+	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in/key"
 	"github.com/croz-ltd/dpcmder/view/out"
@@ -18,7 +18,7 @@ import (
 
 // DpMissingPasswordError is constant error returned if DataPower password is
 // not set and we want to connect to appliance.
-const dpMissingPasswordError = utils.Error("DpMissingPasswordError")
+const dpMissingPasswordError = errs.Error("DpMissingPasswordError")
 
 type userDialogType string
 
@@ -261,13 +261,13 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 		runeIdx := 0
 		for _, runeVal := range dialogSession.inputAnswer {
 			if runeIdx == dialogSession.inputAnswerCursorIdx {
-				changedAnswer = changedAnswer + utils.ConvertKeyCodeStringToString(keyCode)
+				changedAnswer = changedAnswer + key.ConvertKeyCodeStringToString(keyCode)
 			}
 			changedAnswer = changedAnswer + string(runeVal)
 			runeIdx = runeIdx + 1
 		}
 		if answerLen == runeIdx && runeIdx == dialogSession.inputAnswerCursorIdx {
-			changedAnswer = changedAnswer + utils.ConvertKeyCodeStringToString(keyCode)
+			changedAnswer = changedAnswer + key.ConvertKeyCodeStringToString(keyCode)
 		}
 		dialogSession.inputAnswer = changedAnswer
 		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1

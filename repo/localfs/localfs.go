@@ -3,8 +3,8 @@ package localfs
 import (
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/utils/paths"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
@@ -30,7 +30,7 @@ func (r localRepo) GetInitialItem() model.Item {
 		logging.LogFatal("repo/localfs/GetInitialItem(): ", err)
 	}
 
-	parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: utils.GetFilePath(currPath, "..")}
+	parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(currPath, "..")}
 	initialItem := model.Item{Config: &model.ItemConfig{Type: model.ItemDirectory, Path: currPath, Parent: &parentConfig}}
 	return initialItem
 }
@@ -47,7 +47,7 @@ func (r localRepo) GetList(itemToShow model.Item) model.ItemList {
 
 	parentDir := model.Item{Name: "..",
 		Config: &model.ItemConfig{
-			Type: model.ItemDirectory, Path: utils.GetFilePath(currPath, "..")}}
+			Type: model.ItemDirectory, Path: paths.GetFilePath(currPath, "..")}}
 	items := listFiles(currPath)
 
 	itemsWithParentDir := make([]model.Item, 0)
@@ -79,7 +79,7 @@ func listFiles(dirPath string) []model.Item {
 		items[idx] = model.Item{Name: file.Name(), Size: strconv.FormatInt(file.Size(), 10),
 			Modified: file.ModTime().Format("2006-01-02 15:04:05"),
 			Config: &model.ItemConfig{
-				Type: dirType, Path: utils.GetFilePath(dirPath, file.Name()), Parent: &parentConfig}}
+				Type: dirType, Path: paths.GetFilePath(dirPath, file.Name()), Parent: &parentConfig}}
 	}
 
 	sort.Sort(items)

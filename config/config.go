@@ -6,8 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/croz-ltd/confident"
-	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/utils/paths"
 	"github.com/howeyc/gopass"
 	"os"
 	"os/user"
@@ -214,7 +214,7 @@ func configDirPath() string {
 	}
 
 	// println("usr.HomeDir: ", usr.HomeDir)
-	configDirPath := utils.GetFilePath(usr.HomeDir, configDirName)
+	configDirPath := paths.GetFilePath(usr.HomeDir, configDirName)
 
 	return configDirPath
 }

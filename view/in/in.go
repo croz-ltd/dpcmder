@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"github.com/croz-ltd/dpcmder/events"
-	"github.com/croz-ltd/dpcmder/utils"
+	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/view/in/key"
 	"github.com/croz-ltd/dpcmder/worker"
@@ -52,7 +52,7 @@ loop:
 ////
 
 // readTimeout is error used to make user input reading non blocking.
-const readTimeout = utils.Error("ReadTimeout")
+const readTimeout = errs.Error("ReadTimeout")
 
 // readResult contains either keyEvent created from user's input either error.
 type readResult struct {

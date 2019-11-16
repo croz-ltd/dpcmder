@@ -1,5 +1,10 @@
 package key
 
+import (
+	"encoding/hex"
+	"github.com/croz-ltd/dpcmder/utils/logging"
+)
+
 type KeyCode string
 
 // Key hexadecimal constants caught by reading bytes from console.
@@ -59,3 +64,23 @@ const (
 	Dot            = KeyCode("2e")
 	Esc            = KeyCode("1b")
 )
+
+// ConvertKeyCodeStringToString converts KeyCode to printable string.
+func ConvertKeyCodeStringToString(code KeyCode) string {
+	logging.LogDebugf("utils/ConvertKeyCodeStringToString(%s)", code)
+	switch code {
+	case Esc, Return, Tab,
+		ArrowDown, ArrowUp, ArrowLeft, ArrowRight,
+		ShiftArrowUp, ShiftArrowDown,
+		PgUp, PgDown, ShiftPgUp, ShiftPgDown,
+		Backspace, BackspaceWin,
+		Home, End, ShiftHome, ShiftEnd, Del:
+		return ""
+	default:
+		res, err := hex.DecodeString(string(code))
+		if err != nil {
+			logging.LogDebugf("utils/ConvertKeyCodeStringToString(%s), err: %v", code, err)
+		}
+		return string(res)
+	}
+}

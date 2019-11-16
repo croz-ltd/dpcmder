@@ -7,8 +7,8 @@ import (
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/repo/dp/internal/dpnet"
-	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/utils/paths"
 	"sort"
 	"strings"
 )
@@ -238,7 +238,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 		dirNodes := jsonquery.Find(doc, "/filestore/location/directory//name/..")
 		for _, n := range dirNodes {
 			dirDpPath := n.SelectElement("name").InnerText()
-			_, dirName := utils.SplitOnLast(dirDpPath, "/")
+			_, dirName := splitOnLast(dirDpPath, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
 				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
 				Path: dirDpPath, Parent: selectedItemConfig}
@@ -254,7 +254,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 			fileModified := n.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
 				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
-				Path: utils.GetDpPath(selectedItemConfig.Path, fileName), Parent: selectedItemConfig}
+				Path: paths.GetDpPath(selectedItemConfig.Path, fileName), Parent: selectedItemConfig}
 			item := model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
 			items = append(items, item)
 		}
@@ -262,7 +262,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 		sort.Sort(items)
 		return items
 	} else if config.DpUseSoma() {
-		dpFilestoreLocation, _ := utils.SplitOnFirst(selectedItemConfig.Path, "/")
+		dpFilestoreLocation, _ := splitOnFirst(selectedItemConfig.Path, "/")
 		dpFilestoreIsRoot := !strings.Contains(selectedItemConfig.Path, "/")
 		var dpDirNodes []*xmlquery.Node
 		var dpFileNodes []*xmlquery.Node
@@ -300,7 +300,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 		for idx, node := range dpDirNodes {
 			// "local:"
 			dirFullName := node.SelectAttr("name")
-			_, dirName := utils.SplitOnLast(dirFullName, "/")
+			_, dirName := splitOnLast(dirFullName, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
 				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
 				Path: dirFullName, Parent: selectedItemConfig}
@@ -372,4 +372,36 @@ func fetchDpDomains() []string {
 	}
 
 	return domains
+}
+
+// splitOnFirst splits given string in two parts (prefix, suffix) where prefix is
+// part of the string before first found splitterString and suffix is part of string
+// after first found splitterString.
+func splitOnFirst(wholeString string, splitterString string) (string, string) {
+	prefix := wholeString
+	suffix := ""
+
+	lastIdx := strings.Index(wholeString, splitterString)
+	if lastIdx != -1 {
+		prefix = wholeString[:lastIdx]
+		suffix = wholeString[lastIdx+1:]
+	}
+
+	return prefix, suffix
+}
+
+// splitOnLast splits given string in two parts (prefix, suffix) where prefix is
+// part of the string before last found splitterString and suffix is part of string
+// after last found splitterString.
+func splitOnLast(wholeString string, splitterString string) (string, string) {
+	prefix := wholeString
+	suffix := ""
+
+	lastIdx := strings.LastIndex(wholeString, splitterString)
+	if lastIdx != -1 {
+		prefix = wholeString[:lastIdx]
+		suffix = wholeString[lastIdx+1:]
+	}
+
+	return prefix, suffix
 }
