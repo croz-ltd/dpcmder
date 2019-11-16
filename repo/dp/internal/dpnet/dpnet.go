@@ -18,7 +18,7 @@ func InitNetworkSettings() {
 	if *config.Proxy != "" {
 		proxyUrl, err := url.Parse(*config.Proxy)
 		if err != nil {
-			logging.LogFatal(err)
+			logging.LogFatal("Couldn't initialize network settings to access DataPower.", err)
 		}
 		http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(proxyUrl)
 	}
