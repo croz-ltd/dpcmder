@@ -41,29 +41,33 @@ func (r localRepo) GetTitle(itemToShow model.Item) string {
 }
 
 // GetList returns list of items for current directory.
-func (r localRepo) GetList(itemToShow model.Item) model.ItemList {
+func (r localRepo) GetList(itemToShow model.Item) (model.ItemList, error) {
 	logging.LogDebugf("repo/localfs/GetList('%s')", itemToShow)
 	currPath := itemToShow.Config.Path
 
 	parentDir := model.Item{Name: "..",
 		Config: &model.ItemConfig{
 			Type: model.ItemDirectory, Path: paths.GetFilePath(currPath, "..")}}
-	items := listFiles(currPath)
+	items, err := listFiles(currPath)
+	if err != nil {
+		return nil, err
+	}
 
 	itemsWithParentDir := make([]model.Item, 0)
 	itemsWithParentDir = append(itemsWithParentDir, parentDir)
 	itemsWithParentDir = append(itemsWithParentDir, items...)
 
-	return itemsWithParentDir
+	return itemsWithParentDir, nil
 }
 
 func (r localRepo) InvalidateCache() {}
 
-func listFiles(dirPath string) []model.Item {
+func listFiles(dirPath string) ([]model.Item, error) {
 	logging.LogDebugf("repo/localfs/listFiles('%s')", dirPath)
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
-		logging.LogFatal("repo/localfs/listFiles(): ", err)
+		logging.LogDebug("repo/localfs/listFiles(): ", err)
+		return nil, err
 	}
 
 	items := make(model.ItemList, len(files))
@@ -84,5 +88,5 @@ func listFiles(dirPath string) []model.Item {
 
 	sort.Sort(items)
 
-	return items
+	return items, nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/repo/dp/internal/dpnet"
+	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
 	"sort"
@@ -66,20 +67,19 @@ func (r *dpRepo) GetTitle(itemToShow model.Item) string {
 
 	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, url, dpDomain, currPath)
 }
-func (r *dpRepo) GetList(itemToShow model.Item) model.ItemList {
+func (r *dpRepo) GetList(itemToShow model.Item) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
 	switch itemToShow.Config.Type {
 	case model.ItemNone:
 		config.ClearDpConfig()
-		return listAppliances()
+		return listAppliances(), nil
 	case model.ItemDpConfiguration:
 		config.LoadDpConfig(itemToShow.Config.DpAppliance)
 		if itemToShow.Config.DpDomain != "" {
 			return r.listFilestores(itemToShow.Config)
-		} else {
-			return listDomains(itemToShow.Config)
 		}
+		return listDomains(itemToShow.Config)
 	case model.ItemDpDomain:
 		return r.listFilestores(itemToShow.Config)
 	case model.ItemDpFilestore:
@@ -87,7 +87,8 @@ func (r *dpRepo) GetList(itemToShow model.Item) model.ItemList {
 	case model.ItemDirectory:
 		return r.listDpDir(itemToShow.Config)
 	default:
-		return model.ItemList{}
+		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item.", itemToShow)
+		return model.ItemList{}, nil
 	}
 }
 
@@ -118,9 +119,12 @@ func listAppliances() model.ItemList {
 }
 
 // listDomains loads DataPower domains from current DataPower.
-func listDomains(selectedItemConfig *model.ItemConfig) model.ItemList {
+func listDomains(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listDomains('%s')", selectedItemConfig)
-	domainNames := fetchDpDomains()
+	domainNames, err := fetchDpDomains()
+	if err != nil {
+		return nil, err
+	}
 	logging.LogDebugf("repo/dp/listDomains('%s'), domainNames: %v", selectedItemConfig, domainNames)
 
 	items := make(model.ItemList, len(domainNames)+1)
@@ -134,20 +138,24 @@ func listDomains(selectedItemConfig *model.ItemConfig) model.ItemList {
 
 	sort.Sort(items)
 
-	return items
+	return items, nil
 }
 
 // listFilestores loads DataPower filestores in current domain (cert:, local:,..).
-func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.ItemList {
+func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listFilestores('%s')", selectedItemConfig)
 	if config.DpUseRest() {
-		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
+		jsonString, err := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
+		if err != nil {
+			return nil, err
+		}
 		// println("jsonString: " + jsonString)
 
 		// .filestore.location[]?.name
 		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
 		if err != nil {
-			logging.LogFatal(err)
+			logging.LogDebug("Error parsing response JSON.", err)
+			return nil, err
 		}
 		filestoreNameNodes := jsonquery.Find(doc, "/filestore/location/*/name")
 
@@ -164,26 +172,20 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.Item
 
 		sort.Sort(items)
 
-		return items
+		return items, nil
 	} else if config.DpUseSoma() {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
 			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
 			"<dp:get-filestore layout-only=\"true\" no-subdirectories=\"true\"/></dp:request>" +
 			"</soapenv:Body></soapenv:Envelope>"
-		// In SOMA response we receive whole hierarchy of subdirectories and subfiles.
-		// TODO - check if it would be better to fetch each filestore hierarchy when needed.
-		// <xsd:element name="get-filestore">
-		// 	<xsd:complexType>
-		// 		<xsd:attribute name="location" type="tns:filestore-location"/> - enum (local:, store:,..)
-		// 		<xsd:attribute name="annotated" type="xsd:boolean"/>
-		// 		<xsd:attribute name="layout-only" type="xsd:boolean"/>
-		// 		<xsd:attribute name="no-subdirectories" type="xsd:boolean"/>
-		// 	</xsd:complexType>
-		// </xsd:element>
-		dpFilestoresXML := dpnet.Soma(somaRequest)
+		dpFilestoresXML, err := dpnet.Soma(somaRequest)
+		if err != nil {
+			return nil, err
+		}
 		doc, err := xmlquery.Parse(strings.NewReader(dpFilestoresXML))
 		if err != nil {
-			logging.LogFatal(err)
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
 		}
 		filestoreNameNodes := xmlquery.Find(doc, "//*[local-name()='location']/@name")
 
@@ -200,38 +202,45 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) model.Item
 
 		sort.Sort(items)
 
-		return items
+		return items, nil
 	}
 
-	logging.LogFatal("repo/dp/listFilestores(), unknown Dp management interface.")
-	return nil
+	logging.LogDebug("repo/dp/listFilestores(), using neither REST neither SOMA.")
+	return nil, errs.Error("DataPower management interface not set.")
 }
 
 // listDpDir loads DataPower directory (local:, local:///test,..).
-func (r *dpRepo) listDpDir(selectedItemConfig *model.ItemConfig) model.ItemList {
+func (r *dpRepo) listDpDir(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listDpDir('%s')", selectedItemConfig)
 	parentDir := model.Item{Name: "..", Config: selectedItemConfig.Parent}
-	filesDirs := r.listFiles(selectedItemConfig)
+	filesDirs, err := r.listFiles(selectedItemConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	itemsWithParentDir := make([]model.Item, 0)
 	itemsWithParentDir = append(itemsWithParentDir, parentDir)
 	itemsWithParentDir = append(itemsWithParentDir, filesDirs...)
 
-	return itemsWithParentDir
+	return itemsWithParentDir, nil
 }
 
-func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
+func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, error) {
 	logging.LogDebugf("repo/dp/listFiles('%s')", selectedItemConfig)
 
 	if config.DpUseRest() {
 		items := make(model.ItemList, 0)
 		currRestDirPath := strings.Replace(selectedItemConfig.Path, ":", "", 1)
-		jsonString := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
+		jsonString, err := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
+		if err != nil {
+			return nil, err
+		}
 		// println("jsonString: " + jsonString)
 
 		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
 		if err != nil {
-			logging.LogFatal(err)
+			logging.LogDebug("Error parsing response JSON.", err)
+			return nil, err
 		}
 
 		// "//" - work-around - for one directory we get JSON object, for multiple directories we get JSON array
@@ -260,7 +269,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 		}
 
 		sort.Sort(items)
-		return items
+		return items, nil
 	} else if config.DpUseSoma() {
 		dpFilestoreLocation, _ := splitOnFirst(selectedItemConfig.Path, "/")
 		dpFilestoreIsRoot := !strings.Contains(selectedItemConfig.Path, "/")
@@ -273,14 +282,19 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
 				"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\" location=\"" + dpFilestoreLocation + "\"/></dp:request>" +
 				"</soapenv:Body></soapenv:Envelope>"
-			r.dpFilestoreXml = dpnet.Soma(somaRequest)
+			var err error
+			r.dpFilestoreXml, err = dpnet.Soma(somaRequest)
+			if err != nil {
+				return nil, err
+			}
 			r.invalidateCache = false
 		}
 
 		if dpFilestoreIsRoot {
 			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
 			if err != nil {
-				logging.LogFatal(err)
+				logging.LogDebug("Error parsing response JSON.", err)
+				return nil, err
 			}
 			dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/directory")
 			dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file")
@@ -321,10 +335,10 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) []model.Item {
 		}
 
 		sort.Sort(items)
-		return items
+		return items, nil
 	} else {
 		logging.LogDebug("repo/dp/listFiles(), using neither REST neither SOMA.")
-		return model.ItemList{}
+		return model.ItemList{}, errs.Error("DataPower management interface not set.")
 	}
 }
 
@@ -338,17 +352,21 @@ func findItemConfigParentDomain(itemConfig *model.ItemConfig) *model.ItemConfig 
 	return findItemConfigParentDomain(itemConfig.Parent)
 }
 
-func fetchDpDomains() []string {
+func fetchDpDomains() ([]string, error) {
 	logging.LogDebug("repo/dp/fetchDpDomains()")
 	domains := make([]string, 0)
 
 	if config.DpUseRest() {
-		bodyString := dpnet.RestGet("/mgmt/domains/config/")
+		bodyString, err := dpnet.RestGet("/mgmt/domains/config/")
+		if err != nil {
+			return nil, err
+		}
 
 		// .domain[].name
 		doc, err := jsonquery.Parse(strings.NewReader(bodyString))
 		if err != nil {
-			logging.LogFatal(err)
+			logging.LogDebug("Error parsing response JSON.", err)
+			return nil, err
 		}
 		list := jsonquery.Find(doc, "/domain//name")
 		for _, n := range list {
@@ -358,10 +376,14 @@ func fetchDpDomains() []string {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
 			"<soapenv:Body><dp:GetDomainListRequest xmlns:dp=\"http://www.datapower.com/schemas/appliance/management/1.0\"/></soapenv:Body>" +
 			"</soapenv:Envelope>"
-		somaResponse := dpnet.Amp(somaRequest)
+		somaResponse, err := dpnet.Amp(somaRequest)
+		if err != nil {
+			return nil, err
+		}
 		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
 		if err != nil {
-			logging.LogFatal(err)
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
 		}
 		list := xmlquery.Find(doc, "//*[local-name()='GetDomainListResponse']/*[local-name()='Domain']/text()")
 		for _, n := range list {
@@ -371,7 +393,7 @@ func fetchDpDomains() []string {
 		logging.LogDebug("repo/dp/fetchDpDomains(), using neither REST neither SOMA.")
 	}
 
-	return domains
+	return domains, nil
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is

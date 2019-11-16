@@ -15,6 +15,7 @@ const (
 	UpdateViewScreenSize UpdateViewEventType = UpdateViewEventType(0)
 	UpdateViewRefresh    UpdateViewEventType = UpdateViewEventType(1)
 	UpdateViewShowDialog UpdateViewEventType = UpdateViewEventType(2)
+	UpdateViewShowStatus UpdateViewEventType = UpdateViewEventType(3)
 	UpdateViewQuit       UpdateViewEventType = UpdateViewEventType(99)
 )
 
@@ -24,4 +25,5 @@ type UpdateViewEvent struct {
 	DialogQuestion        string
 	DialogAnswer          string
 	DialogAnswerCursorIdx int
+	Status                string
 }

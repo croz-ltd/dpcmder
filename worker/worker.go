@@ -8,10 +8,10 @@ import (
 	"github.com/croz-ltd/dpcmder/repo"
 	"github.com/croz-ltd/dpcmder/repo/dp"
 	"github.com/croz-ltd/dpcmder/repo/localfs"
-	"github.com/croz-ltd/dpcmder/utils/errs"
-	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/ui/in/key"
 	"github.com/croz-ltd/dpcmder/ui/out"
+	"github.com/croz-ltd/dpcmder/utils/errs"
+	"github.com/croz-ltd/dpcmder/utils/logging"
 	"strings"
 	"unicode/utf8"
 )
@@ -75,7 +75,11 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	title := repo.GetTitle(initialItem)
 	workingModel.SetCurrentView(side, initialItem.Config, title)
 
-	itemList := repo.GetList(initialItem)
+	itemList, err := repo.GetList(initialItem)
+	if err != nil {
+		logging.LogDebug("worker/initialLoadRepo(): ", err)
+		return
+	}
 	workingModel.SetItems(side, itemList)
 }
 
@@ -122,9 +126,19 @@ loop:
 			case key.Return:
 				err := enterCurrentDirectory()
 				logging.LogDebug("worker/processInputEvent(), err: ", err)
-				if err == dpMissingPasswordError {
+				switch err {
+				case dpMissingPasswordError:
 					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", true)
 					updateViewEventChan <- updateView
+					continue
+				case nil:
+				default:
+					updateView := events.UpdateViewEvent{Type: events.UpdateViewShowStatus, Status: err.Error()}
+					updateViewEventChan <- updateView
+					switch err.(type) {
+					case errs.UnexpectedHTTPResponse:
+						setCurrentDpPlainPassword("")
+					}
 					continue
 				}
 			case key.Space:
@@ -192,7 +206,7 @@ func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userD
 }
 
 func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) events.UpdateViewEvent {
-	logging.LogDebug("worker/processInputEvent(): '%s'", dialogSession)
+	logging.LogDebug("worker/processInputDialogInput(): '%s'", dialogSession)
 	switch keyCode {
 	case key.Backspace, key.BackspaceWin:
 		if dialogSession.inputAnswerCursorIdx > 0 {
@@ -232,28 +246,24 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 	case key.End:
 		dialogSession.inputAnswerCursorIdx = utf8.RuneCountInString(dialogSession.inputAnswer)
 	case key.Esc:
-		logging.LogDebug("worker/processInputEvent() canceling user input: '%s'", dialogSession)
+		logging.LogDebug("worker/processInputDialogInput() canceling user input: '%s'", dialogSession)
 		dialogSession.userInputActive = false
 		dialogSession.inputAnswer = ""
 		dialogSession.inputAnswerCursorIdx = 0
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	case key.Return:
-		logging.LogDebug("worker/processInputEvent() accepting user input: '%s'", dialogSession)
+		logging.LogDebugf("worker/processInputDialogInput() accepting user input: '%s'", dialogSession)
 		if dialogSession.inputAnswer != "" {
-			item := workingModel.CurrItem()
 			switch dialogSession.dialogType {
 			case askDpPassword:
-				applianceName := item.Name
-				applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
-				logging.LogDebug("worker/processInputEvent() applicanceConfig before: '%s'", applicanceConfig)
-				applicanceConfig.SetDpPlaintextPassword(dialogSession.inputAnswer)
-				config.Conf.DataPowerAppliances[applianceName] = applicanceConfig
-				logging.LogDebug("worker/processInputEvent() applicanceConfig after : '%s'", applicanceConfig)
+				setCurrentDpPlainPassword(dialogSession.inputAnswer)
 			default:
-				logging.LogDebug("worker/processInputEvent() unknown input dialog type: '%s'", dialogSession.dialogType)
+				logging.LogDebugf("worker/processInputDialogInput() unknown input dialog type: '%s'", dialogSession.dialogType)
 			}
 		}
 		dialogSession.userInputActive = false
+		dialogSession.inputAnswer = ""
+		dialogSession.inputAnswerCursorIdx = 0
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	default:
 		changedAnswer := ""
@@ -303,7 +313,10 @@ func enterCurrentDirectory() error {
 
 	switch item.Config.Type {
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory, model.ItemNone:
-		itemList := r.GetList(*item)
+		itemList, err := r.GetList(*item)
+		if err != nil {
+			return err
+		}
 		logging.LogDebug("worker/enterCurrentDirectory(), itemList: ", itemList)
 		title := r.GetTitle(*item)
 		logging.LogDebug("worker/enterCurrentDirectory(), title: ", title)
@@ -323,6 +336,16 @@ func enterCurrentDirectory() error {
 	return nil
 }
 
+func setCurrentDpPlainPassword(password string) {
+	item := workingModel.CurrItem()
+	applianceName := item.Config.DpAppliance
+	logging.LogDebugf("worker/setDpPlainPassword() applicanceName: '%s'", applianceName)
+	applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
+	logging.LogDebugf("worker/setDpPlainPassword() applicanceConfig before: '%s'", applicanceConfig)
+	applicanceConfig.SetDpPlaintextPassword(password)
+	config.Conf.DataPowerAppliances[applianceName] = applicanceConfig
+	logging.LogDebugf("worker/setDpPlainPassword() applicanceConfig after : '%s'", applicanceConfig)
+}
 func setScreenSize() {
 	width, height := out.GetScreenSize()
 	workingModel.SetItemsMaxSize(height-3, width)

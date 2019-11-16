@@ -50,11 +50,15 @@ loop:
 		logging.LogDebug("ui/out/drawLoop(), waiting update event.")
 		updateViewEvent := <-updateViewEventChan
 		logging.LogDebug("ui/out/drawLoop(), updateViewEvent: ", updateViewEvent)
-		if updateViewEvent.Type == events.UpdateViewQuit {
+		switch updateViewEvent.Type {
+		case events.UpdateViewQuit:
 			logging.LogDebug("ui/out/drawLoop() received events.UpdateViewQuit")
 			break loop
+		case events.UpdateViewShowStatus:
+			showStatus(updateViewEvent.Status)
+		default:
+			draw(updateViewEvent)
 		}
-		draw(updateViewEvent)
 	}
 	logging.LogDebug("ui/out/drawLoop() stopping")
 }
@@ -180,6 +184,12 @@ func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursor
 func buildLine(first, middle, last string, length int) string {
 	middleLen := (length - utf8.RuneCountInString(first) - utf8.RuneCountInString(last)) / utf8.RuneCountInString(middle)
 	return first + strings.Repeat(middle, middleLen) + last
+}
+
+func showStatus(status string) {
+	_, h := termbox.Size()
+	writeLine(0, h-1, status, termbox.ColorDefault, termbox.ColorDefault)
+	termbox.Flush()
 }
 
 // func showStatus(m *model.Model, status string) {
