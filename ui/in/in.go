@@ -6,7 +6,7 @@ import (
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/view/in/key"
+	"github.com/croz-ltd/dpcmder/ui/in/key"
 	"github.com/croz-ltd/dpcmder/worker"
 	"io"
 	"os"
@@ -15,36 +15,36 @@ import (
 
 // Start starts (blocking) reading user's input.
 func Start(keyPressedEventChan chan events.KeyPressedEvent) {
-	logging.LogDebug("view/in/Start()")
+	logging.LogDebug("ui/in/Start()")
 
 	keyPressedLoop(keyPressedEventChan)
 }
 
 // keyPressedLoop is main loop reading user's input.
 func keyPressedLoop(keyPressedEventChan chan events.KeyPressedEvent) {
-	logging.LogDebug("view/in/keyPressedLoop() starting")
+	logging.LogDebug("ui/in/keyPressedLoop() starting")
 	reader := newTimeoutReader(bufio.NewReader(os.Stdin), 100*time.Millisecond)
 
 loop:
 	for {
-		logging.LogTrace("view/in/keyPressedLoop(), waiting to read")
+		logging.LogTrace("ui/in/keyPressedLoop(), waiting to read")
 		readResult := reader.readNext()
 
 		switch readResult.err {
 		case readTimeout:
-			logging.LogTrace("view/in/keyPressedLoop(), readTimeout err")
+			logging.LogTrace("ui/in/keyPressedLoop(), readTimeout err")
 			if worker.IsQuitting() == true {
 				break loop
 			}
 		case nil:
-			logging.LogTracef("view/in/keyPressedLoop(), readResult: %v", readResult)
+			logging.LogTracef("ui/in/keyPressedLoop(), readResult: %v", readResult)
 			keyEvent := readResult.keyEvent
 			keyPressedEventChan <- keyEvent
 		default:
-			logging.LogFatal("view/in/keyPressedLoop() unexpected error received.", readResult.err)
+			logging.LogFatal("ui/in/keyPressedLoop() unexpected error received.", readResult.err)
 		}
 	}
-	logging.LogDebug("view/in/keyPressedLoop() stopping")
+	logging.LogDebug("ui/in/keyPressedLoop() stopping")
 }
 
 ////
@@ -82,17 +82,17 @@ func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 
 	tr.readFunc = func() {
 		tr.readFuncIsRunning = true
-		logging.LogTrace("view/in/TimeoutReader.readFunc() begin")
+		logging.LogTrace("ui/in/TimeoutReader.readFunc() begin")
 		// bytesRead := make([]byte, 6)
 		bytesReadCount, err := tr.reader.Read(tr.bytesRead)
-		logging.LogTracef("view/in/TimeoutReader.readFunc(), bytesReadCount: %d, err: %v", bytesReadCount, err)
+		logging.LogTracef("ui/in/TimeoutReader.readFunc(), bytesReadCount: %d, err: %v", bytesReadCount, err)
 
 		hexBytesRead := hex.EncodeToString(tr.bytesRead[0:bytesReadCount])
 		keyCode := key.KeyCode(hexBytesRead)
 		keyEvent := events.KeyPressedEvent{KeyCode: keyCode}
 		result := readResult{keyEvent: keyEvent, err: err}
 		tr.readResultChannel <- result
-		logging.LogTrace("view/in/TimeoutReader.readFunc() end")
+		logging.LogTrace("ui/in/TimeoutReader.readFunc() end")
 		tr.readFuncIsRunning = false
 	}
 
@@ -104,19 +104,19 @@ func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 // 2) err passed from unsuccessful user input
 // 3) readTimeout error if user didn't input nothing during timeout period
 func (tr *timeoutReader) readNext() readResult {
-	logging.LogTracef("view/in/TimeoutReader.readNext(), tr.readFuncIsRunning: %v", tr.readFuncIsRunning)
+	logging.LogTracef("ui/in/TimeoutReader.readNext(), tr.readFuncIsRunning: %v", tr.readFuncIsRunning)
 
 	if !tr.readFuncIsRunning {
 		go tr.readFunc()
 	}
 
-	logging.LogTracef("view/in/TimeoutReader.readNext(), waiting on channel.")
+	logging.LogTracef("ui/in/TimeoutReader.readNext(), waiting on channel.")
 	select {
 	case res := <-tr.readResultChannel:
-		logging.LogTracef("view/in/TimeoutReader.readNext(), res: %v", res)
+		logging.LogTracef("ui/in/TimeoutReader.readNext(), res: %v", res)
 		return res
 	case <-time.After(tr.waitForInput):
-		logging.LogTrace("view/in/TimeoutReader.readNext(), timeout")
+		logging.LogTrace("ui/in/TimeoutReader.readNext(), timeout")
 		return readResult{err: readTimeout}
 	}
 }

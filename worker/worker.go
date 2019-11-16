@@ -10,8 +10,8 @@ import (
 	"github.com/croz-ltd/dpcmder/repo/localfs"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/view/in/key"
-	"github.com/croz-ltd/dpcmder/view/out"
+	"github.com/croz-ltd/dpcmder/ui/in/key"
+	"github.com/croz-ltd/dpcmder/ui/out"
 	"strings"
 	"unicode/utf8"
 )

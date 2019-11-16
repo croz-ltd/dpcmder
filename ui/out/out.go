@@ -18,7 +18,7 @@ const (
 )
 
 func Init(updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("view/out/Init()")
+	logging.LogDebug("ui/out/Init()")
 
 	err := termbox.Init()
 	if err != nil {
@@ -29,38 +29,38 @@ func Init(updateViewEventChan chan events.UpdateViewEvent) {
 }
 
 func Stop() {
-	logging.LogDebug("view/out/Stop()")
-	logging.LogDebug("view/out/Stop(), termbox.IsInit: ", termbox.IsInit)
+	logging.LogDebug("ui/out/Stop()")
+	logging.LogDebug("ui/out/Stop(), termbox.IsInit: ", termbox.IsInit)
 	screen.TermboxClose()
-	logging.LogDebug("view/out/Stop() end")
+	logging.LogDebug("ui/out/Stop() end")
 }
 
 func GetScreenSize() (width, height int) {
 	width, height = termbox.Size()
-	logging.LogDebug("view/out/GetScreenSize(), width: ", width, ", height: ", height)
+	logging.LogDebug("ui/out/GetScreenSize(), width: ", width, ", height: ", height)
 	return width, height
 }
 
 func drawLoop(updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("view/out/drawLoop() starting")
+	logging.LogDebug("ui/out/drawLoop() starting")
 
 	defer screen.TermboxClose()
 loop:
 	for {
-		logging.LogDebug("view/out/drawLoop(), waiting update event.")
+		logging.LogDebug("ui/out/drawLoop(), waiting update event.")
 		updateViewEvent := <-updateViewEventChan
-		logging.LogDebug("view/out/drawLoop(), updateViewEvent: ", updateViewEvent)
+		logging.LogDebug("ui/out/drawLoop(), updateViewEvent: ", updateViewEvent)
 		if updateViewEvent.Type == events.UpdateViewQuit {
-			logging.LogDebug("view/out/drawLoop() received events.UpdateViewQuit")
+			logging.LogDebug("ui/out/drawLoop() received events.UpdateViewQuit")
 			break loop
 		}
 		draw(updateViewEvent)
 	}
-	logging.LogDebug("view/out/drawLoop() stopping")
+	logging.LogDebug("ui/out/drawLoop() stopping")
 }
 
 func draw(updateViewEvent events.UpdateViewEvent) {
-	logging.LogDebug("view/out/draw(", updateViewEvent, ")")
+	logging.LogDebug("ui/out/draw(", updateViewEvent, ")")
 	switch updateViewEvent.Type {
 	case events.UpdateViewRefresh:
 		refreshScreen(*updateViewEvent.Model)
@@ -70,7 +70,7 @@ func draw(updateViewEvent events.UpdateViewEvent) {
 }
 
 func refreshScreen(m model.Model) {
-	logging.LogDebugf("view/out/refreshScreen('%v')", m)
+	logging.LogDebugf("ui/out/refreshScreen('%v')", m)
 
 	termbox.Clear(fgNormal, bgNormal)
 
@@ -84,7 +84,7 @@ func refreshScreen(m model.Model) {
 	}
 
 	for idx := 0; idx < m.GetVisibleItemCount(model.Left); idx++ {
-		logging.LogTrace("view/out/draw(), idx: ", idx)
+		logging.LogTrace("ui/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Left, idx)
 		var fg = fgNormal
 		var bg = bgNormal
@@ -97,7 +97,7 @@ func refreshScreen(m model.Model) {
 		writeLine(0, idx+2, item.DisplayString(), fg, bg)
 	}
 	for idx := 0; idx < m.GetVisibleItemCount(model.Right); idx++ {
-		logging.LogTrace("view/out/draw(), idx: ", idx)
+		logging.LogTrace("ui/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Right, idx)
 		var fg = fgNormal
 		var bg = bgNormal
@@ -116,7 +116,7 @@ func refreshScreen(m model.Model) {
 }
 
 func showQuestionDialog(question, answer string, answerCursorIdx int) {
-	logging.LogDebugf("view/out/showQuestionDialog('%s')", question)
+	logging.LogDebugf("ui/out/showQuestionDialog('%s')", question)
 
 	// termbox.Clear(fgNormal, bgNormal)
 	width, height := termbox.Size()
@@ -136,12 +136,12 @@ func showQuestionDialog(question, answer string, answerCursorIdx int) {
 }
 
 func writeLine(x, y int, line string, fg, bg termbox.Attribute) int {
-	// logging.LogDebug("view/out/writeLine(", x, ",", y, ",", line, ",", fg, ",", bg, ")")
+	// logging.LogDebug("ui/out/writeLine(", x, ",", y, ",", line, ",", fg, ",", bg, ")")
 	return writeLineWithCursor(x, y, line, fg, bg, -1, fg, bg)
 }
 
 func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
-	// logging.LogDebug("view/out/writeLineWithCursor(", x, ",", y, ",", line, ",", fg, ",", bg, ",", cursorX, ",", cursorFg, ",", cursorBg, ")")
+	// logging.LogDebug("ui/out/writeLineWithCursor(", x, ",", y, ",", line, ",", fg, ",", bg, ",", cursorX, ",", cursorFg, ",", cursorBg, ")")
 	// var scrollh = horizScroll
 	scrollh := 0
 	runeCount := utf8.RuneCountInString(line)

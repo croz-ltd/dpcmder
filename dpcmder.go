@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
+	"github.com/croz-ltd/dpcmder/ui"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/view"
 	"github.com/croz-ltd/dpcmder/worker"
 	"os"
 	"os/signal"
@@ -24,9 +24,9 @@ func main() {
 
 	keyPressedEventChan := make(chan events.KeyPressedEvent, 1)
 	updateViewEventChan := make(chan events.UpdateViewEvent, 1)
-	view.Init(updateViewEventChan)
+	ui.Init(updateViewEventChan)
 	worker.Init(keyPressedEventChan, updateViewEventChan)
-	view.Start(keyPressedEventChan)
+	ui.Start(keyPressedEventChan)
 	// model.M.Print()
 	logging.LogDebug("main/main() - ...dpcmder ending.")
 }
@@ -42,7 +42,7 @@ func setupCloseHandler() {
 	go func() {
 		s := <-c
 		logging.LogDebug("main/setupCloseHandler() - System interrupt signal received, dpcmder ending. s: ", s)
-		go view.Stop()
+		go ui.Stop()
 		os.Exit(0)
 	}()
 }

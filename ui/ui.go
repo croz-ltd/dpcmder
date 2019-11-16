@@ -1,27 +1,27 @@
-package view
+package ui
 
 import (
 	"github.com/croz-ltd/dpcmder/events"
+	"github.com/croz-ltd/dpcmder/ui/in"
+	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/view/in"
-	"github.com/croz-ltd/dpcmder/view/out"
 )
 
 func Init(updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("view/Init()")
+	logging.LogDebug("ui/Init()")
 	out.Init(updateViewEventChan)
 }
 
 func Start(keyPressedEventChan chan events.KeyPressedEvent) {
-	logging.LogDebug("view/Start()")
+	logging.LogDebug("ui/Start()")
 
 	defer out.Stop()
 	in.Start(keyPressedEventChan)
-	logging.LogDebug("view/Start() end")
+	logging.LogDebug("ui/Start() end")
 }
 
 func Stop() {
-	logging.LogDebug("view/Stop()")
+	logging.LogDebug("ui/Stop()")
 	out.Stop()
-	logging.LogDebug("view/Stop() end")
+	logging.LogDebug("ui/Stop() end")
 }
