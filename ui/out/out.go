@@ -1,6 +1,7 @@
 package out
 
 import (
+	"fmt"
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/logging"
@@ -55,7 +56,7 @@ loop:
 			logging.LogDebug("ui/out/drawLoop() received events.UpdateViewQuit")
 			break loop
 		case events.UpdateViewShowStatus:
-			showStatus(updateViewEvent.Status)
+			showStatus(updateViewEvent.Model, updateViewEvent.Status)
 		default:
 			draw(updateViewEvent)
 		}
@@ -186,25 +187,19 @@ func buildLine(first, middle, last string, length int) string {
 	return first + strings.Repeat(middle, middleLen) + last
 }
 
-func showStatus(status string) {
+func showStatus(m *model.Model, status string) {
+	var filterMsg string
+	var syncMsg string
+	if m.CurrentFilter() != "" {
+		filterMsg = fmt.Sprintf("Filter: '%s' | ", m.CurrentFilter())
+	}
+	if m.SyncModeOn {
+		syncMsg = fmt.Sprintf("Sync: '%s' -> (%s) '%s' | ", m.SyncDirLocal, m.SyncDomainDp, m.SyncDirDp)
+	}
+
+	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)
+
 	_, h := termbox.Size()
-	writeLine(0, h-1, status, termbox.ColorDefault, termbox.ColorDefault)
+	writeLine(0, h-1, statusMsg, termbox.ColorDefault, termbox.ColorDefault)
 	termbox.Flush()
 }
-
-// func showStatus(m *model.Model, status string) {
-// 	var filterMsg string
-// 	var syncMsg string
-// 	if m.CurrentFilter() != "" {
-// 		filterMsg = fmt.Sprintf("Filter: '%s' | ", m.CurrentFilter())
-// 	}
-// 	// if syncModeOn {
-// 	// 	syncMsg = fmt.Sprintf("Sync: '%s' -> (%s) '%s' | ", syncDirLocal, syncDomainDp, syncDirDp)
-// 	// }
-//
-// 	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)
-//
-// 	_, h := termbox.Size()
-// 	writeLine(0, h-1, statusMsg, termbox.ColorDefault, termbox.ColorDefault)
-// 	termbox.Flush()
-// }

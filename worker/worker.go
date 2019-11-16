@@ -133,7 +133,8 @@ loop:
 					continue
 				case nil:
 				default:
-					updateView := events.UpdateViewEvent{Type: events.UpdateViewShowStatus, Status: err.Error()}
+					updateView := events.UpdateViewEvent{
+						Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
 					updateViewEventChan <- updateView
 					switch err.(type) {
 					case errs.UnexpectedHTTPResponse:

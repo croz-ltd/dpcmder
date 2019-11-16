@@ -72,6 +72,10 @@ type Model struct {
 	screenSizeH         int
 	itemMaxRows         int
 	itemMaxCols         int
+	SyncModeOn          bool
+	SyncDomainDp        string
+	SyncDirDp           string
+	SyncDirLocal        string
 }
 
 // ItemConfig methods
