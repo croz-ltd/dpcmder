@@ -17,7 +17,7 @@ func TestBuildLine(t *testing.T) {
 	}
 
 	for _, row := range testDataMatrix {
-		got := BuildLine(row.first, row.middle, row.last, row.length)
+		got := buildLine(row.first, row.middle, row.last, row.length)
 		if got != row.result {
 			t.Errorf("for BuildLine('%s', '%s', '%s', %d): got '%s', want '%s'", row.first, row.middle, row.last, row.length, got, row.result)
 		}

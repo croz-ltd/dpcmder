@@ -125,11 +125,11 @@ func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	dialogWidth := width - 20
 	line := question + answer
 	cursorIdx := utf8.RuneCountInString(question) + answerCursorIdx
-	writeLine(x, y-2, BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y-1, BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y, BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y+1, BuildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y+2, BuildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
+	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
 	writeLineWithCursor(x+2, y, line, fgNormal, bgNormal, x+2+cursorIdx, termbox.AttrReverse, termbox.AttrReverse)
 
 	termbox.Flush()
@@ -174,10 +174,10 @@ func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursor
 	return xpos + 1
 }
 
-// BuildLine creates line with given length and given start of line string,
+// buildLine creates line with given length and given start of line string,
 // middle string and end of line string. For example:
-// BuildLine("<", "-", ">", 10) -> "<-------->".
-func BuildLine(first, middle, last string, length int) string {
+// buildLine("<", "-", ">", 10) -> "<-------->".
+func buildLine(first, middle, last string, length int) string {
 	middleLen := (length - utf8.RuneCountInString(first) - utf8.RuneCountInString(last)) / utf8.RuneCountInString(middle)
 	return first + strings.Repeat(middle, middleLen) + last
 }
