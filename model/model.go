@@ -265,7 +265,7 @@ func (m *Model) applyFilter(side Side) {
 		filteredItems := make([]Item, 0)
 		searchStr := strings.ToLower(filterString)
 		for _, item := range allItems {
-			itemStr := strings.ToLower(item.String())
+			itemStr := strings.ToLower(item.DisplayString())
 			if strings.Contains(itemStr, searchStr) || item.Name == ".." {
 				filteredItems = append(filteredItems, item)
 			}

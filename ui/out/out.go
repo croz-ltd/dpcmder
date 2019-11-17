@@ -115,13 +115,11 @@ func refreshScreen(m model.Model) {
 		writeLine(width/2, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
 	}
 
-	// showStatus(m, currentStatus)
-
-	termbox.Flush()
+	showStatus(&m, "")
 }
 
 func showQuestionDialog(question, answer string, answerCursorIdx int) {
-	logging.LogDebugf("ui/out/showQuestionDialog('%s')", question)
+	logging.LogDebugf("ui/out/showQuestionDialog('%s', '%s', %d)", question, answer, answerCursorIdx)
 
 	// termbox.Clear(fgNormal, bgNormal)
 	width, height := termbox.Size()

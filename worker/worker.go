@@ -23,6 +23,7 @@ const dpMissingPasswordError = errs.Error("DpMissingPasswordError")
 type userDialogType string
 
 const askDpPassword = userDialogType("askDpPassword")
+const askFilter = userDialogType("askFilter")
 
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
@@ -128,7 +129,7 @@ loop:
 				logging.LogDebug("worker/processInputEvent(), err: ", err)
 				switch err {
 				case dpMissingPasswordError:
-					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", true)
+					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", "", true)
 					updateViewEventChan <- updateView
 					continue
 				case nil:
@@ -183,6 +184,11 @@ loop:
 			case key.ShiftEnd, key.ChZ:
 				workingModel.SelToBottom()
 				workingModel.NavBottom()
+			case key.Chf:
+				cf := workingModel.CurrentFilter()
+				updateView := showInputDialog(&dialogSession, askFilter, "Filter by: ", cf, false)
+				updateViewEventChan <- updateView
+				continue
 			}
 
 			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
@@ -193,17 +199,19 @@ loop:
 	logging.LogDebug("worker/processInputEvent() stopping")
 }
 
-func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userDialogType, question string, answerMasked bool) events.UpdateViewEvent {
+func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userDialogType, question, answer string, answerMasked bool) events.UpdateViewEvent {
 	dialogSession.dialogType = dialogType
 	dialogSession.userInputActive = true
 	dialogSession.inputQuestion = question
-	dialogSession.inputAnswer = ""
+	dialogSession.inputAnswer = answer
+	dialogSession.inputAnswerCursorIdx = utf8.RuneCountInString(answer)
 	dialogSession.inputAnswerMasked = answerMasked
 
 	return events.UpdateViewEvent{
-		Type:           events.UpdateViewShowDialog,
-		DialogQuestion: dialogSession.inputQuestion,
-		DialogAnswer:   dialogSession.inputAnswer}
+		Type:                  events.UpdateViewShowDialog,
+		DialogQuestion:        dialogSession.inputQuestion,
+		DialogAnswer:          dialogSession.inputAnswer,
+		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
 }
 
 func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) events.UpdateViewEvent {
@@ -254,13 +262,15 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 		return events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	case key.Return:
 		logging.LogDebugf("worker/processInputDialogInput() accepting user input: '%s'", dialogSession)
-		if dialogSession.inputAnswer != "" {
-			switch dialogSession.dialogType {
-			case askDpPassword:
+		switch dialogSession.dialogType {
+		case askDpPassword:
+			if dialogSession.inputAnswer != "" {
 				setCurrentDpPlainPassword(dialogSession.inputAnswer)
-			default:
-				logging.LogDebugf("worker/processInputDialogInput() unknown input dialog type: '%s'", dialogSession.dialogType)
 			}
+		case askFilter:
+			workingModel.SetCurrentFilter(dialogSession.inputAnswer)
+		default:
+			logging.LogDebugf("worker/processInputDialogInput() unknown input dialog type: '%s'", dialogSession.dialogType)
 		}
 		dialogSession.userInputActive = false
 		dialogSession.inputAnswer = ""
