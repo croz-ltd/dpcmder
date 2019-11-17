@@ -23,10 +23,12 @@ const dpMissingPasswordError = errs.Error("DpMissingPasswordError")
 
 type userDialogType string
 
-const askDpPassword = userDialogType("askDpPassword")
-const askFilter = userDialogType("askFilter")
-const askSearchNext = userDialogType("askSearchNext")
-const askSearchPrev = userDialogType("askSearchPrev")
+const (
+	askDpPassword = userDialogType("askDpPassword")
+	askFilter     = userDialogType("askFilter")
+	askSearchNext = userDialogType("askSearchNext")
+	askSearchPrev = userDialogType("askSearchPrev")
+)
 
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
