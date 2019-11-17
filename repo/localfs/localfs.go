@@ -62,8 +62,12 @@ func (r localRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error)
 
 func (r localRepo) InvalidateCache() {}
 
-func (l localRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error) {
-	return nil, nil
+func (r localRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error) {
+	logging.LogDebugf("repo/localfs/GetFile(%v, '%s')", currentView, fileName)
+	parentPath := currentView.Path
+	filePath := paths.GetFilePath(parentPath, fileName)
+
+	return getFileByPath(filePath)
 }
 
 func listFiles(dirPath string) ([]model.Item, error) {
@@ -93,4 +97,12 @@ func listFiles(dirPath string) ([]model.Item, error) {
 	sort.Sort(items)
 
 	return items, nil
+}
+
+func getFileByPath(filePath string) ([]byte, error) {
+	result, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		logging.LogDebugf("repo/localfs/GetFile() - Error reading file '%s'.", filePath, err)
+	}
+	return result, err
 }

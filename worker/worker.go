@@ -236,7 +236,9 @@ loop:
 				updateViewEventChan <- updateView
 
 			case key.F3, key.Ch3:
+				logging.LogDebug("-------- before")
 				err := viewCurrent(&workingModel)
+				logging.LogDebug("-------- after")
 				if err != nil {
 					updateView := events.UpdateViewEvent{
 						Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
@@ -436,7 +438,7 @@ func setScreenSize() {
 
 func viewCurrent(m *model.Model) error {
 	ci := m.CurrItem()
-	logging.LogDebugf("worker/viewCurrent(), item: %w", ci)
+	logging.LogDebugf("worker/viewCurrent(), item: %v", ci)
 	var err error
 	switch ci.Config.Type {
 	case model.ItemFile:

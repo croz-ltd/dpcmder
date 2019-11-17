@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"encoding/hex"
 	"github.com/croz-ltd/dpcmder/events"
+	"github.com/croz-ltd/dpcmder/ui/in/key"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/ui/in/key"
 	"github.com/croz-ltd/dpcmder/worker"
 	"io"
 	"os"
@@ -37,7 +37,7 @@ loop:
 				break loop
 			}
 		case nil:
-			logging.LogTracef("ui/in/keyPressedLoop(), readResult: %v", readResult)
+			logging.LogDebugf("ui/in/keyPressedLoop(), readResult: %v", readResult)
 			keyEvent := readResult.keyEvent
 			keyPressedEventChan <- keyEvent
 		default:

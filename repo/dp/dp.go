@@ -101,7 +101,7 @@ func (r *dpRepo) InvalidateCache() {
 }
 
 func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error) {
-	logging.LogDebugf("repo/dp/GetFile(%v, '%s', '%s')", currentView, fileName)
+	logging.LogDebugf("repo/dp/GetFile(%v, '%s')", currentView, fileName)
 	parentPath := currentView.Path
 	filePath := paths.GetDpPath(parentPath, fileName)
 
