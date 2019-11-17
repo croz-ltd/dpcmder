@@ -146,13 +146,13 @@ loop:
 				workingModel.ToggleCurrItem()
 			// case key.Dot:
 			// 	enterPath(m)
-			// case key.ArrowLeft, key.Chj:
-			// 	horizScroll -= 10
-			// 	if horizScroll < 0 {
-			// 		horizScroll = 0
-			// 	}
-			// case key.ArrowRight, key.Chl:
-			// 	horizScroll += 10
+			case key.ArrowLeft, key.Chj:
+				workingModel.HorizScroll -= 10
+				if workingModel.HorizScroll < 0 {
+					workingModel.HorizScroll = 0
+				}
+			case key.ArrowRight, key.Chl:
+				workingModel.HorizScroll += 10
 			case key.ArrowUp, key.Chi:
 				workingModel.NavUp()
 			case key.ArrowDown, key.Chk:

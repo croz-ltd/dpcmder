@@ -68,10 +68,9 @@ type Model struct {
 	currFirstRowItemIdx [2]int
 	currPath            [2]string
 	currSide            Side
-	screenSizeW         int
-	screenSizeH         int
 	itemMaxRows         int
-	itemMaxCols         int
+	itemMaxCols         int // TODO: remove me
+	HorizScroll         int
 	SyncModeOn          bool
 	SyncDomainDp        string
 	SyncDirDp           string

@@ -81,11 +81,11 @@ func refreshScreen(m model.Model) {
 
 	width, _ := termbox.Size()
 	if m.IsCurrentSide(model.Left) {
-		writeLine(0, 0, m.Title(model.Left), fgNormal, bgCurrent)
-		writeLine(width/2, 0, m.Title(model.Right), fgNormal, bgNormal)
+		writeLine(0, 0, m.Title(model.Left), m.HorizScroll, fgNormal, bgCurrent)
+		writeLine(width/2, 0, m.Title(model.Right), m.HorizScroll, fgNormal, bgNormal)
 	} else {
-		writeLine(0, 0, m.Title(model.Left), fgNormal, bgNormal)
-		writeLine(width/2, 0, m.Title(model.Right), fgNormal, bgCurrent)
+		writeLine(0, 0, m.Title(model.Left), m.HorizScroll, fgNormal, bgNormal)
+		writeLine(width/2, 0, m.Title(model.Right), m.HorizScroll, fgNormal, bgCurrent)
 	}
 
 	for idx := 0; idx < m.GetVisibleItemCount(model.Left); idx++ {
@@ -99,7 +99,7 @@ func refreshScreen(m model.Model) {
 		if item.Selected {
 			fg = fgSelected
 		}
-		writeLine(0, idx+2, item.DisplayString(), fg, bg)
+		writeLine(0, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
 	}
 	for idx := 0; idx < m.GetVisibleItemCount(model.Right); idx++ {
 		logging.LogTrace("ui/out/draw(), idx: ", idx)
@@ -112,7 +112,7 @@ func refreshScreen(m model.Model) {
 		if item.Selected {
 			fg = fgSelected
 		}
-		writeLine(width/2, idx+2, item.DisplayString(), fg, bg)
+		writeLine(width/2, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
 	}
 
 	// showStatus(m, currentStatus)
@@ -130,36 +130,42 @@ func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	dialogWidth := width - 20
 	line := question + answer
 	cursorIdx := utf8.RuneCountInString(question) + answerCursorIdx
-	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), fgNormal, bgNormal)
-	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), fgNormal, bgNormal)
-	writeLineWithCursor(x+2, y, line, fgNormal, bgNormal, x+2+cursorIdx, termbox.AttrReverse, termbox.AttrReverse)
+	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), 0, fgNormal, bgNormal)
+	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), 0, fgNormal, bgNormal)
+	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), 0, fgNormal, bgNormal)
+	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), 0, fgNormal, bgNormal)
+	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), 0, fgNormal, bgNormal)
+	writeLineWithCursor(x+2, y, line, 0, fgNormal, bgNormal, x+2+cursorIdx, termbox.AttrReverse, termbox.AttrReverse)
 
 	termbox.Flush()
 }
 
-func writeLine(x, y int, line string, fg, bg termbox.Attribute) int {
-	// logging.LogDebug("ui/out/writeLine(", x, ",", y, ",", line, ",", fg, ",", bg, ")")
-	return writeLineWithCursor(x, y, line, fg, bg, -1, fg, bg)
+func writeLine(x, y int, line string, horizScroll int, fg, bg termbox.Attribute) int {
+	return writeLineWithCursor(x, y, line, horizScroll, fg, bg, -1, fg, bg)
 }
 
-func writeLineWithCursor(x, y int, line string, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
-	// logging.LogDebug("ui/out/writeLineWithCursor(", x, ",", y, ",", line, ",", fg, ",", bg, ",", cursorX, ",", cursorFg, ",", cursorBg, ")")
-	// var scrollh = horizScroll
-	scrollh := 0
+func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
+	var scrollh = horizScroll
 	runeCount := utf8.RuneCountInString(line)
 	if runeCount < scrollh {
 		scrollh = runeCount
-		if scrollh < 0 {
-			scrollh = 0
+	}
+	scrolledLine := line
+	runeIdx := 0
+	if scrollh != 0 {
+		scrolledLine = ""
+		for byteIdx, _ := range line {
+			if runeIdx == scrollh {
+				scrolledLine = line[byteIdx:]
+				break
+			}
+			runeIdx = runeIdx + 1
 		}
 	}
 
 	var xpos int
-	runeIdx := 0
-	for _, runeVal := range line {
+	runeIdx = 0
+	for _, runeVal := range scrolledLine {
 		xpos = x + runeIdx
 		runeIdx = runeIdx + 1
 		if cursorX == xpos {
@@ -200,6 +206,6 @@ func showStatus(m *model.Model, status string) {
 	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)
 
 	_, h := termbox.Size()
-	writeLine(0, h-1, statusMsg, termbox.ColorDefault, termbox.ColorDefault)
+	writeLine(0, h-1, statusMsg, m.HorizScroll, termbox.ColorDefault, termbox.ColorDefault)
 	termbox.Flush()
 }
