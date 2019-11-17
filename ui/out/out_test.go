@@ -23,3 +23,24 @@ func TestBuildLine(t *testing.T) {
 		}
 	}
 }
+
+func TestScrollLineHoriz(t *testing.T) {
+	testDataMatrix := []struct {
+		line         string
+		horizScroll  int
+		lineScrolled string
+	}{
+		{"abcde1234567890", 0, "abcde1234567890"},
+		{"abcde1234567890", 5, "1234567890"},
+		{"abcde1234567890", 10, "67890"},
+		{"abcde1234567890", 15, ""},
+		{"abcde1234567890", 20, ""},
+	}
+
+	for _, row := range testDataMatrix {
+		got := scrollLineHoriz(row.line, row.horizScroll)
+		if got != row.lineScrolled {
+			t.Errorf("for scrollLineHoriz('%s', %d): got '%s', want '%s'", row.line, row.horizScroll, got, row.lineScrolled)
+		}
+	}
+}

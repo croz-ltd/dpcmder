@@ -145,26 +145,10 @@ func writeLine(x, y int, line string, horizScroll int, fg, bg termbox.Attribute)
 }
 
 func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
-	var scrollh = horizScroll
-	runeCount := utf8.RuneCountInString(line)
-	if runeCount < scrollh {
-		scrollh = runeCount
-	}
-	scrolledLine := line
-	runeIdx := 0
-	if scrollh != 0 {
-		scrolledLine = ""
-		for byteIdx, _ := range line {
-			if runeIdx == scrollh {
-				scrolledLine = line[byteIdx:]
-				break
-			}
-			runeIdx = runeIdx + 1
-		}
-	}
+	scrolledLine := scrollLineHoriz(line, horizScroll)
 
 	var xpos int
-	runeIdx = 0
+	runeIdx := 0
 	for _, runeVal := range scrolledLine {
 		xpos = x + runeIdx
 		runeIdx = runeIdx + 1
@@ -191,6 +175,29 @@ func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.
 func buildLine(first, middle, last string, length int) string {
 	middleLen := (length - utf8.RuneCountInString(first) - utf8.RuneCountInString(last)) / utf8.RuneCountInString(middle)
 	return first + strings.Repeat(middle, middleLen) + last
+}
+
+func scrollLineHoriz(line string, horizScroll int) string {
+	var scrollh = horizScroll
+	runeCount := utf8.RuneCountInString(line)
+	if runeCount < scrollh {
+		scrollh = runeCount
+	}
+
+	runeIdx := 0
+	if scrollh != 0 {
+		scrolledLine := ""
+		for byteIdx, _ := range line {
+			if runeIdx == scrollh {
+				scrolledLine = line[byteIdx:]
+				break
+			}
+			runeIdx = runeIdx + 1
+		}
+		return scrolledLine
+	}
+
+	return line
 }
 
 func showStatus(m *model.Model, status string) {
