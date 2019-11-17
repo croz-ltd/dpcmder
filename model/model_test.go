@@ -261,7 +261,7 @@ func TestModelSetItemsAndFiltering(t *testing.T) {
 func TestModelGetVisibleItemCount(t *testing.T) {
 	model := Model{}
 
-	model.SetItemsMaxRows(3)
+	model.ItemMaxRows = 3
 	got := model.GetVisibleItemCount(Left)
 	want := 0
 	if got != want {
@@ -281,7 +281,7 @@ func TestModelVisibleItems(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxRows(4)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -314,7 +314,7 @@ func TestModelNavigate(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxRows(4)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -377,7 +377,7 @@ func TestModelSelect(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxRows(4)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -443,7 +443,7 @@ func TestModelCurrentRow(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxRows(4)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -462,7 +462,7 @@ func TestModelSetCurrItemForSide(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxRows(4)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -479,7 +479,7 @@ func TestModelSetCurrItemForSideAndConfig(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxRows(4)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 

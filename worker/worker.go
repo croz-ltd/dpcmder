@@ -349,5 +349,5 @@ func setCurrentDpPlainPassword(password string) {
 }
 func setScreenSize() {
 	_, height := out.GetScreenSize()
-	workingModel.SetItemsMaxRows(height - 3)
+	workingModel.ItemMaxRows = height - 3
 }
