@@ -10,4 +10,5 @@ type Repo interface {
 	GetTitle(currentView model.Item) string
 	GetList(currentView *model.ItemConfig) (model.ItemList, error)
 	InvalidateCache()
+	GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error)
 }

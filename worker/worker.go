@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
+	"github.com/croz-ltd/dpcmder/extprogs"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/repo"
 	"github.com/croz-ltd/dpcmder/repo/dp"
@@ -233,6 +234,15 @@ loop:
 				updateView := events.UpdateViewEvent{
 					Type: events.UpdateViewShowStatus, Status: refreshedStatus, Model: &workingModel}
 				updateViewEventChan <- updateView
+
+			case key.F3, key.Ch3:
+				err := viewCurrent(&workingModel)
+				if err != nil {
+					updateView := events.UpdateViewEvent{
+						Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
+					updateViewEventChan <- updateView
+					continue
+				}
 			}
 
 			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
@@ -418,7 +428,35 @@ func setCurrentDpPlainPassword(password string) {
 	config.Conf.DataPowerAppliances[applianceName] = applicanceConfig
 	logging.LogDebugf("worker/setDpPlainPassword() applicanceConfig after : '%s'", applicanceConfig)
 }
+
 func setScreenSize() {
 	_, height := out.GetScreenSize()
 	workingModel.ItemMaxRows = height - 3
+}
+
+func viewCurrent(m *model.Model) error {
+	ci := m.CurrItem()
+	logging.LogDebugf("worker/viewCurrent(), item: %w", ci)
+	var err error
+	switch ci.Config.Type {
+	case model.ItemFile:
+
+		currView := workingModel.ViewConfig(workingModel.CurrSide())
+		fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
+		if err != nil {
+			return err
+		}
+		if fileContent != nil {
+			err = extprogs.View(ci.Name, fileContent)
+			if err != nil {
+				return err
+			}
+		}
+
+		return errs.Error(fmt.Sprintf("Can't fetch file '%s' from path '%s'.", ci.Name, m.CurrPath()))
+	case model.ItemDpConfiguration:
+		err = extprogs.View(ci.Name, config.Conf.GetDpApplianceConfig(ci.Name))
+	}
+
+	return err
 }

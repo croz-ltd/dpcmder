@@ -1,6 +1,7 @@
 package dp
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/antchfx/jsonquery"
 	"github.com/antchfx/xmlquery"
@@ -93,9 +94,84 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 }
 
 func (r *dpRepo) InvalidateCache() {
+	logging.LogDebugf("repo/dp/InvalidateCache()")
 	if config.DpUseSoma() {
 		r.invalidateCache = true
 	}
+}
+
+func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetFile(%v, '%s', '%s')", currentView, fileName)
+	parentPath := currentView.Path
+	filePath := paths.GetDpPath(parentPath, fileName)
+
+	if config.DpUseRest() {
+		restPath := dpnet.MakeRestPath(currentView.DpDomain, filePath)
+		jsonString, err := dpnet.RestGet(restPath)
+		if err != nil {
+			return nil, err
+		}
+		// println("jsonString: " + jsonString)
+
+		if jsonString == "" {
+			return nil, errs.Error(fmt.Sprintf("Can't fetch file '%s' from '%s'", fileName, parentPath))
+		} else {
+			doc, err := jsonquery.Parse(strings.NewReader(jsonString))
+			if err != nil {
+				logging.LogDebug("repo/dp/GetFile() - Error parsing response JSON.", err)
+				return nil, err
+			}
+
+			// .filestore.location.directory /name
+			// work-around - for one directory we get JSON object, for multiple directories we get JSON array
+			fileNode := jsonquery.FindOne(doc, "/file")
+			if fileNode == nil {
+				errMsg := fmt.Sprintf("Can't find file '%s' on path '%s' from JSON response.", fileName, parentPath)
+				logging.LogDebug(errMsg)
+				return nil, errs.Error(errMsg)
+			}
+
+			fileB64 := fileNode.InnerText()
+			resultBytes, err := base64.StdEncoding.DecodeString(fileB64)
+			if err != nil {
+				logging.LogDebug("repo/dp/GetFile() - Error decoding base64 file.", err)
+				return nil, err
+			}
+
+			return resultBytes, nil
+		}
+	} else if config.DpUseSoma() {
+		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
+			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
+			"<dp:get-file name=\"" + filePath + "\"/></dp:request></soapenv:Body></soapenv:Envelope>"
+		somaResponse, err := dpnet.Soma(somaRequest)
+		if err != nil {
+			return nil, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("repo/dp/GetFile() - Error parsing response SOAP.", err)
+			return nil, err
+		}
+		fileNode := xmlquery.FindOne(doc, "//*[local-name()='file']")
+
+		if fileNode == nil {
+			errMsg := fmt.Sprintf("Can't find file '%s' on path '%s' from SOMA response.", fileName, parentPath)
+			logging.LogDebug(errMsg)
+			return nil, errs.Error(errMsg)
+		}
+		fileB64 := fileNode.InnerText()
+		resultBytes, err := base64.StdEncoding.DecodeString(fileB64)
+		if err != nil {
+			logging.LogDebug("repo/dp/GetFile() - Error decoding base64 file.", err)
+			return nil, err
+		}
+
+		return resultBytes, nil
+	}
+
+	logging.LogDebug("repo/dp/GetFile(), using neither REST neither SOMA.")
+	return nil, errs.Error("DataPower management interface not set.")
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.

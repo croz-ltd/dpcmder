@@ -90,8 +90,9 @@ func httpRequest(urlFullPath, method, body string) (string, error) {
 	return "", errs.UnexpectedHTTPResponse{StatusCode: resp.StatusCode, Status: resp.Status}
 }
 
-// makeRestPath creates DataPower REST path to given domain.
-func makeRestPath(dpDomain, filePath string) string {
+// MakeRestPath creates DataPower REST path to given domain.
+func MakeRestPath(dpDomain, filePath string) string {
+	logging.LogDebugf("repo/dp/dpnet/MakeRestPath('%s', '%s')", dpDomain, filePath)
 	currRestFilePath := strings.Replace(filePath, ":", "", 1)
 	return "/mgmt/filestore/" + dpDomain + "/" + currRestFilePath
 }
