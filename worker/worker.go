@@ -348,6 +348,6 @@ func setCurrentDpPlainPassword(password string) {
 	logging.LogDebugf("worker/setDpPlainPassword() applicanceConfig after : '%s'", applicanceConfig)
 }
 func setScreenSize() {
-	width, height := out.GetScreenSize()
-	workingModel.SetItemsMaxSize(height-3, width)
+	_, height := out.GetScreenSize()
+	workingModel.SetItemsMaxRows(height - 3)
 }

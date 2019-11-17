@@ -187,7 +187,7 @@ func scrollLineHoriz(line string, horizScroll int) string {
 	runeIdx := 0
 	if scrollh != 0 {
 		scrolledLine := ""
-		for byteIdx, _ := range line {
+		for byteIdx := range line {
 			if runeIdx == scrollh {
 				scrolledLine = line[byteIdx:]
 				break

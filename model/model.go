@@ -69,7 +69,6 @@ type Model struct {
 	currPath            [2]string
 	currSide            Side
 	itemMaxRows         int
-	itemMaxCols         int // TODO: remove me
 	HorizScroll         int
 	SyncModeOn          bool
 	SyncDomainDp        string
@@ -139,10 +138,10 @@ func (m *Model) SetItems(side Side, items []Item) {
 	m.applyFilter(side)
 }
 
-// SetItemsMaxSize sets maximum number of items which can be shown on screen.
-func (m *Model) SetItemsMaxSize(itemMaxRows, itemMaxCols int) {
-	logging.LogTrace("model/SetItemsMaxSize(), itemMaxRows: ", itemMaxRows, ", itemMaxCols: ", itemMaxCols)
-	m.itemMaxRows, m.itemMaxCols = itemMaxRows, itemMaxCols
+// SetItemsMaxRows sets maximum number of items which can be shown on screen.
+func (m *Model) SetItemsMaxRows(itemMaxRows int) {
+	logging.LogTrace("model/SetItemsMaxSize(), itemMaxRows: ", itemMaxRows)
+	m.itemMaxRows = itemMaxRows
 }
 
 // GetVisibleItemCount returns number of items which will be shown for given side.
@@ -151,9 +150,8 @@ func (m *Model) GetVisibleItemCount(side Side) int {
 	logging.LogTrace("model/GetVisibleItemCount(", side, "), visibleItemCount: ", visibleItemCount, ", m.itemMaxRows: ", m.itemMaxRows)
 	if m.itemMaxRows < visibleItemCount {
 		return m.itemMaxRows
-	} else {
-		return visibleItemCount
 	}
+	return visibleItemCount
 }
 
 // GetVisibleItem returns (visible) item from given side at given index.
