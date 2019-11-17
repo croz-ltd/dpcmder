@@ -24,6 +24,8 @@ type userDialogType string
 
 const askDpPassword = userDialogType("askDpPassword")
 const askFilter = userDialogType("askFilter")
+const askSearchNext = userDialogType("askSearchNext")
+const askSearchPrev = userDialogType("askSearchPrev")
 
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
@@ -189,6 +191,39 @@ loop:
 				updateView := showInputDialog(&dialogSession, askFilter, "Filter by: ", cf, false)
 				updateViewEventChan <- updateView
 				continue
+			case key.Slash:
+				workingModel.SearchBy = ""
+				updateView := showInputDialog(&dialogSession, askSearchNext, "Search by: ", workingModel.SearchBy, false)
+				updateViewEventChan <- updateView
+				continue
+			case key.Chn, key.Chp:
+				if workingModel.SearchBy == "" {
+					var dialogType userDialogType
+					switch keyPressedEvent.KeyCode {
+					case key.Chn:
+						dialogType = askSearchNext
+					case key.Chp:
+						dialogType = askSearchPrev
+					}
+					updateView := showInputDialog(&dialogSession, dialogType, "Search by: ", workingModel.SearchBy, false)
+					updateViewEventChan <- updateView
+					continue
+				}
+
+				var found bool
+				switch keyPressedEvent.KeyCode {
+				case key.Chn:
+					found = workingModel.SearchNext(workingModel.SearchBy)
+				case key.Chp:
+					found = workingModel.SearchPrev(workingModel.SearchBy)
+				}
+				if !found {
+					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
+					updateView := events.UpdateViewEvent{
+						Type: events.UpdateViewShowStatus, Status: notFoundStatus, Model: &workingModel}
+					updateViewEventChan <- updateView
+					continue
+				}
 			}
 
 			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
@@ -215,7 +250,7 @@ func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userD
 }
 
 func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) events.UpdateViewEvent {
-	logging.LogDebug("worker/processInputDialogInput(): '%s'", dialogSession)
+	logging.LogDebugf("worker/processInputDialogInput(): '%s'", dialogSession)
 	switch keyCode {
 	case key.Backspace, key.BackspaceWin:
 		if dialogSession.inputAnswerCursorIdx > 0 {
@@ -269,6 +304,23 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 			}
 		case askFilter:
 			workingModel.SetCurrentFilter(dialogSession.inputAnswer)
+		case askSearchNext, askSearchPrev:
+			workingModel.SearchBy = dialogSession.inputAnswer
+			if workingModel.SearchBy != "" {
+				found := false
+				switch dialogSession.dialogType {
+				case askSearchNext:
+					found = workingModel.SearchNext(workingModel.SearchBy)
+				case askSearchPrev:
+					found = workingModel.SearchPrev(workingModel.SearchBy)
+				}
+				if !found {
+					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
+					return events.UpdateViewEvent{
+						Type: events.UpdateViewShowStatus, Status: notFoundStatus, Model: &workingModel}
+				}
+			}
+
 		default:
 			logging.LogDebugf("worker/processInputDialogInput() unknown input dialog type: '%s'", dialogSession.dialogType)
 		}

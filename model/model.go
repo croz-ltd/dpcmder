@@ -70,6 +70,7 @@ type Model struct {
 	currSide            Side
 	ItemMaxRows         int
 	HorizScroll         int
+	SearchBy            string
 	SyncModeOn          bool
 	SyncDomainDp        string
 	SyncDirDp           string
@@ -386,7 +387,7 @@ func (m *Model) SelToBottom() {
 
 func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
-	logging.LogTrace("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
+	logging.LogDebug("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	if newCurr < 0 {
 		newCurr = 0
@@ -425,6 +426,7 @@ func (m *Model) GetSelectedItems(side Side) []Item {
 
 // SearchNext moves cursor to next item containing given searchStr and returns true if item is found.
 func (m *Model) SearchNext(searchStr string) bool {
+	logging.LogDebugf("model/SearchNext('%s')", searchStr)
 	side := m.CurrSide()
 	nextItemIdx := m.currItemIdx[side] + 1
 	if nextItemIdx >= len(m.items[side]) {
@@ -433,7 +435,7 @@ func (m *Model) SearchNext(searchStr string) bool {
 	searchStr = strings.ToLower(searchStr)
 	for idx := nextItemIdx; idx < len(m.items[side]); idx++ {
 		item := m.items[side][idx]
-		itemStr := strings.ToLower(item.String())
+		itemStr := strings.ToLower(item.DisplayString())
 		if strings.Contains(itemStr, searchStr) {
 			move := idx - m.currItemIdx[side]
 			m.navUpDown(side, move)
@@ -443,8 +445,9 @@ func (m *Model) SearchNext(searchStr string) bool {
 	return false
 }
 
-// SearchNext moves cursor to previous item containing given searchStr and returns true if item is found.
+// SearchPrev moves cursor to previous item containing given searchStr and returns true if item is found.
 func (m *Model) SearchPrev(searchStr string) bool {
+	logging.LogDebugf("model/SearchPrev('%s')", searchStr)
 	side := m.CurrSide()
 	prevItemIdx := m.currItemIdx[side] - 1
 	if prevItemIdx < 0 {
@@ -454,7 +457,7 @@ func (m *Model) SearchPrev(searchStr string) bool {
 	for idx := prevItemIdx; idx >= 0; idx-- {
 		item := m.items[side][idx]
 		// for idx, item := range m.items[side][nextItemIdx:] {
-		itemStr := strings.ToLower(item.String())
+		itemStr := strings.ToLower(item.DisplayString())
 		if strings.Contains(itemStr, searchStr) {
 			move := idx - m.currItemIdx[side]
 			m.navUpDown(side, move)
