@@ -8,6 +8,6 @@ import (
 type Repo interface {
 	GetInitialItem() model.Item
 	GetTitle(currentView model.Item) string
-	GetList(currentView model.Item) (model.ItemList, error)
+	GetList(currentView *model.ItemConfig) (model.ItemList, error)
 	InvalidateCache()
 }

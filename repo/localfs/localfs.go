@@ -41,9 +41,9 @@ func (r localRepo) GetTitle(itemToShow model.Item) string {
 }
 
 // GetList returns list of items for current directory.
-func (r localRepo) GetList(itemToShow model.Item) (model.ItemList, error) {
+func (r localRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/localfs/GetList('%s')", itemToShow)
-	currPath := itemToShow.Config.Path
+	currPath := itemToShow.Path
 
 	parentDir := model.Item{Name: "..",
 		Config: &model.ItemConfig{

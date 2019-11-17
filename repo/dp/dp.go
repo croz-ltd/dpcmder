@@ -67,25 +67,25 @@ func (r *dpRepo) GetTitle(itemToShow model.Item) string {
 
 	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, url, dpDomain, currPath)
 }
-func (r *dpRepo) GetList(itemToShow model.Item) (model.ItemList, error) {
+func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
-	switch itemToShow.Config.Type {
+	switch itemToShow.Type {
 	case model.ItemNone:
 		config.ClearDpConfig()
 		return listAppliances(), nil
 	case model.ItemDpConfiguration:
-		config.LoadDpConfig(itemToShow.Config.DpAppliance)
-		if itemToShow.Config.DpDomain != "" {
-			return r.listFilestores(itemToShow.Config)
+		config.LoadDpConfig(itemToShow.DpAppliance)
+		if itemToShow.DpDomain != "" {
+			return r.listFilestores(itemToShow)
 		}
-		return listDomains(itemToShow.Config)
+		return listDomains(itemToShow)
 	case model.ItemDpDomain:
-		return r.listFilestores(itemToShow.Config)
+		return r.listFilestores(itemToShow)
 	case model.ItemDpFilestore:
-		return r.listDpDir(itemToShow.Config)
+		return r.listDpDir(itemToShow)
 	case model.ItemDirectory:
-		return r.listDpDir(itemToShow.Config)
+		return r.listDpDir(itemToShow)
 	default:
 		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item.", itemToShow)
 		return model.ItemList{}, nil

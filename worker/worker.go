@@ -78,7 +78,7 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	title := repo.GetTitle(initialItem)
 	workingModel.SetCurrentView(side, initialItem.Config, title)
 
-	itemList, err := repo.GetList(initialItem)
+	itemList, err := repo.GetList(initialItem.Config)
 	if err != nil {
 		logging.LogDebug("worker/initialLoadRepo(): ", err)
 		return
@@ -224,6 +224,15 @@ loop:
 					updateViewEventChan <- updateView
 					continue
 				}
+
+			case key.F2, key.Ch2:
+				repo := repos[workingModel.CurrSide()]
+				repo.InvalidateCache()
+				repo.GetList(workingModel.ViewConfig(workingModel.CurrSide()))
+				refreshedStatus := "Current directory refreshed."
+				updateView := events.UpdateViewEvent{
+					Type: events.UpdateViewShowStatus, Status: refreshedStatus, Model: &workingModel}
+				updateViewEventChan <- updateView
 			}
 
 			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
@@ -376,7 +385,7 @@ func enterCurrentDirectory() error {
 
 	switch item.Config.Type {
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory, model.ItemNone:
-		itemList, err := r.GetList(*item)
+		itemList, err := r.GetList(item.Config)
 		if err != nil {
 			return err
 		}
