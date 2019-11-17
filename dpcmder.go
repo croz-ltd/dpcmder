@@ -22,11 +22,10 @@ func main() {
 
 	setupCloseHandler()
 
-	keyPressedEventChan := make(chan events.KeyPressedEvent, 1)
 	updateViewEventChan := make(chan events.UpdateViewEvent, 1)
 	ui.Init(updateViewEventChan)
-	worker.Init(keyPressedEventChan, updateViewEventChan)
-	ui.Start(keyPressedEventChan)
+	worker.Init(updateViewEventChan)
+	ui.Start()
 	// model.M.Print()
 	logging.LogDebug("main/main() - ...dpcmder ending.")
 }

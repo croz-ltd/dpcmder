@@ -3,7 +3,6 @@ package in
 import (
 	"bufio"
 	"encoding/hex"
-	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/ui/in/key"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
@@ -14,14 +13,14 @@ import (
 )
 
 // Start starts (blocking) reading user's input.
-func Start(keyPressedEventChan chan events.KeyPressedEvent) {
+func Start() {
 	logging.LogDebug("ui/in/Start()")
 
-	keyPressedLoop(keyPressedEventChan)
+	keyPressedLoop()
 }
 
 // keyPressedLoop is main loop reading user's input.
-func keyPressedLoop(keyPressedEventChan chan events.KeyPressedEvent) {
+func keyPressedLoop() {
 	logging.LogDebug("ui/in/keyPressedLoop() starting")
 	reader := newTimeoutReader(bufio.NewReader(os.Stdin), 100*time.Millisecond)
 
@@ -38,8 +37,8 @@ loop:
 			}
 		case nil:
 			logging.LogDebugf("ui/in/keyPressedLoop(), readResult: %v", readResult)
-			keyEvent := readResult.keyEvent
-			keyPressedEventChan <- keyEvent
+			keyCode := readResult.keyCode
+			worker.ProcessInputEvent(keyCode)
 		default:
 			logging.LogFatal("ui/in/keyPressedLoop() unexpected error received.", readResult.err)
 		}
@@ -56,8 +55,8 @@ const readTimeout = errs.Error("ReadTimeout")
 
 // readResult contains either keyEvent created from user's input either error.
 type readResult struct {
-	keyEvent events.KeyPressedEvent
-	err      error
+	keyCode key.KeyCode
+	err     error
 }
 
 // timeoutReader is structure used to implement non-blocking user input reading.
@@ -89,8 +88,7 @@ func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 
 		hexBytesRead := hex.EncodeToString(tr.bytesRead[0:bytesReadCount])
 		keyCode := key.KeyCode(hexBytesRead)
-		keyEvent := events.KeyPressedEvent{KeyCode: keyCode}
-		result := readResult{keyEvent: keyEvent, err: err}
+		result := readResult{keyCode: keyCode, err: err}
 		tr.readResultChannel <- result
 		logging.LogTrace("ui/in/TimeoutReader.readFunc() end")
 		tr.readFuncIsRunning = false

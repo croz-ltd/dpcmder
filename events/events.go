@@ -2,12 +2,7 @@ package events
 
 import (
 	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/ui/in/key"
 )
-
-type KeyPressedEvent struct {
-	KeyCode key.KeyCode
-}
 
 type UpdateViewEventType int
 

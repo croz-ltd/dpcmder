@@ -54,23 +54,28 @@ var repos = []repo.Repo{model.Left: &dp.Repo, model.Right: &localfs.Repo}
 // local filesystem we are showing in dpcmder.
 var workingModel model.Model = model.Model{} //{currSide: model.Left}
 
+// updateViewEventChan is channel for sending view update events to refresh screen.
+var updateViewEventChan chan events.UpdateViewEvent
+
+// Dialog with user - question asked, user's answer and active state.
+var dialogSession = userDialogInputSessionInfo{}
+
 var quitting = false
 
 // IsQuitting checks if application is currently quitting.
 func IsQuitting() bool { return quitting }
 
 // Init initializes DataPower and local filesystem access and load initial views.
-func Init(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
+func Init(uveChan chan events.UpdateViewEvent) {
 	logging.LogDebug("worker/Init()")
-	go runWorkerInit(keyPressedEventChan, updateViewEventChan)
+	updateViewEventChan = uveChan
+	runWorkerInit()
 }
 
-func runWorkerInit(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
+func runWorkerInit() {
 	logging.LogDebug("worker/runWorkerInit()")
-	defer out.Stop()
 	dp.InitNetworkSettings()
 	initialLoad(updateViewEventChan)
-	processInputEvent(keyPressedEventChan, updateViewEventChan)
 }
 
 func initialLoadRepo(side model.Side, repo repo.Repo) {
@@ -106,155 +111,141 @@ func initialLoad(updateViewEventChan chan events.UpdateViewEvent) {
 	updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 }
 
-func processInputEvent(keyPressedEventChan chan events.KeyPressedEvent, updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("worker/processInputEvent() starting")
+func ProcessInputEvent(keyCode key.KeyCode) {
+	logging.LogDebugf("worker/ProcessInputEvent('%s')", keyCode)
 
-	// Dialog with user - question asked, user's answer and active state.
-	var dialogSession = userDialogInputSessionInfo{}
-loop:
-	for {
-		logging.LogDebug("worker/processInputEvent(), waiting key pressed event.")
-		keyPressedEvent := <-keyPressedEventChan
-		logging.LogDebug("worker/processInputEvent(), keyPressedEvent:", keyPressedEvent)
+	setScreenSize()
 
-		setScreenSize()
-
-		if dialogSession.userInputActive {
-			updateViewEvent := processInputDialogInput(&dialogSession, keyPressedEvent.KeyCode)
-			updateViewEventChan <- updateViewEvent
-		} else {
-			switch keyPressedEvent.KeyCode {
-			case key.Chq:
-				quitting = true
-				break loop
-			case key.Tab:
-				workingModel.ToggleSide()
-			case key.Return:
-				err := enterCurrentDirectory()
-				logging.LogDebug("worker/processInputEvent(), err: ", err)
-				switch err {
-				case dpMissingPasswordError:
-					updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", "", true)
-					updateViewEventChan <- updateView
-					continue
-				case nil:
-				default:
-					updateView := events.UpdateViewEvent{
-						Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
-					updateViewEventChan <- updateView
-					switch err.(type) {
-					case errs.UnexpectedHTTPResponse:
-						setCurrentDpPlainPassword("")
-					}
-					continue
-				}
-			case key.Space:
-				workingModel.ToggleCurrItem()
-			// case key.Dot:
-			// 	enterPath(m)
-			case key.ArrowLeft, key.Chj:
-				workingModel.HorizScroll -= 10
-				if workingModel.HorizScroll < 0 {
-					workingModel.HorizScroll = 0
-				}
-			case key.ArrowRight, key.Chl:
-				workingModel.HorizScroll += 10
-			case key.ArrowUp, key.Chi:
-				workingModel.NavUp()
-			case key.ArrowDown, key.Chk:
-				workingModel.NavDown()
-			case key.ShiftArrowUp, key.ChI:
-				workingModel.ToggleCurrItem()
-				workingModel.NavUp()
-			case key.ShiftArrowDown, key.ChK:
-				workingModel.ToggleCurrItem()
-				workingModel.NavDown()
-			case key.PgUp, key.Chu:
-				workingModel.NavPgUp()
-			case key.PgDown, key.Cho:
-				workingModel.NavPgDown()
-			case key.ShiftPgUp, key.ChU:
-				workingModel.SelPgUp()
-				workingModel.NavPgUp()
-			case key.ShiftPgDown, key.ChO:
-				workingModel.SelPgDown()
-				workingModel.NavPgDown()
-			case key.Home, key.Cha:
-				workingModel.NavTop()
-			case key.End, key.Chz:
-				workingModel.NavBottom()
-			case key.ShiftHome, key.ChA:
-				workingModel.SelToTop()
-				workingModel.NavTop()
-			case key.ShiftEnd, key.ChZ:
-				workingModel.SelToBottom()
-				workingModel.NavBottom()
-			case key.Chf:
-				cf := workingModel.CurrentFilter()
-				updateView := showInputDialog(&dialogSession, askFilter, "Filter by: ", cf, false)
+	if dialogSession.userInputActive {
+		updateViewEvent := processInputDialogInput(&dialogSession, keyCode)
+		updateViewEventChan <- updateViewEvent
+	} else {
+		switch keyCode {
+		case key.Chq:
+			quitting = true
+			return
+		case key.Tab:
+			workingModel.ToggleSide()
+		case key.Return:
+			err := enterCurrentDirectory()
+			logging.LogDebug("worker/processInputEvent(), err: ", err)
+			switch err {
+			case dpMissingPasswordError:
+				updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", "", true)
 				updateViewEventChan <- updateView
-				continue
-			case key.Slash:
-				workingModel.SearchBy = ""
-				updateView := showInputDialog(&dialogSession, askSearchNext, "Search by: ", workingModel.SearchBy, false)
-				updateViewEventChan <- updateView
-				continue
-			case key.Chn, key.Chp:
-				if workingModel.SearchBy == "" {
-					var dialogType userDialogType
-					switch keyPressedEvent.KeyCode {
-					case key.Chn:
-						dialogType = askSearchNext
-					case key.Chp:
-						dialogType = askSearchPrev
-					}
-					updateView := showInputDialog(&dialogSession, dialogType, "Search by: ", workingModel.SearchBy, false)
-					updateViewEventChan <- updateView
-					continue
-				}
-
-				var found bool
-				switch keyPressedEvent.KeyCode {
-				case key.Chn:
-					found = workingModel.SearchNext(workingModel.SearchBy)
-				case key.Chp:
-					found = workingModel.SearchPrev(workingModel.SearchBy)
-				}
-				if !found {
-					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-					updateView := events.UpdateViewEvent{
-						Type: events.UpdateViewShowStatus, Status: notFoundStatus, Model: &workingModel}
-					updateViewEventChan <- updateView
-					continue
-				}
-
-			case key.F2, key.Ch2:
-				repo := repos[workingModel.CurrSide()]
-				repo.InvalidateCache()
-				repo.GetList(workingModel.ViewConfig(workingModel.CurrSide()))
-				refreshedStatus := "Current directory refreshed."
+				return
+			case nil:
+			default:
 				updateView := events.UpdateViewEvent{
-					Type: events.UpdateViewShowStatus, Status: refreshedStatus, Model: &workingModel}
+					Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
 				updateViewEventChan <- updateView
-
-			case key.F3, key.Ch3:
-				logging.LogDebug("-------- before")
-				err := viewCurrent(&workingModel)
-				logging.LogDebug("-------- after")
-				if err != nil {
-					updateView := events.UpdateViewEvent{
-						Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
-					updateViewEventChan <- updateView
-					continue
+				switch err.(type) {
+				case errs.UnexpectedHTTPResponse:
+					setCurrentDpPlainPassword("")
 				}
+				return
+			}
+		case key.Space:
+			workingModel.ToggleCurrItem()
+		// case key.Dot:
+		// 	enterPath(m)
+		case key.ArrowLeft, key.Chj:
+			workingModel.HorizScroll -= 10
+			if workingModel.HorizScroll < 0 {
+				workingModel.HorizScroll = 0
+			}
+		case key.ArrowRight, key.Chl:
+			workingModel.HorizScroll += 10
+		case key.ArrowUp, key.Chi:
+			workingModel.NavUp()
+		case key.ArrowDown, key.Chk:
+			workingModel.NavDown()
+		case key.ShiftArrowUp, key.ChI:
+			workingModel.ToggleCurrItem()
+			workingModel.NavUp()
+		case key.ShiftArrowDown, key.ChK:
+			workingModel.ToggleCurrItem()
+			workingModel.NavDown()
+		case key.PgUp, key.Chu:
+			workingModel.NavPgUp()
+		case key.PgDown, key.Cho:
+			workingModel.NavPgDown()
+		case key.ShiftPgUp, key.ChU:
+			workingModel.SelPgUp()
+			workingModel.NavPgUp()
+		case key.ShiftPgDown, key.ChO:
+			workingModel.SelPgDown()
+			workingModel.NavPgDown()
+		case key.Home, key.Cha:
+			workingModel.NavTop()
+		case key.End, key.Chz:
+			workingModel.NavBottom()
+		case key.ShiftHome, key.ChA:
+			workingModel.SelToTop()
+			workingModel.NavTop()
+		case key.ShiftEnd, key.ChZ:
+			workingModel.SelToBottom()
+			workingModel.NavBottom()
+		case key.Chf:
+			cf := workingModel.CurrentFilter()
+			updateView := showInputDialog(&dialogSession, askFilter, "Filter by: ", cf, false)
+			updateViewEventChan <- updateView
+			return
+		case key.Slash:
+			workingModel.SearchBy = ""
+			updateView := showInputDialog(&dialogSession, askSearchNext, "Search by: ", workingModel.SearchBy, false)
+			updateViewEventChan <- updateView
+			return
+		case key.Chn, key.Chp:
+			if workingModel.SearchBy == "" {
+				var dialogType userDialogType
+				switch keyCode {
+				case key.Chn:
+					dialogType = askSearchNext
+				case key.Chp:
+					dialogType = askSearchPrev
+				}
+				updateView := showInputDialog(&dialogSession, dialogType, "Search by: ", workingModel.SearchBy, false)
+				updateViewEventChan <- updateView
+				return
 			}
 
-			updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
+			var found bool
+			switch keyCode {
+			case key.Chn:
+				found = workingModel.SearchNext(workingModel.SearchBy)
+			case key.Chp:
+				found = workingModel.SearchPrev(workingModel.SearchBy)
+			}
+			if !found {
+				notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
+				updateView := events.UpdateViewEvent{
+					Type: events.UpdateViewShowStatus, Status: notFoundStatus, Model: &workingModel}
+				updateViewEventChan <- updateView
+				return
+			}
+
+		case key.F2, key.Ch2:
+			repo := repos[workingModel.CurrSide()]
+			repo.InvalidateCache()
+			repo.GetList(workingModel.ViewConfig(workingModel.CurrSide()))
+			refreshedStatus := "Current directory refreshed."
+			updateView := events.UpdateViewEvent{
+				Type: events.UpdateViewShowStatus, Status: refreshedStatus, Model: &workingModel}
+			updateViewEventChan <- updateView
+
+		case key.F3, key.Ch3:
+			err := viewCurrent(&workingModel)
+			if err != nil {
+				updateView := events.UpdateViewEvent{
+					Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
+				updateViewEventChan <- updateView
+				return
+			}
 		}
+
+		updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
 	}
-	logging.LogDebug("worker/processInputEvent() sending events.UpdateViewQuit")
-	updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewQuit}
-	logging.LogDebug("worker/processInputEvent() stopping")
 }
 
 func showInputDialog(dialogSession *userDialogInputSessionInfo, dialogType userDialogType, question, answer string, answerMasked bool) events.UpdateViewEvent {
@@ -456,8 +447,6 @@ func viewCurrent(m *model.Model) error {
 				return err
 			}
 		}
-
-		return errs.Error(fmt.Sprintf("Can't fetch file '%s' from path '%s'.", ci.Name, m.CurrPath()))
 	case model.ItemDpConfiguration:
 		err = extprogs.View(ci.Name, config.Conf.GetDpApplianceConfig(ci.Name))
 	}

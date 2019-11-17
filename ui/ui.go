@@ -12,11 +12,11 @@ func Init(updateViewEventChan chan events.UpdateViewEvent) {
 	out.Init(updateViewEventChan)
 }
 
-func Start(keyPressedEventChan chan events.KeyPressedEvent) {
+func Start() {
 	logging.LogDebug("ui/Start()")
 
 	defer out.Stop()
-	in.Start(keyPressedEventChan)
+	in.Start()
 	logging.LogDebug("ui/Start() end")
 }
 
