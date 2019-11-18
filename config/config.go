@@ -259,14 +259,28 @@ func SetDpTransientPassword(password string) {
 	DpTransientPasswordMap[PreviousAppliance] = password
 }
 
-func (c *Config) GetDpApplianceConfig(name string) []byte {
+// GetDpApplianceConfig fetches DataPower appliance JSON configuration as byte array.
+func (c *Config) GetDpApplianceConfig(name string) ([]byte, error) {
 	dpAppliance := c.DataPowerAppliances[name]
 	json, err := json.MarshalIndent(dpAppliance, "", "  ")
 	if err != nil {
-		logging.LogFatal(fmt.Sprintf(
-			"config/GetDpApplianceConfig(%s) - Can't unmarshal DataPower appliance configuration: ", name), err)
+		logging.LogDebugf("config/GetDpApplianceConfig('%s') - Can't marshal DataPower appliance configuration: ", name)
+		return nil, err
 	}
-	return json
+	return json, nil
+}
+
+// SetDpApplianceConfig sets DataPower appliance JSON configuration as byte array.
+func (c *Config) SetDpApplianceConfig(name string, contents []byte) error {
+	dpAppliance := c.DataPowerAppliances[name]
+	err := json.Unmarshal(contents, &dpAppliance)
+	if err != nil {
+		logging.LogDebugf("config/SetDpApplianceConfig('%s', ...) - Can't unmarshal DataPower appliance configuration: ", name)
+		return err
+	}
+	c.DataPowerAppliances[name] = dpAppliance
+	k.Persist()
+	return nil
 }
 
 // PrintConfig prints configuration values to console.

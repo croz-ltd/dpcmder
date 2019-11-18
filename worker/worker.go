@@ -83,7 +83,7 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	initialItem := repo.GetInitialItem()
 	logging.LogDebugf("worker/initialLoadRepo(%v, %v), initialItem: %v", side, repo, initialItem)
 
-	title := repo.GetTitle(initialItem)
+	title := repo.GetTitle(initialItem.Config)
 	workingModel.SetCurrentView(side, initialItem.Config, title)
 
 	itemList, err := repo.GetList(initialItem.Config)
@@ -242,6 +242,15 @@ func ProcessInputEvent(keyCode key.KeyCode) {
 				updateViewEventChan <- updateView
 				return
 			}
+
+		case key.F4, key.Ch4:
+			err := editCurrent(&workingModel)
+			if err != nil {
+				updateView := events.UpdateViewEvent{
+					Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
+				updateViewEventChan <- updateView
+				return
+			}
 		}
 
 		updateViewEventChan <- events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel}
@@ -373,12 +382,16 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 }
 
 func enterCurrentDirectory() error {
+	item := workingModel.CurrItem()
+	return showItem(item.Config, item.Name)
+}
+
+func showItem(itemConfig *model.ItemConfig, itemName string) error {
 	logging.LogDebug("worker/enterCurrentDirectory()")
 	r := repos[workingModel.CurrSide()]
-	item := workingModel.CurrItem()
-	logging.LogDebug("worker/enterCurrentDirectory(), item: ", item)
-	if item.Config.Type == model.ItemDpConfiguration {
-		applianceName := item.Name
+	logging.LogDebug("worker/enterCurrentDirectory(), itemConfig: ", itemConfig)
+	if itemConfig.Type == model.ItemDpConfiguration {
+		applianceName := itemName
 		if applianceName != ".." {
 			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
 			logging.LogDebugf("worker/enterCurrentDirectory(), applicanceConfig: '%s'", applicanceConfig)
@@ -388,26 +401,26 @@ func enterCurrentDirectory() error {
 		}
 	}
 
-	switch item.Config.Type {
+	switch itemConfig.Type {
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory, model.ItemNone:
-		itemList, err := r.GetList(item.Config)
+		itemList, err := r.GetList(itemConfig)
 		if err != nil {
 			return err
 		}
 		logging.LogDebug("worker/enterCurrentDirectory(), itemList: ", itemList)
-		title := r.GetTitle(*item)
+		title := r.GetTitle(itemConfig)
 		logging.LogDebug("worker/enterCurrentDirectory(), title: ", title)
 
 		oldViewConfig := workingModel.ViewConfig(workingModel.CurrSide())
 		workingModel.SetItems(workingModel.CurrSide(), itemList)
-		workingModel.SetCurrentView(workingModel.CurrSide(), item.Config, title)
-		if item.Name != ".." {
+		workingModel.SetCurrentView(workingModel.CurrSide(), itemConfig, title)
+		if itemName != ".." {
 			workingModel.NavTop()
 		} else {
 			workingModel.SetCurrItemForSideAndConfig(workingModel.CurrSide(), oldViewConfig)
 		}
 	default:
-		logging.LogDebug("worker/enterCurrentDirectory(), unknown type: ", item.Config.Type)
+		logging.LogDebug("worker/enterCurrentDirectory(), unknown type: ", itemConfig.Type)
 	}
 
 	return nil
@@ -435,7 +448,6 @@ func viewCurrent(m *model.Model) error {
 	var err error
 	switch ci.Config.Type {
 	case model.ItemFile:
-
 		currView := workingModel.ViewConfig(workingModel.CurrSide())
 		fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
 		if err != nil {
@@ -448,7 +460,57 @@ func viewCurrent(m *model.Model) error {
 			}
 		}
 	case model.ItemDpConfiguration:
-		err = extprogs.View(ci.Name, config.Conf.GetDpApplianceConfig(ci.Name))
+		fileContent, err := config.Conf.GetDpApplianceConfig(ci.Name)
+		if err != nil {
+			return err
+		}
+		err = extprogs.View(ci.Name, fileContent)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+func editCurrent(m *model.Model) error {
+	ci := m.CurrItem()
+	logging.LogDebugf("worker/editCurrent(), item: %v", ci)
+	var err error
+	switch ci.Config.Type {
+	case model.ItemFile:
+		currView := workingModel.ViewConfig(workingModel.CurrSide())
+		fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
+		if err != nil {
+			return err
+		}
+		err, changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
+		if err != nil {
+			return err
+		}
+		if changed {
+			_, err := repos[m.CurrSide()].UpdateFile(currView, ci.Name, newFileContent)
+			if err != nil {
+				return err
+			}
+			showItem(currView, ".")
+		}
+
+	case model.ItemDpConfiguration:
+		fileContent, err := config.Conf.GetDpApplianceConfig(ci.Name)
+		if err != nil {
+			return err
+		}
+		err, changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
+		if err != nil {
+			return err
+		}
+		if changed {
+			err := config.Conf.SetDpApplianceConfig(ci.Name, newFileContent)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err

@@ -1,11 +1,13 @@
 package localfs
 
 import (
+	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -36,8 +38,8 @@ func (r localRepo) GetInitialItem() model.Item {
 }
 
 // GetTitle returns title for item to show.
-func (r localRepo) GetTitle(itemToShow model.Item) string {
-	return itemToShow.Config.Path
+func (r localRepo) GetTitle(itemToShow *model.ItemConfig) string {
+	return itemToShow.Path
 }
 
 // GetList returns list of items for current directory.
@@ -68,6 +70,20 @@ func (r localRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]by
 	filePath := paths.GetFilePath(parentPath, fileName)
 
 	return getFileByPath(filePath)
+}
+
+func (r localRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error) {
+	logging.LogDebugf("repo/localfs/UpdateFile(%v, '%s', ..)", currentView, fileName)
+	parentPath := currentView.Path
+	filePath := paths.GetFilePath(parentPath, fileName)
+	err := ioutil.WriteFile(filePath, newFileContent, os.ModePerm)
+	if err != nil {
+		errMsg := fmt.Sprintf("Can't update file '%s' on path '%s'.", fileName, parentPath)
+		logging.LogDebugf("repo/localfs/UpdateFile() - %s", errMsg)
+		return false, err
+	}
+
+	return false, nil
 }
 
 func listFiles(dirPath string) ([]model.Item, error) {

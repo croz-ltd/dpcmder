@@ -25,14 +25,14 @@ func InitNetworkSettings() {
 }
 
 // rest makes http request from relative URL path given, method and body.
-func rest(urlPath, method, body string) (string, error) {
+func Rest(urlPath, method, body string) (string, error) {
 	fullURL := *config.DpRestURL + urlPath
 	return httpRequest(fullURL, method, body)
 }
 
 // RestGet makes DataPower REST GET request.
 func RestGet(urlPath string) (string, error) {
-	return rest(urlPath, "GET", "")
+	return Rest(urlPath, "GET", "")
 }
 
 // Amp makes DataPower AMP request.
