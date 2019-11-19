@@ -242,8 +242,9 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 	case key.F2, key.Ch2:
 		repo := repos[workingModel.CurrSide()]
 		repo.InvalidateCache()
-		repo.GetList(workingModel.ViewConfig(workingModel.CurrSide()))
-		refreshedStatus := "Current directory refreshed."
+		viewConfig := workingModel.ViewConfig(workingModel.CurrSide())
+		showItem(workingModel.CurrSide(), viewConfig, ".")
+		refreshedStatus := fmt.Sprintf("Current directory (%s) refreshed.", viewConfig.Path)
 		updateStatus(refreshedStatus)
 
 	case key.F3, key.Ch3:
