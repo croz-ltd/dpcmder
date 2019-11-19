@@ -276,7 +276,12 @@ func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName 
 		restPath := dpnet.MakeRestPath(dpDomain, filePath)
 		jsonString, err := dpnet.RestGet(restPath)
 		if err != nil {
-			return model.ItemNone, err
+			unexErr, ok := err.(errs.UnexpectedHTTPResponse)
+			if ok && unexErr.StatusCode == 404 {
+				return model.ItemNone, nil
+			} else {
+				return model.ItemNone, err
+			}
 		}
 		// println("jsonString: " + jsonString)
 

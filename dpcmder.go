@@ -2,10 +2,8 @@ package main
 
 import (
 	"github.com/croz-ltd/dpcmder/config"
-	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/ui"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/worker"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,17 +12,9 @@ import (
 func main() {
 	config.Init()
 	config.PrintConfig()
-	// dp.InitNetworkSettings()
-	// model.M.SetDpDomain(*config.DpDomain)
-	// if *config.DpUsername != "" {
-	// 	model.M.SetDpAppliance(config.PreviousAppliance)
-	// }
 
 	setupCloseHandler()
 
-	updateViewEventChan := make(chan events.UpdateViewEvent, 1)
-	ui.Init(updateViewEventChan)
-	worker.Init(updateViewEventChan)
 	ui.Start()
 	// model.M.Print()
 	logging.LogDebug("main/main() - ...dpcmder ending.")

@@ -75,6 +75,7 @@ type Model struct {
 	SyncDomainDp        string
 	SyncDirDp           string
 	SyncDirLocal        string
+	Status              string
 }
 
 // ItemConfig methods

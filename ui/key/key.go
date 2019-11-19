@@ -9,6 +9,7 @@ type KeyCode string
 
 // Key hexadecimal constants caught by reading bytes from console.
 const (
+	None           = KeyCode("")
 	Return         = KeyCode("0d")
 	Tab            = KeyCode("09")
 	Space          = KeyCode("20")

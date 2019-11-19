@@ -18,15 +18,13 @@ const (
 	bgCurrent  = termbox.ColorGreen
 )
 
-func Init(updateViewEventChan chan events.UpdateViewEvent) {
+func Init() {
 	logging.LogDebug("ui/out/Init()")
 
 	err := termbox.Init()
 	if err != nil {
 		panic(err)
 	}
-
-	go drawLoop(updateViewEventChan)
 }
 
 func Stop() {
@@ -42,26 +40,19 @@ func GetScreenSize() (width, height int) {
 	return width, height
 }
 
-func drawLoop(updateViewEventChan chan events.UpdateViewEvent) {
-	logging.LogDebug("ui/out/drawLoop() starting")
+func DrawEvent(updateViewEvent events.UpdateViewEvent) {
+	logging.LogDebugf("ui/out/drawEvent(%v)", updateViewEvent)
 
-	defer screen.TermboxClose()
-loop:
-	for {
-		logging.LogDebug("ui/out/drawLoop(), waiting update event.")
-		updateViewEvent := <-updateViewEventChan
-		logging.LogDebug("ui/out/drawLoop(), updateViewEvent: ", updateViewEvent)
-		switch updateViewEvent.Type {
-		case events.UpdateViewQuit:
-			logging.LogDebug("ui/out/drawLoop() received events.UpdateViewQuit")
-			break loop
-		case events.UpdateViewShowStatus:
-			showStatus(updateViewEvent.Model, updateViewEvent.Status)
-		default:
-			draw(updateViewEvent)
-		}
+	switch updateViewEvent.Type {
+	case events.UpdateViewQuit:
+		logging.LogDebug("ui/out/drawLoop() received events.UpdateViewQuit")
+	case events.UpdateViewShowStatus:
+		showStatus(updateViewEvent.Model, updateViewEvent.Status)
+	default:
+		draw(updateViewEvent)
 	}
-	logging.LogDebug("ui/out/drawLoop() stopping")
+
+	logging.LogDebug("ui/out/drawEvent() finished")
 }
 
 func draw(updateViewEvent events.UpdateViewEvent) {
@@ -115,7 +106,7 @@ func refreshScreen(m model.Model) {
 		writeLine(width/2, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
 	}
 
-	showStatus(&m, "")
+	showStatus(&m, m.Status)
 }
 
 func showQuestionDialog(question, answer string, answerCursorIdx int) {
