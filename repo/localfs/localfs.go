@@ -152,7 +152,10 @@ func getFileTypeFromPath(filePath string) (model.ItemType, error) {
 	logging.LogDebugf("repo/localfs/getFileTypeFromPath('%s')", filePath)
 	fi, err := os.Stat(filePath)
 	if err != nil {
-		logging.LogDebugf("repo/localfs/getFileTypeFromPath('%s') - Error getting file's type (%v).", filePath, err)
+		if os.IsNotExist(err) {
+			return model.ItemNone, nil
+		}
+		logging.LogDebugf("repo/localfs/getFileTypeFromPath('%s') - Error getting file's type (%#v).", filePath, err)
 		return model.ItemNone, err
 	}
 

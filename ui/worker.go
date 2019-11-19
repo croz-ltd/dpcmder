@@ -30,6 +30,7 @@ const (
 	askSearchNext       = userDialogType("askSearchNext")
 	askSearchPrev       = userDialogType("askSearchPrev")
 	askConfirmOverwrite = userDialogType("askConfirmOverwrite")
+	askCreateEmptyFile  = userDialogType("askCreateEmptyFile")
 )
 
 // userDialogInputSessionInfo is structure containing all information neccessary
@@ -237,7 +238,6 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		if !found {
 			notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
 			updateStatus(notFoundStatus)
-			return nil
 		}
 
 	case key.F2, key.Ch2:
@@ -251,27 +251,29 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		err := viewCurrent(&workingModel)
 		if err != nil {
 			updateStatus(err.Error())
-			return nil
 		}
 
 	case key.F4, key.Ch4:
 		err := editCurrent(&workingModel)
 		if err != nil {
 			updateStatus(err.Error())
-			return nil
 		}
 
 	case key.F5, key.Ch5:
 		err := copyCurrent(&workingModel)
 		if err != nil {
 			updateStatus(err.Error())
-			return nil
 		}
 
 	// case key.Chd:
 	// 	diffCurrent(m)
 	// case key.F7, key.Ch7:
 	// 	createDirectory(m)
+	case key.F8, key.Ch8:
+		err := createEmptyFile(&workingModel)
+		if err != nil {
+			updateStatus(err.Error())
+		}
 	// case key.Del, key.Chx:
 	// 	deleteCurrent(m)
 	// case key.Chs:
@@ -622,7 +624,6 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	if err != nil {
 		return confirmOverwrite, err
 	}
-	logging.LogDebug(fmt.Sprintf("view targetFileType: %s\n", string(targetFileType)))
 
 	switch targetFileType {
 	case model.ItemDirectory:
@@ -664,6 +665,33 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		updateStatusf("Canceled overwrite of '%s'", fileName)
 	}
 	return confirmOverwrite, nil
+}
+
+func createEmptyFile(m *model.Model) error {
+	logging.LogDebugf("ui/createEmptyFile()")
+	dialogResult := askUserInput(askCreateEmptyFile,
+		fmt.Sprint("Enter file name for file to create: "), "", false)
+	if dialogResult.dialogSubmitted {
+		fileName := dialogResult.inputAnswer
+		side := m.CurrSide()
+		viewConfig := m.ViewConfig(side)
+		r := repos[side]
+		targetFileType, err := r.GetFileType(viewConfig, viewConfig.Path, fileName)
+		if err != nil {
+			return err
+		}
+		if targetFileType != model.ItemNone {
+			return errs.Errorf("File with name '%s' already exists at '%s'.", fileName, viewConfig.Path)
+		}
+		_, err = r.UpdateFile(viewConfig, fileName, make([]byte, 0))
+		if err != nil {
+			return errs.Errorf("Can't create file with name '%s' - '%v'.", fileName, err)
+		}
+
+		return showItem(side, viewConfig, ".")
+	}
+
+	return nil
 }
 
 func updateStatusf(format string, v ...interface{}) {
