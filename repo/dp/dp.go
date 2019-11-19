@@ -427,6 +427,67 @@ func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName str
 	}
 }
 
+func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName string) (bool, error) {
+	logging.LogDebugf("repo/dp/Delete(%v, '%s', '%s')", currentView, parentPath, fileName)
+	filePath := r.GetFilePath(parentPath, fileName)
+
+	if config.DpUseRest() {
+		restPath := dpnet.MakeRestPath(currentView.DpDomain, filePath)
+		jsonString, err := dpnet.Rest(restPath, "DELETE", "")
+		if err != nil {
+			return false, err
+		}
+		// println("jsonString: " + jsonString)
+
+		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
+		if err != nil {
+			logging.LogDebug("Error parsing response JSON.", err)
+			return false, err
+		}
+
+		error := jsonquery.Find(doc, "/error")
+		if len(error) == 0 {
+			return true, nil
+		}
+	} else if config.DpUseSoma() {
+		fileType, err := r.GetFileType(currentView, parentPath, fileName)
+		if err != nil {
+			return false, err
+		}
+		var somaRequest string
+		switch fileType {
+		case model.ItemDirectory:
+			somaRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
+				"<dp:do-action><RemoveDir><Dir>" + filePath + "</Dir></RemoveDir></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
+		case model.ItemFile:
+			somaRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
+				"<dp:do-action><DeleteFile><File>" + filePath + "</File></DeleteFile></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
+		}
+		somaResponse, err := dpnet.Soma(somaRequest)
+		if err != nil {
+			return false, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return false, err
+		}
+		r.refreshSomaFiles(currentView)
+		resultNode := xmlquery.FindOne(doc, "//*[local-name()='response']/*[local-name()='result']")
+		if resultNode != nil {
+			resultText := strings.Trim(resultNode.InnerText(), " \n\r\t")
+			if resultText == "OK" {
+				return true, nil
+			}
+		}
+	}
+
+	logging.LogDebug("repo/dp/Delete(), using neither REST neither SOMA.")
+	return false, errs.Error("DataPower management interface not set.")
+}
+
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
 func listAppliances() model.ItemList {
 	appliances := config.Conf.DataPowerAppliances

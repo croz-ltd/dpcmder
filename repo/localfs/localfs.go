@@ -87,15 +87,18 @@ func (r localRepo) UpdateFile(currentView *model.ItemConfig, fileName string, ne
 }
 
 func (r localRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
+	logging.LogDebugf("repo/localfs/GetFileType(%v, '%s', '%s')", viewConfig, parentPath, fileName)
 	filePath := r.GetFilePath(parentPath, fileName)
 	return getFileTypeFromPath(filePath)
 }
 
 func (r localRepo) GetFilePath(parentPath, fileName string) string {
+	logging.LogDebugf("repo/localfs/GetFilePath('%s', '%s', ..)", parentPath, fileName)
 	return paths.GetFilePath(parentPath, fileName)
 }
 
 func (r localRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
+	logging.LogDebugf("repo/localfs/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
 	fi, err := os.Stat(parentPath)
 	if err != nil {
 		logging.LogDebugf("repo/localfs/CreateDir('%s', '%s') - %v", parentPath, dirName, err)
@@ -108,6 +111,36 @@ func (r localRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName s
 		return false, err
 	}
 	return true, nil
+}
+
+func (r localRepo) Delete(currentView *model.ItemConfig, parentPath, fileName string) (bool, error) {
+	logging.LogDebugf("repo/localfs/Delete(%v, '%s', '%s')", currentView, parentPath, fileName)
+	fileType, err := r.GetFileType(currentView, parentPath, fileName)
+	if err != nil {
+		logging.LogDebugf("repo/localfs/Delete(), err: %v", err)
+		return false, err
+	}
+	filePath := r.GetFilePath(parentPath, fileName)
+	logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileType: %v", parentPath, fileName, fileType)
+
+	switch fileType {
+	case model.ItemFile:
+		os.Remove(filePath)
+	case model.ItemDirectory:
+		subFiles, err := ioutil.ReadDir(filePath)
+		if err != nil {
+			logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileType: %v - err: %v", parentPath, fileName, fileType, err)
+			return false, err
+		}
+		for _, subFile := range subFiles {
+			r.Delete(currentView, filePath, subFile.Name())
+		}
+		os.Remove(filePath)
+	default:
+	}
+
+	return true, nil
+
 }
 
 func listFiles(dirPath string) ([]model.Item, error) {

@@ -30,6 +30,7 @@ const (
 	askSearchNext       = userDialogType("askSearchNext")
 	askSearchPrev       = userDialogType("askSearchPrev")
 	askConfirmOverwrite = userDialogType("askConfirmOverwrite")
+	askConfirmDelete    = userDialogType("askConfirmDelete")
 	askCreateEmptyFile  = userDialogType("askCreateEmptyFile")
 )
 
@@ -274,8 +275,13 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		if err != nil {
 			updateStatus(err.Error())
 		}
-	// case key.Del, key.Chx:
-	// 	deleteCurrent(m)
+
+	case key.Del, key.Chx:
+		err := deleteCurrent(&workingModel)
+		if err != nil {
+			updateStatus(err.Error())
+		}
+
 	// case key.Chs:
 	// 	syncModeToggle(m)
 	default:
@@ -689,6 +695,42 @@ func createEmptyFile(m *model.Model) error {
 		}
 
 		return showItem(side, viewConfig, ".")
+	}
+
+	return nil
+}
+
+func deleteCurrent(m *model.Model) error {
+	selectedItems := getSelectedOrCurrent(m)
+
+	side := m.CurrSide()
+	viewConfig := m.ViewConfig(side)
+
+	confirmResponse := "n"
+	for _, item := range selectedItems {
+		if confirmResponse != "ya" && confirmResponse != "na" {
+			confirmResponse = "n"
+			dialogResult := askUserInput(askConfirmDelete,
+				fmt.Sprintf("Confirm deletion of file '%s' at '%s' (y/ya/n/na): ",
+					item.Name, viewConfig.Path), "", false)
+			if dialogResult.dialogSubmitted {
+				confirmResponse = dialogResult.inputAnswer
+			}
+		}
+		if confirmResponse == "y" || confirmResponse == "ya" {
+			res, err := repos[m.CurrSide()].Delete(viewConfig, viewConfig.Path, item.Name)
+			if err != nil {
+				updateStatus(err.Error())
+			}
+			if res {
+				updateStatusf("Successfully deleted file '%s'.", item.Name)
+			} else {
+				updateStatusf("ERROR: couldn't delete file '%s'.", item.Name)
+			}
+			showItem(side, viewConfig, item.Name)
+		} else {
+			updateStatusf("Cancelete deleting of file '%s'.", item.Name)
+		}
 	}
 
 	return nil
