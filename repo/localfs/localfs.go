@@ -59,6 +59,7 @@ func (r localRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error)
 	itemsWithParentDir = append(itemsWithParentDir, parentDir)
 	itemsWithParentDir = append(itemsWithParentDir, items...)
 
+	logging.LogDebugf("repo/localfs/GetList(), itemsWithParentDir: %v", itemsWithParentDir)
 	return itemsWithParentDir, nil
 }
 

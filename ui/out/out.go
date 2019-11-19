@@ -201,7 +201,8 @@ func showStatus(m *model.Model, status string) {
 
 	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)
 
-	_, h := termbox.Size()
+	w, h := termbox.Size()
+	writeLine(0, h-1, strings.Repeat(" ", w), m.HorizScroll, termbox.ColorDefault, termbox.ColorDefault)
 	writeLine(0, h-1, statusMsg, m.HorizScroll, termbox.ColorDefault, termbox.ColorDefault)
 	termbox.Flush()
 }

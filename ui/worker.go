@@ -261,6 +261,7 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		}
 
 	case key.F5, key.Ch5:
+		// TODO: implement full hierarchy - something is not correct
 		err := copyCurrent(&workingModel)
 		if err != nil {
 			updateStatus(err.Error())
@@ -547,9 +548,11 @@ func copyCurrent(m *model.Model) error {
 	confirmOverwrite := "n"
 	for _, item := range itemsToCopy {
 		confirmOverwrite, err := copyItem(repos[fromSide], repos[toSide], fromViewConfig, toViewConfig, item, confirmOverwrite)
-		logging.LogDebugf("TODO: confirm overwrite: '%s'", confirmOverwrite)
 		if err != nil {
 			return err
+		}
+		if confirmOverwrite == "na" {
+			break
 		}
 	}
 
@@ -567,68 +570,83 @@ func getSelectedOrCurrent(m *model.Model) []model.Item {
 }
 
 func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, item model.Item, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyItem(.., .., %v, %v, %v, %v)", fromViewConfig, toViewConfig, item, confirmOverwrite)
+	logging.LogDebugf("ui/copyItem(.., .., %v, %v, %v, '%s')", fromViewConfig, toViewConfig, item, confirmOverwrite)
+	res := confirmOverwrite
+	var err error
 	switch item.Config.Type {
 	case model.ItemDirectory:
-		confirmOverwrite, err := copyDirs(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		res, err = copyDirs(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
 		if err != nil {
-			return confirmOverwrite, err
+			return res, err
 		}
 	case model.ItemFile:
-		confirmOverwrite, err := copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		res, err = copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		logging.LogDebugf("ui/copyItem(), res from copyFile(): '%s'", res)
 		if err != nil {
-			return confirmOverwrite, err
+			return res, err
 		}
 	}
 
-	return confirmOverwrite, nil
+	logging.LogDebugf("ui/copyItem(), res: '%s'", res)
+	return res, nil
 }
 
 func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, dirName, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyDirs(.., .., %v, %v, '%s', %v)", fromViewConfig, toViewConfig, dirName, confirmOverwrite)
-	toPath := toRepo.GetFilePath(toViewConfig.Path, dirName)
-	createDirSuccess := true
-	toFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, dirName)
+	logging.LogDebugf("ui/copyDirs(.., .., %v, %v, '%s', '%s')", fromViewConfig, toViewConfig, dirName, confirmOverwrite)
+	toParentPath := toViewConfig.Path
+	toFileType, err := toRepo.GetFileType(toViewConfig, toParentPath, dirName)
 	if err != nil {
 		return confirmOverwrite, err
 	}
+	toPath := toRepo.GetFilePath(toParentPath, dirName)
 	switch toFileType {
 	case model.ItemNone:
-		createDirSuccess, err = toRepo.CreateDir(toViewConfig, toViewConfig.Path, dirName)
+		_, err = toRepo.CreateDir(toViewConfig, toParentPath, dirName)
 		if err != nil {
+			logging.LogDebugf("ui/copyDirs() - err: %v", err)
 			return confirmOverwrite, err
 		}
+		updateStatusf("Directory '%s' created.", toPath)
 	case model.ItemDirectory:
+		updateStatusf("Directory '%s' already exists.", toPath)
 	default:
 		errMsg := fmt.Sprintf("Non dir '%s' exists (%v), can't create dir.", toPath, toFileType)
+		logging.LogDebugf("ui/copyDirs() - %s", errMsg)
 		return confirmOverwrite, errs.Error(errMsg)
 	}
 
-	var currentStatus string
-	if createDirSuccess {
-		currentStatus = fmt.Sprintf("Directory '%s' created.", toPath)
-		updateStatus(currentStatus)
-		items, err := fromRepo.GetList(fromViewConfig)
-		if err != nil {
-			return confirmOverwrite, err
+	fromViewConfigDir := model.ItemConfig{Parent: fromViewConfig,
+		Path:        fromRepo.GetFilePath(fromViewConfig.Path, dirName),
+		DpAppliance: fromViewConfig.DpAppliance,
+		DpDomain:    fromViewConfig.DpDomain,
+		DpFilestore: fromViewConfig.DpFilestore}
+	items, err := fromRepo.GetList(&fromViewConfigDir)
+	if err != nil {
+		return confirmOverwrite, err
+	}
+	for _, item := range items {
+		if item.Name != ".." {
+			toViewConfigDir := model.ItemConfig{Parent: toViewConfig,
+				Path:        toRepo.GetFilePath(toViewConfig.Path, dirName),
+				DpAppliance: toViewConfig.DpAppliance,
+				DpDomain:    toViewConfig.DpDomain,
+				DpFilestore: toViewConfig.DpFilestore}
+			confirmOverwrite, err = copyItem(fromRepo, toRepo, &fromViewConfigDir, &toViewConfigDir, item, confirmOverwrite)
+			if err != nil {
+				return confirmOverwrite, err
+			}
 		}
-		for _, item := range items {
-			confirmOverwrite, err = copyItem(fromRepo, toRepo, fromViewConfig, toViewConfig, item, confirmOverwrite)
-		}
-	} else {
-		errMsg := fmt.Sprintf("ERROR: Directory '%s' not created.", toPath)
-		updateStatus(errMsg)
-		err = errs.Error(errMsg)
 	}
 
 	return confirmOverwrite, err
 }
 
 func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, fileName, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyFile(.., .., .., %v, %v, %v, '%s')\n\n", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	logging.LogDebugf("ui/copyFile(.., .., .., %v, %v, %v, '%s')", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	res := confirmOverwrite
 	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, fileName)
 	if err != nil {
-		return confirmOverwrite, err
+		return res, err
 	}
 
 	switch targetFileType {
@@ -636,27 +654,29 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		copyFileToDirStatus := fmt.Sprintf("ERROR: File '%s' could not be copied from '%s' to '%s' - directory with same name exists.", fileName, fromViewConfig.Path, toViewConfig.Path)
 		updateStatus(copyFileToDirStatus)
 	case model.ItemFile:
-		if confirmOverwrite != "ya" && confirmOverwrite != "na" {
-			logging.LogDebugf("TODO: confirm overwrite: '%s'", confirmOverwrite)
+		if res != "ya" && res != "na" {
+			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(askConfirmOverwrite,
 				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
 					fileName, toViewConfig.Path), "", false)
 			if dialogResult.dialogSubmitted {
-				confirmOverwrite = dialogResult.inputAnswer
+				res = dialogResult.inputAnswer
 			}
 			// confirmOverwrite = userInput(m, fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ", fileName, toParentPath), "")
 		}
+	case model.ItemNone:
+		res = "y"
 	}
-	if confirmOverwrite == "y" || confirmOverwrite == "ya" {
+	if res == "y" || res == "ya" {
 		switch targetFileType {
 		case model.ItemFile, model.ItemNone:
 			fBytes, err := fromRepo.GetFile(fromViewConfig, fileName)
 			if err != nil {
-				return confirmOverwrite, err
+				return res, err
 			}
 			copySuccess, err := toRepo.UpdateFile(toViewConfig, fileName, fBytes)
 			if err != nil {
-				return confirmOverwrite, err
+				return res, err
 			}
 			logging.LogDebugf("view copySuccess: %v", copySuccess)
 			if copySuccess {
@@ -670,7 +690,9 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	} else {
 		updateStatusf("Canceled overwrite of '%s'", fileName)
 	}
-	return confirmOverwrite, nil
+
+	logging.LogDebugf("ui/copyFile(), res: '%s'", res)
+	return res, nil
 }
 
 func createEmptyFile(m *model.Model) error {
