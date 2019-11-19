@@ -22,7 +22,7 @@ func Start() {
 // keyPressedLoop is main loop reading user's input.
 func keyPressedLoop() {
 	logging.LogDebug("ui/in/keyPressedLoop() starting")
-	reader := newTimeoutReader(bufio.NewReader(os.Stdin), 100*time.Millisecond)
+	reader := newTimeoutReader(100 * time.Millisecond)
 
 loop:
 	for {
@@ -72,9 +72,9 @@ type timeoutReader struct {
 }
 
 // newTimeoutReader creates new timeoutReader.
-func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
+func newTimeoutReader(timeout time.Duration) *timeoutReader {
 	tr := new(timeoutReader)
-	tr.reader = reader
+	tr.reader = bufio.NewReader(os.Stdin)
 	tr.waitForInput = timeout
 	tr.bytesRead = make([]byte, 6)
 	tr.readResultChannel = make(chan readResult, 1)
@@ -82,19 +82,18 @@ func newTimeoutReader(reader io.Reader, timeout time.Duration) *timeoutReader {
 	tr.readFunc = func() {
 		tr.readFuncIsRunning = true
 		logging.LogTrace("ui/in/TimeoutReader.readFunc() begin")
-		// bytesRead := make([]byte, 6)
-		bytesReadCount, err := tr.reader.Read(tr.bytesRead)
-		logging.LogTracef("ui/in/TimeoutReader.readFunc(), bytesReadCount: %d, err: %v", bytesReadCount, err)
-
-		hexBytesRead := hex.EncodeToString(tr.bytesRead[0:bytesReadCount])
-		keyCode := key.KeyCode(hexBytesRead)
-		result := readResult{keyCode: keyCode, err: err}
+		result := tr.readNextBlocking()
 		tr.readResultChannel <- result
 		logging.LogTrace("ui/in/TimeoutReader.readFunc() end")
 		tr.readFuncIsRunning = false
 	}
 
 	return tr
+}
+
+// KeyCodeReader is interface for our reader used for reading user input keys.
+type KeyCodeReader interface {
+	readNext() readResult
 }
 
 // readNext returns readResult which can contain:
@@ -117,4 +116,17 @@ func (tr *timeoutReader) readNext() readResult {
 		logging.LogTrace("ui/in/TimeoutReader.readNext(), timeout")
 		return readResult{err: readTimeout}
 	}
+}
+
+func (tr *timeoutReader) readNextBlocking() readResult {
+	logging.LogTrace("ui/in/TimeoutReader.readNextBlocking() begin")
+	// bytesRead := make([]byte, 6)
+	bytesReadCount, err := tr.reader.Read(tr.bytesRead)
+	logging.LogTracef("ui/in/TimeoutReader.readNextBlocking(), bytesReadCount: %d, err: %v", bytesReadCount, err)
+
+	hexBytesRead := hex.EncodeToString(tr.bytesRead[0:bytesReadCount])
+	keyCode := key.KeyCode(hexBytesRead)
+	result := readResult{keyCode: keyCode, err: err}
+	logging.LogTracef("ui/in/TimeoutReader.readNextBlocking() returning %v", result)
+	return result
 }

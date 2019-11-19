@@ -12,4 +12,7 @@ type Repo interface {
 	InvalidateCache()
 	GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error)
 	UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error)
+	GetFileType(currentView *model.ItemConfig, parentPath, fileName string) (model.ItemType, error)
+	GetFilePath(parentPath, fileName string) string
+	CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error)
 }

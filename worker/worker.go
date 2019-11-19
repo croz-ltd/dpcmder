@@ -136,9 +136,7 @@ func ProcessInputEvent(keyCode key.KeyCode) {
 				return
 			case nil:
 			default:
-				updateView := events.UpdateViewEvent{
-					Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
-				updateViewEventChan <- updateView
+				updateStatus(err.Error())
 				switch err.(type) {
 				case errs.UnexpectedHTTPResponse:
 					setCurrentDpPlainPassword("")
@@ -219,9 +217,7 @@ func ProcessInputEvent(keyCode key.KeyCode) {
 			}
 			if !found {
 				notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-				updateView := events.UpdateViewEvent{
-					Type: events.UpdateViewShowStatus, Status: notFoundStatus, Model: &workingModel}
-				updateViewEventChan <- updateView
+				updateStatus(notFoundStatus)
 				return
 			}
 
@@ -230,25 +226,26 @@ func ProcessInputEvent(keyCode key.KeyCode) {
 			repo.InvalidateCache()
 			repo.GetList(workingModel.ViewConfig(workingModel.CurrSide()))
 			refreshedStatus := "Current directory refreshed."
-			updateView := events.UpdateViewEvent{
-				Type: events.UpdateViewShowStatus, Status: refreshedStatus, Model: &workingModel}
-			updateViewEventChan <- updateView
+			updateStatus(refreshedStatus)
 
 		case key.F3, key.Ch3:
 			err := viewCurrent(&workingModel)
 			if err != nil {
-				updateView := events.UpdateViewEvent{
-					Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
-				updateViewEventChan <- updateView
+				updateStatus(err.Error())
 				return
 			}
 
 		case key.F4, key.Ch4:
 			err := editCurrent(&workingModel)
 			if err != nil {
-				updateView := events.UpdateViewEvent{
-					Type: events.UpdateViewShowStatus, Status: err.Error(), Model: &workingModel}
-				updateViewEventChan <- updateView
+				updateStatus(err.Error())
+				return
+			}
+
+		case key.F5, key.Ch5:
+			err := copyCurrent(&workingModel)
+			if err != nil {
+				updateStatus(err.Error())
 				return
 			}
 		}
@@ -514,4 +511,141 @@ func editCurrent(m *model.Model) error {
 	}
 
 	return err
+}
+
+func copyCurrent(m *model.Model) error {
+	fromSide := m.CurrSide()
+	toSide := m.OtherSide()
+
+	fromViewConfig := m.ViewConfig(fromSide)
+	toViewConfig := m.ViewConfig(toSide)
+
+	itemsToCopy := getSelectedOrCurrent(m)
+	statusMsg := fmt.Sprintf("Copy from '%s' to '%s', items: %v", fromViewConfig, toViewConfig, itemsToCopy)
+	updateStatus(statusMsg)
+
+	confirmOverwrite := "n"
+	for _, item := range itemsToCopy {
+		confirmOverwrite, err := copyItem(repos[fromSide], repos[toSide], fromViewConfig, toViewConfig, item, confirmOverwrite)
+		logging.LogDebugf("TODO: confirm overwrite: '%s'", confirmOverwrite)
+		if err != nil {
+			return err
+		}
+	}
+
+	return showItem(m.ViewConfig(toSide), ".")
+}
+
+func getSelectedOrCurrent(m *model.Model) []model.Item {
+	selectedItems := m.GetSelectedItems(m.CurrSide())
+	if len(selectedItems) == 0 {
+		selectedItems = make([]model.Item, 0)
+		selectedItems = append(selectedItems, *m.CurrItem())
+	}
+
+	return selectedItems
+}
+
+func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, item model.Item, confirmOverwrite string) (string, error) {
+	logging.LogDebugf("worker/copyItem(.., .., %v, %v, %v, %v)", fromViewConfig, toViewConfig, item, confirmOverwrite)
+	switch item.Config.Type {
+	case model.ItemDirectory:
+		confirmOverwrite, err := copyDirs(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		if err != nil {
+			return confirmOverwrite, err
+		}
+	case model.ItemFile:
+		confirmOverwrite, err := copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		if err != nil {
+			return confirmOverwrite, err
+		}
+	}
+
+	return confirmOverwrite, nil
+}
+
+func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, dirName, confirmOverwrite string) (string, error) {
+	logging.LogDebugf("worker/copyDirs(.., .., %v, %v, '%s', %v)", fromViewConfig, toViewConfig, dirName, confirmOverwrite)
+	toPath := toRepo.GetFilePath(toViewConfig.Path, dirName)
+	createDirSuccess := true
+	toFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, dirName)
+	if err != nil {
+		return confirmOverwrite, err
+	}
+	switch toFileType {
+	case model.ItemNone:
+		createDirSuccess, err = toRepo.CreateDir(toViewConfig, toViewConfig.Path, dirName)
+		if err != nil {
+			return confirmOverwrite, err
+		}
+	case model.ItemDirectory:
+	default:
+		errMsg := fmt.Sprintf("Non dir '%s' exists (%v), can't create dir.", toPath, toFileType)
+		return confirmOverwrite, errs.Error(errMsg)
+	}
+
+	var currentStatus string
+	if createDirSuccess {
+		currentStatus = fmt.Sprintf("Directory '%s' created.", toPath)
+		updateStatus(currentStatus)
+		items, err := fromRepo.GetList(fromViewConfig)
+		if err != nil {
+			return confirmOverwrite, err
+		}
+		for _, item := range items {
+			confirmOverwrite, err = copyItem(fromRepo, toRepo, fromViewConfig, toViewConfig, item, confirmOverwrite)
+		}
+	} else {
+		errMsg := fmt.Sprintf("ERROR: Directory '%s' not created.", toPath)
+		updateStatus(errMsg)
+		err = errs.Error(errMsg)
+	}
+
+	return confirmOverwrite, err
+}
+
+func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, fileName, confirmOverwrite string) (string, error) {
+	logging.LogDebugf("worker/copyFile(.., .., .., %v, %v, %v, '%s')\n\n", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, fileName)
+	if err != nil {
+		return confirmOverwrite, err
+	}
+	logging.LogDebug(fmt.Sprintf("view targetFileType: %s\n", string(targetFileType)))
+
+	switch targetFileType {
+	case model.ItemDirectory:
+		copyFileToDirStatus := fmt.Sprintf("ERROR: File '%s' could not be copied from '%s' to '%s' - directory with same name exists.", fileName, fromViewConfig.Path, toViewConfig.Path)
+		updateStatus(copyFileToDirStatus)
+	case model.ItemFile:
+		if confirmOverwrite != "ya" && confirmOverwrite != "na" {
+			logging.LogDebugf("TODO: confirm overwrite: '%s'", confirmOverwrite)
+			// confirmOverwrite = userInput(m, fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ", fileName, toParentPath), "")
+		}
+	}
+	switch targetFileType {
+	case model.ItemFile, model.ItemNone:
+		fBytes, err := fromRepo.GetFile(fromViewConfig, fileName)
+		if err != nil {
+			return confirmOverwrite, err
+		}
+		copySuccess, err := toRepo.UpdateFile(toViewConfig, fileName, fBytes)
+		if err != nil {
+			return confirmOverwrite, err
+		}
+		logging.LogDebugf("view copySuccess: %v", copySuccess)
+		if copySuccess {
+			copySuccessStatus := fmt.Sprintf("File '%s' copied from '%s' to '%s'.", fileName, fromViewConfig.Path, toViewConfig.Path)
+			updateStatus(copySuccessStatus)
+		} else {
+			copyErrStatus := fmt.Sprintf("ERROR: File '%s' not copied from '%s' to '%s'.", fileName, fromViewConfig.Path, toViewConfig.Path)
+			updateStatus(copyErrStatus)
+		}
+	}
+	return confirmOverwrite, nil
+}
+
+func updateStatus(status string) {
+	updateView := events.UpdateViewEvent{
+		Type: events.UpdateViewShowStatus, Status: status, Model: &workingModel}
+	updateViewEventChan <- updateView
 }

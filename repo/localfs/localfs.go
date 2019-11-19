@@ -86,6 +86,30 @@ func (r localRepo) UpdateFile(currentView *model.ItemConfig, fileName string, ne
 	return false, nil
 }
 
+func (r localRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
+	filePath := r.GetFilePath(parentPath, fileName)
+	return getFileTypeFromPath(filePath)
+}
+
+func (r localRepo) GetFilePath(parentPath, fileName string) string {
+	return paths.GetFilePath(parentPath, fileName)
+}
+
+func (r localRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
+	fi, err := os.Stat(parentPath)
+	if err != nil {
+		logging.LogDebugf("repo/localfs/CreateDir('%s', '%s') - %v", parentPath, dirName, err)
+		return false, err
+	}
+	dirPath := r.GetFilePath(parentPath, dirName)
+	err = os.Mkdir(dirPath, fi.Mode())
+	if err != nil {
+		logging.LogDebugf("repo/localfs/CreateDir('%s', '%s') - %v", parentPath, dirName, err)
+		return false, err
+	}
+	return true, nil
+}
+
 func listFiles(dirPath string) ([]model.Item, error) {
 	logging.LogDebugf("repo/localfs/listFiles('%s')", dirPath)
 	files, err := ioutil.ReadDir(dirPath)
@@ -116,9 +140,27 @@ func listFiles(dirPath string) ([]model.Item, error) {
 }
 
 func getFileByPath(filePath string) ([]byte, error) {
+	logging.LogDebugf("repo/localfs/getFileByPath('%s')", filePath)
 	result, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		logging.LogDebugf("repo/localfs/GetFile() - Error reading file '%s'.", filePath, err)
+		logging.LogDebugf("repo/localfs/getFileByPath('%s') - Error reading file (%v).", filePath, err)
 	}
 	return result, err
+}
+
+func getFileTypeFromPath(filePath string) (model.ItemType, error) {
+	logging.LogDebugf("repo/localfs/getFileTypeFromPath('%s')", filePath)
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		logging.LogDebugf("repo/localfs/getFileTypeFromPath('%s') - Error getting file's type (%v).", filePath, err)
+		return model.ItemNone, err
+	}
+
+	if fi.IsDir() {
+		return model.ItemDirectory, nil
+	} else if fi.Name() != "" {
+		return model.ItemFile, nil
+	} else {
+		return model.ItemNone, nil
+	}
 }

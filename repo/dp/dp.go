@@ -177,7 +177,7 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error) {
 	logging.LogDebugf("repo/dp/UpdateFile(%s, '%s', ...)\n", currentView, fileName)
 	parentPath := currentView.Path
-	fileType, err := r.getFileType(currentView.DpDomain, parentPath, fileName)
+	fileType, err := r.GetFileType(currentView, parentPath, fileName)
 	if err != nil {
 		return false, err
 	}
@@ -265,6 +265,161 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 
 	logging.LogDebug("repo/dp/UpdateFile(), using neither REST neither SOMA.")
 	return false, errs.Error("DataPower management interface not set.")
+}
+
+func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
+	logging.LogDebug(fmt.Sprintf("repo/dp/getFileType(%v, '%s', '%s')\n", viewConfig, parentPath, fileName))
+	dpDomain := viewConfig.DpDomain
+	filePath := paths.GetDpPath(parentPath, fileName)
+
+	if config.DpUseRest() {
+		restPath := dpnet.MakeRestPath(dpDomain, filePath)
+		jsonString, err := dpnet.RestGet(restPath)
+		if err != nil {
+			return model.ItemNone, err
+		}
+		// println("jsonString: " + jsonString)
+
+		if jsonString == "" {
+			return model.ItemNone, nil
+		}
+
+		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
+		if err != nil {
+			logging.LogDebug("Error parsing response JSON.", err)
+			return model.ItemNone, err
+		}
+
+		filestore := jsonquery.Find(doc, "/filestore")
+		file := jsonquery.Find(doc, "/file")
+		switch {
+		case len(filestore) == 1:
+			return model.ItemDirectory, nil
+		case len(file) == 1:
+			return model.ItemFile, nil
+		case len(file) == 0:
+			return model.ItemNone, nil
+		}
+
+		errMsg := fmt.Sprintf("Wrong JSON response: '%s'", jsonString)
+		logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
+		return model.ItemNone, errs.Error(errMsg)
+	} else if config.DpUseSoma() {
+		if parentPath != "" {
+			dpFilestoreLocation, _ := splitOnFirst(parentPath, "/")
+			dpFilestoreIsRoot := !strings.Contains(parentPath, "/")
+			var dpDirNodes []*xmlquery.Node
+			var dpFileNodes []*xmlquery.Node
+			if dpFilestoreIsRoot {
+				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+				if err != nil {
+					logging.LogFatal(err)
+				}
+				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/directory[@name='"+filePath+"']")
+				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file[@name='"+fileName+"']")
+				// println(dpFilestoreLocation)
+			} else {
+				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+				if err != nil {
+					logging.LogFatal(err)
+				}
+				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+filePath+"']")
+				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+parentPath+"']/file[@name='"+fileName+"']")
+			}
+
+			switch {
+			case len(dpDirNodes) == 1:
+				return model.ItemDirectory, nil
+			case len(dpFileNodes) == 1:
+				return model.ItemFile, nil
+			case len(dpFileNodes) == 0:
+				return model.ItemNone, nil
+			}
+
+			errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXml)
+			logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
+			return model.ItemNone, errs.Error(errMsg)
+		} else {
+			if dpDomain != "" {
+				return model.ItemDpDomain, nil
+			}
+		}
+	}
+
+	logging.LogDebug("repo/dp/getFileType(), using neither REST neither SOMA.")
+	return model.ItemNone, errs.Error("DataPower management interface not set.")
+}
+
+func (r *dpRepo) GetFilePath(parentPath, fileName string) string {
+	return paths.GetDpPath(parentPath, fileName)
+}
+
+func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
+	logging.LogDebugf("repo/dp/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
+	fileType, err := r.GetFileType(viewConfig, parentPath, dirName)
+	if err != nil {
+		return false, err
+	}
+
+	switch fileType {
+	case model.ItemNone:
+		if config.DpUseRest() {
+			requestBody := "{\"directory\":{\"name\":\"" + dirName + "\"}}"
+			restPath := dpnet.MakeRestPath(viewConfig.DpDomain, parentPath)
+			jsonString, err := dpnet.Rest(restPath, "POST", requestBody)
+			if err != nil {
+				return false, err
+			}
+			// println("jsonString: " + jsonString)
+
+			doc, err := jsonquery.Parse(strings.NewReader(jsonString))
+			if err != nil {
+				logging.LogDebug("Error parsing response JSON.", err)
+				return false, err
+			}
+
+			error := jsonquery.Find(doc, "/error")
+			if len(error) == 0 {
+				return true, nil
+			}
+			errMsg := fmt.Sprintf("Can't create dir '%s' at '%s', json returned : '%s'.", dirName, parentPath, jsonString)
+			logging.LogDebugf("repo/dp/CreateDir() - %v", errMsg)
+			return false, errs.Error(errMsg)
+		} else if config.DpUseSoma() {
+			dirPath := r.GetFilePath(parentPath, dirName)
+			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + viewConfig.DpDomain + "\">" +
+				"<dp:do-action><CreateDir><Dir>" + dirPath + "</Dir></CreateDir></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
+			somaResponse, err := dpnet.Soma(somaRequest)
+			if err != nil {
+				return false, err
+			}
+			doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+			if err != nil {
+				logging.LogDebug("Error parsing response SOAP.", err)
+				return false, err
+			}
+			r.refreshSomaFiles(viewConfig)
+			resultNode := xmlquery.FindOne(doc, "//*[local-name()='response']/*[local-name()='result']")
+			if resultNode != nil {
+				resultText := strings.Trim(resultNode.InnerText(), " \n\r\t")
+				if resultText == "OK" {
+					return true, nil
+				}
+			}
+			errMsg := fmt.Sprintf("Error creating '%s' dir in path '%s'", dirName, parentPath)
+			logging.LogDebug("repo/dp/CreateDir() - %s", errMsg)
+			return false, errs.Error(errMsg)
+		}
+		logging.LogDebug("repo/dp/CreateDir(), using neither REST neither SOMA.")
+		return false, errs.Error("DataPower management interface not set.")
+	case model.ItemDirectory:
+		return true, nil
+	default:
+		errMsg := fmt.Sprintf("Can't create dir '%s' at '%s' (%v) with same name exists.", dirName, parentPath, fileType)
+		logging.LogDebugf("repo/dp/CreateDir() - %s", errMsg)
+		return false, nil
+	}
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
@@ -582,87 +737,6 @@ func fetchDpDomains() ([]string, error) {
 	}
 
 	return domains, nil
-}
-
-func (r *dpRepo) getFileType(dpDomain, parentPath, fileName string) (model.ItemType, error) {
-	logging.LogDebug(fmt.Sprintf("repo/dp/getFileType('%s', '%s', '%s')\n", dpDomain, parentPath, fileName))
-	filePath := paths.GetDpPath(parentPath, fileName)
-
-	if config.DpUseRest() {
-		restPath := dpnet.MakeRestPath(dpDomain, filePath)
-		jsonString, err := dpnet.RestGet(restPath)
-		if err != nil {
-			return model.ItemNone, err
-		}
-		// println("jsonString: " + jsonString)
-
-		if jsonString == "" {
-			return model.ItemNone, nil
-		}
-
-		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
-		if err != nil {
-			logging.LogFatal("repo/dp/getFileType()", err)
-		}
-
-		filestore := jsonquery.Find(doc, "/filestore")
-		file := jsonquery.Find(doc, "/file")
-		switch {
-		case len(filestore) == 1:
-			return model.ItemDirectory, nil
-		case len(file) == 1:
-			return model.ItemFile, nil
-		case len(file) == 0:
-			return model.ItemNone, nil
-		}
-
-		errMsg := fmt.Sprintf("Wrong JSON response: '%s'", jsonString)
-		logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
-		return model.ItemNone, errs.Error(errMsg)
-	} else if config.DpUseSoma() {
-		if parentPath != "" {
-			dpFilestoreLocation, _ := splitOnFirst(parentPath, "/")
-			dpFilestoreIsRoot := !strings.Contains(parentPath, "/")
-			var dpDirNodes []*xmlquery.Node
-			var dpFileNodes []*xmlquery.Node
-			if dpFilestoreIsRoot {
-				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
-				if err != nil {
-					logging.LogFatal(err)
-				}
-				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/directory[@name='"+filePath+"']")
-				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file[@name='"+fileName+"']")
-				// println(dpFilestoreLocation)
-			} else {
-				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
-				if err != nil {
-					logging.LogFatal(err)
-				}
-				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+filePath+"']")
-				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+parentPath+"']/file[@name='"+fileName+"']")
-			}
-
-			switch {
-			case len(dpDirNodes) == 1:
-				return model.ItemDirectory, nil
-			case len(dpFileNodes) == 1:
-				return model.ItemFile, nil
-			case len(dpFileNodes) == 0:
-				return model.ItemNone, nil
-			}
-
-			errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXml)
-			logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
-			return model.ItemNone, errs.Error(errMsg)
-		} else {
-			if dpDomain != "" {
-				return model.ItemDpDomain, nil
-			}
-		}
-	}
-
-	logging.LogDebug("repo/dp/getFileType(), using neither REST neither SOMA.")
-	return model.ItemNone, errs.Error("DataPower management interface not set.")
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is
