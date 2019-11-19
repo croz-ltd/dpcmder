@@ -5,6 +5,7 @@ import (
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/extprogs"
+	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/repo"
 	"github.com/croz-ltd/dpcmder/repo/dp"
@@ -244,8 +245,7 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		repo.InvalidateCache()
 		viewConfig := workingModel.ViewConfig(workingModel.CurrSide())
 		showItem(workingModel.CurrSide(), viewConfig, ".")
-		refreshedStatus := fmt.Sprintf("Current directory (%s) refreshed.", viewConfig.Path)
-		updateStatus(refreshedStatus)
+		updateStatusf("Current directory (%s) refreshed.", viewConfig.Path)
 
 	case key.F3, key.Ch3:
 		err := viewCurrent(&workingModel)
@@ -267,6 +267,18 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 			updateStatus(err.Error())
 			return nil
 		}
+
+	// case key.Chd:
+	// 	diffCurrent(m)
+	// case key.F7, key.Ch7:
+	// 	createDirectory(m)
+	// case key.Del, key.Chx:
+	// 	deleteCurrent(m)
+	// case key.Chs:
+	// 	syncModeToggle(m)
+	default:
+		help.Show()
+		updateStatusf("Key pressed hex value (before showing help): '%s'", keyCode)
 	}
 
 	out.DrawEvent(events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel})
