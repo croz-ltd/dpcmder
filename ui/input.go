@@ -65,7 +65,7 @@ type keyCodeReader struct {
 func newKeyCodeReader() *keyCodeReader {
 	kcr := new(keyCodeReader)
 	kcr.reader = bufio.NewReader(os.Stdin)
-	kcr.bytesRead = make([]byte, 6)
+	kcr.bytesRead = make([]byte, 6000)
 
 	return kcr
 }
