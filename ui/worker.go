@@ -99,13 +99,15 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 
 	setScreenSize()
 
+	var err error
+
 	switch keyCode {
 	case key.Chq:
 		return QuitError
 	case key.Tab:
 		workingModel.ToggleSide()
 	case key.Return:
-		err := enterCurrentDirectory()
+		err = enterCurrentDirectory()
 		logging.LogDebug("ui/processInputEvent(), err: ", err)
 		switch err {
 		case dpMissingPasswordError:
@@ -113,6 +115,7 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 			if dialogResult.inputAnswer != "" {
 				setCurrentDpPlainPassword(dialogResult.inputAnswer)
 			}
+			err = nil
 		case nil:
 			// If no error occurs.
 		default:
@@ -121,7 +124,6 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 			case errs.UnexpectedHTTPResponse:
 				setCurrentDpPlainPassword("")
 			}
-			return nil
 		}
 	case key.Space:
 		workingModel.ToggleCurrItem()
@@ -209,53 +211,36 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		updateStatusf("Current directory (%s) refreshed.", viewConfig.Path)
 
 	case key.F3, key.Ch3:
-		err := viewCurrent(&workingModel)
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = viewCurrent(&workingModel)
 
 	case key.F4, key.Ch4:
-		err := editCurrent(&workingModel)
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = editCurrent(&workingModel)
 
 	case key.F5, key.Ch5:
-		err := copyCurrent(&workingModel)
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = copyCurrent(&workingModel)
 
 	// case key.Chd:
 	// 	diffCurrent(m)
 	case key.F7, key.Ch7:
-		err := createDirectory(&workingModel)
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = createDirectory(&workingModel)
 	case key.F8, key.Ch8:
-		err := createEmptyFile(&workingModel)
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = createEmptyFile(&workingModel)
 
 	case key.Del, key.Chx:
-		err := deleteCurrent(&workingModel)
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = deleteCurrent(&workingModel)
 
 		// case key.Chs:
 		// 	syncModeToggle(m)
 	case key.Chm:
-		err := showStatusMessages(workingModel.Statuses())
-		if err != nil {
-			updateStatus(err.Error())
-		}
+		err = showStatusMessages(workingModel.Statuses())
 
 	default:
 		help.Show()
 		updateStatusf("Key pressed hex value (before showing help): '%s'", keyCode)
+	}
+
+	if err != nil {
+		updateStatus(err.Error())
 	}
 
 	out.DrawEvent(events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel})
