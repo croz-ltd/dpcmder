@@ -401,7 +401,7 @@ func TestModelSelect(t *testing.T) {
 		}
 	}
 
-	model.SetCurrPath("/some/path")
+	model.SetCurrentView(side, &ItemConfig{Path: "/some/path"}, "Some Title")
 	selectionTestMatrix := []struct {
 		sf         []selectionFunc
 		selItemIdx []int
@@ -560,4 +560,29 @@ func TestModelSearch(t *testing.T) {
 
 	model.SearchPrev("ali")
 	checkCurrItem(t, model, items[0], "Prev 'ali'")
+}
+
+func TestStatusHandling(t *testing.T) {
+	model := Model{}
+	testStatuses := []string{"Status event no 1",
+		"Status event no 2",
+		"Status event no 3"}
+	model.AddStatus(testStatuses[0])
+	model.AddStatus(testStatuses[1])
+	model.AddStatus(testStatuses[2])
+
+	assertValue(t, "LastStatus()", testStatuses[2], model.LastStatus())
+	assertValue(t, "Statuses()", testStatuses, model.Statuses())
+
+	for index := 0; index < maxStatusCount; index++ {
+		model.AddStatus(fmt.Sprintf("Status event new no %d", index))
+	}
+	assertValue(t, "LastStatus()", fmt.Sprintf("Status event new no %d", maxStatusCount-1), model.LastStatus())
+	assertValue(t, "Statuses() size", maxStatusCount, len(model.Statuses()))
+}
+
+func assertValue(t *testing.T, testName, want, got interface{}) {
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s should be: '%v' but was: '%v'.", testName, want, got)
+	}
 }

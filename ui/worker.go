@@ -283,8 +283,14 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 			updateStatus(err.Error())
 		}
 
-	// case key.Chs:
-	// 	syncModeToggle(m)
+		// case key.Chs:
+		// 	syncModeToggle(m)
+	case key.Chm:
+		err := showStatusMessages(workingModel.Statuses())
+		if err != nil {
+			updateStatus(err.Error())
+		}
+
 	default:
 		help.Show()
 		updateStatusf("Key pressed hex value (before showing help): '%s'", keyCode)
@@ -542,11 +548,16 @@ func copyCurrent(m *model.Model) error {
 	toViewConfig := m.ViewConfig(toSide)
 
 	itemsToCopy := getSelectedOrCurrent(m)
-	updateStatusf("Copy from '%s' to '%s', items: %v", fromViewConfig.Path, toViewConfig.Path, itemsToCopy)
+	itemsDisplayToCopy := make([]string, len(itemsToCopy))
+	for idx, item := range itemsToCopy {
+		itemsDisplayToCopy[idx] = item.DisplayString()
+	}
+	updateStatusf("Copy from '%s' to '%s', items: %v", fromViewConfig.Path, toViewConfig.Path, itemsDisplayToCopy)
 
-	confirmOverwrite := "n"
+	var confirmOverwrite = "n"
+	var err error
 	for _, item := range itemsToCopy {
-		confirmOverwrite, err := copyItem(repos[fromSide], repos[toSide], fromViewConfig, toViewConfig, item, confirmOverwrite)
+		confirmOverwrite, err = copyItem(repos[fromSide], repos[toSide], fromViewConfig, toViewConfig, item, confirmOverwrite)
 		if err != nil {
 			return err
 		}
@@ -759,6 +770,14 @@ func deleteCurrent(m *model.Model) error {
 	return nil
 }
 
+func showStatusMessages(statuses []string) error {
+	statusesText := ""
+	for _, status := range statuses {
+		statusesText = statusesText + status + "\n"
+	}
+	return extprogs.View("Status_Messages", []byte(statusesText))
+}
+
 func updateStatusf(format string, v ...interface{}) {
 	status := fmt.Sprintf(format, v...)
 	updateStatus(status)
@@ -768,5 +787,5 @@ func updateStatus(status string) {
 	updateView := events.UpdateViewEvent{
 		Type: events.UpdateViewShowStatus, Status: status, Model: &workingModel}
 	out.DrawEvent(updateView)
-	workingModel.Status = status
+	workingModel.AddStatus(status)
 }

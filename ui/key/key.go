@@ -29,6 +29,7 @@ const (
 	Chk            = KeyCode("6b")
 	ChK            = KeyCode("4b")
 	Chl            = KeyCode("6c")
+	Chm            = KeyCode("6d")
 	Chn            = KeyCode("6e")
 	Cho            = KeyCode("6f")
 	ChO            = KeyCode("4f")

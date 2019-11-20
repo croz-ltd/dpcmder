@@ -106,7 +106,7 @@ func refreshScreen(m model.Model) {
 		writeLine(width/2, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
 	}
 
-	showStatus(&m, m.Status)
+	showStatus(&m, m.LastStatus())
 }
 
 func showQuestionDialog(question, answer string, answerCursorIdx int) {

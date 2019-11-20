@@ -4,7 +4,7 @@ import (
 	"github.com/croz-ltd/dpcmder/extprogs"
 )
 
-var Help = `dpcmder Help
+var help = `dpcmder Help
 
 ArrowUp / i         - move one item up
 ArrowDown / k       - move one item down
@@ -36,6 +36,7 @@ d                   - diff current files/directories
                       ("blocking" diff command have to be used, for example script ldiff.sh containing "diff $1 $2 | less")
 /                   - find string
 n                   - find next string
+m                   - show all status messages saved in history
 p                   - find previous string
 f                   - filter shown items by string
 .                   - enter location (full path) for local file system
@@ -81,5 +82,5 @@ TODO:
 `
 
 func Show() {
-	extprogs.View("Help", []byte(Help))
+	extprogs.View("Help", []byte(help))
 }

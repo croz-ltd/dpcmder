@@ -13,8 +13,9 @@ type Side int
 
 // Left and Right constants for addressing side in slices.
 const (
-	Left  = Side(0)
-	Right = Side(1)
+	Left           = Side(0)
+	Right          = Side(1)
+	maxStatusCount = 1000
 )
 
 // ItemType is used for defining type of Item (or current "directory")
@@ -66,7 +67,6 @@ type Model struct {
 	currentFilter       [2]string
 	currItemIdx         [2]int
 	currFirstRowItemIdx [2]int
-	currPath            [2]string
 	currSide            Side
 	ItemMaxRows         int
 	HorizScroll         int
@@ -75,7 +75,7 @@ type Model struct {
 	SyncDomainDp        string
 	SyncDirDp           string
 	SyncDirLocal        string
-	Status              string
+	statuses            []string
 }
 
 // ItemConfig methods
@@ -162,7 +162,7 @@ func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 
 // IsSelectable returns true if we can select current item.
 func (m *Model) IsSelectable() bool {
-	return m.CurrPath() != ""
+	return m.ViewConfig(m.currSide).Path != ""
 }
 
 // CurrSide returns currently used Side.
@@ -179,8 +179,34 @@ func (m *Model) OtherSide() Side {
 func (m *Model) Title(side Side) string {
 	return m.title[side]
 }
+
+// ViewConfig returns view config for given Side.
 func (m *Model) ViewConfig(side Side) *ItemConfig {
 	return m.viewConfig[side]
+}
+
+// AddStatus adds new status event to history of statuses.
+func (m *Model) AddStatus(status string) {
+	m.statuses = append(m.statuses, status)
+	overflowStatusCount := len(m.statuses) - maxStatusCount
+	if overflowStatusCount > 0 {
+		// m.statuses = m.statuses[overflowStatusCount:]
+		m.statuses = m.statuses[overflowStatusCount:]
+	}
+}
+
+// LastStatus returns last status event added to history.
+func (m *Model) LastStatus() string {
+	statusCount := len(m.statuses)
+	if statusCount > 0 {
+		return m.statuses[statusCount-1]
+	}
+	return ""
+}
+
+// Statuses returns history of all status events.
+func (m *Model) Statuses() []string {
+	return m.statuses
 }
 
 // SetTitle sets title for given Side.
@@ -238,26 +264,6 @@ func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
 // CurrItem returns current item under cursor for used side.
 func (m *Model) CurrItem() *Item {
 	return m.CurrItemForSide(m.currSide)
-}
-
-// CurrPathForSide returns current path for given side.
-func (m *Model) CurrPathForSide(side Side) string {
-	return m.currPath[side]
-}
-
-// CurrPath returns current path for used side.
-func (m *Model) CurrPath() string {
-	return m.CurrPathForSide(m.currSide)
-}
-
-// SetCurrPathForSide sets current path for given side.
-func (m *Model) SetCurrPathForSide(side Side, newPath string) {
-	m.currPath[side] = newPath
-}
-
-// SetCurrPath sets current path for used side.
-func (m *Model) SetCurrPath(newPath string) {
-	m.SetCurrPathForSide(m.currSide, newPath)
 }
 
 func (m *Model) applyFilter(side Side) {
