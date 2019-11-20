@@ -15,9 +15,7 @@ func TestItemTypeString(t *testing.T) {
 	for idx, gotType := range types {
 		got := gotType.String()
 		want := wantArr[idx]
-		if got != want {
-			t.Errorf("Got: %s, want: %s.", got, want)
-		}
+		assertValue(t, "ItemType.String()", want, got)
 	}
 }
 
@@ -54,11 +52,13 @@ func TestItemConfigEquals(t *testing.T) {
 	for _, testRow := range testDataMatrix {
 		gotRes := testRow.one.Equals(testRow.other)
 		extectedRes := testRow.res
-		if gotRes != extectedRes {
-			t.Errorf("Got res: %v, want res: %v (%v equals %v).",
-				gotRes, extectedRes, testRow.one, testRow.other)
-		}
+		assertValue(t, "ItemConfig.Equals()", extectedRes, gotRes)
 	}
+}
+
+func TestItemConfigString(t *testing.T) {
+	itemDp := ItemConfig{Type: ItemDirectory, DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{}}
+	assertValue(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local:)", itemDp.String())
 }
 
 // Item methods tests
@@ -68,9 +68,7 @@ func TestItemDisplayString(t *testing.T) {
 
 	got := item.DisplayString()
 	want := "f       3000 2019-02-06 14:06:10 master"
-	if got != want {
-		t.Errorf("Got: %s, want: %s.", got, want)
-	}
+	assertValue(t, "Item.GetDisplayableType()", want, got)
 }
 func TestItemGetDisplayableType(t *testing.T) {
 	itemList := prepareAllTypesItemList()
@@ -80,10 +78,12 @@ func TestItemGetDisplayableType(t *testing.T) {
 	for idx := 0; idx < len(displayedType); idx++ {
 		got := itemList[idx].GetDisplayableType()
 		want := displayedType[idx]
-		if got != want {
-			t.Errorf("Got: %s, want: %s (item: %v).", got, want, itemList[idx])
-		}
+		assertValue(t, "Item.GetDisplayableType()", want, got)
 	}
+}
+func TestItemString(t *testing.T) {
+	item := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
+	assertValue(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' () ))", item.String())
 }
 
 // ItemList methods tests
@@ -115,9 +115,7 @@ func TestItemListLen(t *testing.T) {
 	itemList := prepareItemList()
 	gotLen := itemList.Len()
 	expectedLen := 9
-	if gotLen != expectedLen {
-		t.Errorf("Got len: %d, want len: %d.", gotLen, expectedLen)
-	}
+	assertValue(t, "ItemList.Len()", expectedLen, gotLen)
 }
 func TestItemListLess(t *testing.T) {
 	itemList := prepareItemList()
@@ -138,11 +136,8 @@ func TestItemListLess(t *testing.T) {
 
 	for _, testRow := range testDataMatrix {
 		gotRes := itemList.Less(testRow.i, testRow.j)
-		extectedRes := testRow.res
-		if gotRes != extectedRes {
-			t.Errorf("Got res: %v, want res: %v (%d - '%v', %d - '%v').",
-				gotRes, extectedRes, testRow.i, itemList[testRow.i], testRow.j, itemList[testRow.j])
-		}
+		expectedRes := testRow.res
+		assertValue(t, "ItemList.Less()", expectedRes, gotRes)
 	}
 }
 func TestItemListSwap(t *testing.T) {
@@ -153,18 +148,14 @@ func TestItemListSwap(t *testing.T) {
 	gotItem := itemList[0]
 	expectedItem := Item{Config: &ItemConfig{Type: ItemFile, Path: "/path5"}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
 
-	if !reflect.DeepEqual(gotItem, expectedItem) {
-		t.Errorf("Got item: %v, want item: %v.", gotItem, expectedItem)
-	}
+	assertValue(t, "ItemList.Swap()", expectedItem, gotItem)
 }
 
 // Model methods tests
 
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
-	if got != want {
-		t.Errorf("checkCurr - got '%v' but want '%v' (%s).", got, want, msg)
-	}
+	assertValue(t, "Model.CurrItem()", want, got)
 }
 
 func TestModelTitle(t *testing.T) {
@@ -564,6 +555,7 @@ func TestModelSearch(t *testing.T) {
 
 func TestStatusHandling(t *testing.T) {
 	model := Model{}
+	assertValue(t, "LastStatus()", "", model.LastStatus())
 	testStatuses := []string{"Status event no 1",
 		"Status event no 2",
 		"Status event no 3"}

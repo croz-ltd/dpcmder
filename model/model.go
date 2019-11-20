@@ -13,10 +13,12 @@ type Side int
 
 // Left and Right constants for addressing side in slices.
 const (
-	Left           = Side(0)
-	Right          = Side(1)
-	maxStatusCount = 1000
+	Left  = Side(0)
+	Right = Side(1)
 )
+
+// maxStatusCount - maximum number of statuses we keep in history
+const maxStatusCount = 1000
 
 // ItemType is used for defining type of Item (or current "directory")
 type ItemType byte
@@ -36,7 +38,7 @@ const (
 )
 
 // Item contains information about File, Directory, DataPower filestore,
-// DataPower domain or DataPower configuration.
+// DataPower domain or DataPower configuration which is shown on screen.
 type Item struct {
 	Name     string
 	Size     string
@@ -45,6 +47,9 @@ type Item struct {
 	Config   *ItemConfig
 }
 
+// ItemConfig contains information about File, Directory, DataPower filestore,
+// DataPower domain or DataPower configuration which is required to uniquely
+// identify Item.
 type ItemConfig struct {
 	Type        ItemType
 	Path        string
@@ -170,7 +175,7 @@ func (m *Model) CurrSide() Side {
 	return m.currSide
 }
 
-// CurrSide returns currently non-used Side.
+// OtherSide returns currently non-used Side.
 func (m *Model) OtherSide() Side {
 	return 1 - m.currSide
 }
@@ -209,7 +214,7 @@ func (m *Model) Statuses() []string {
 	return m.statuses
 }
 
-// SetTitle sets title for given Side.
+// SetCurrentView sets title and view config for given Side.
 func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
 	m.title[side] = viewTitle
 	m.viewConfig[side] = viewConfig
