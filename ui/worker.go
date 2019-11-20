@@ -542,8 +542,7 @@ func copyCurrent(m *model.Model) error {
 	toViewConfig := m.ViewConfig(toSide)
 
 	itemsToCopy := getSelectedOrCurrent(m)
-	statusMsg := fmt.Sprintf("Copy from '%s' to '%s', items: %v", fromViewConfig, toViewConfig, itemsToCopy)
-	updateStatus(statusMsg)
+	updateStatusf("Copy from '%s' to '%s', items: %v", fromViewConfig.Path, toViewConfig.Path, itemsToCopy)
 
 	confirmOverwrite := "n"
 	for _, item := range itemsToCopy {
@@ -585,6 +584,8 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		if err != nil {
 			return res, err
 		}
+	default:
+		updateStatusf("Only files and directories can be copied.")
 	}
 
 	logging.LogDebugf("ui/copyItem(), res: '%s'", res)
