@@ -32,6 +32,7 @@ const (
 	askConfirmOverwrite = userDialogType("askConfirmOverwrite")
 	askConfirmDelete    = userDialogType("askConfirmDelete")
 	askCreateEmptyFile  = userDialogType("askCreateEmptyFile")
+	askCreateDirectory  = userDialogType("askCreateDirectory")
 )
 
 // userDialogInputSessionInfo is structure containing all information neccessary
@@ -261,7 +262,6 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		}
 
 	case key.F5, key.Ch5:
-		// TODO: implement full hierarchy - something is not correct
 		err := copyCurrent(&workingModel)
 		if err != nil {
 			updateStatus(err.Error())
@@ -269,8 +269,11 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 
 	// case key.Chd:
 	// 	diffCurrent(m)
-	// case key.F7, key.Ch7:
-	// 	createDirectory(m)
+	case key.F7, key.Ch7:
+		err := createDirectory(&workingModel)
+		if err != nil {
+			updateStatus(err.Error())
+		}
 	case key.F8, key.Ch8:
 		err := createEmptyFile(&workingModel)
 		if err != nil {
@@ -728,9 +731,38 @@ func createEmptyFile(m *model.Model) error {
 			return errs.Errorf("Can't create file with name '%s' - '%v'.", fileName, err)
 		}
 
+		updateStatusf("File '%s' created.", fileName)
 		return showItem(side, viewConfig, ".")
 	}
+	updateStatus("Creation of new file canceled.")
+	return nil
+}
 
+func createDirectory(m *model.Model) error {
+	logging.LogDebugf("ui/createDirectory()")
+	dialogResult := askUserInput(askCreateDirectory,
+		"Enter directory name for file to create: ", "", false)
+	if dialogResult.dialogSubmitted {
+		dirName := dialogResult.inputAnswer
+		side := m.CurrSide()
+		viewConfig := m.ViewConfig(side)
+		r := repos[side]
+		targetFileType, err := r.GetFileType(viewConfig, viewConfig.Path, dirName)
+		if err != nil {
+			return err
+		}
+		if targetFileType != model.ItemNone {
+			return errs.Errorf("Directory with name '%s' already exists at '%s'.", dirName, viewConfig.Path)
+		}
+		_, err = r.CreateDir(viewConfig, viewConfig.Path, dirName)
+		if err != nil {
+			return errs.Errorf("Can't create directory with name '%s' - '%v'.", dirName, err)
+		}
+
+		updateStatusf("Directory '%s' created.", dirName)
+		return showItem(side, viewConfig, ".")
+	}
+	updateStatus("Creation of new directory canceled.")
 	return nil
 }
 
