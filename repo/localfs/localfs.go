@@ -86,7 +86,7 @@ func (r localRepo) UpdateFile(currentView *model.ItemConfig, fileName string, ne
 		return false, err
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func (r localRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
