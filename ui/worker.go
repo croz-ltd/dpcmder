@@ -22,23 +22,9 @@ import (
 // not set and we want to connect to appliance.
 const dpMissingPasswordError = errs.Error("DpMissingPasswordError")
 
-type userDialogType string
-
-const (
-	askDpPassword       = userDialogType("askDpPassword")
-	askFilter           = userDialogType("askFilter")
-	askSearchNext       = userDialogType("askSearchNext")
-	askSearchPrev       = userDialogType("askSearchPrev")
-	askConfirmOverwrite = userDialogType("askConfirmOverwrite")
-	askConfirmDelete    = userDialogType("askConfirmDelete")
-	askCreateEmptyFile  = userDialogType("askCreateEmptyFile")
-	askCreateDirectory  = userDialogType("askCreateDirectory")
-)
-
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
 type userDialogInputSessionInfo struct {
-	dialogType           userDialogType
 	inputQuestion        string
 	inputAnswer          string
 	inputAnswerCursorIdx int
@@ -49,15 +35,14 @@ type userDialogInputSessionInfo struct {
 
 // userDialogResult is structure containing result of user input dialog.
 type userDialogResult struct {
-	dialogType      userDialogType
 	inputAnswer     string
 	dialogCanceled  bool
 	dialogSubmitted bool
 }
 
 func (ud userDialogInputSessionInfo) String() string {
-	return fmt.Sprintf("Session((%s) q: '%s', a: '%s', cur: %d, masked: %T, c/s: %T/%T)",
-		ud.dialogType, ud.inputQuestion, ud.inputAnswer,
+	return fmt.Sprintf("Session(q: '%s', a: '%s', cur: %d, masked: %T, c/s: %T/%T)",
+		ud.inputQuestion, ud.inputAnswer,
 		ud.inputAnswerCursorIdx, ud.inputAnswerMasked,
 		ud.dialogCanceled, ud.dialogSubmitted)
 }
@@ -124,8 +109,7 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		logging.LogDebug("ui/processInputEvent(), err: ", err)
 		switch err {
 		case dpMissingPasswordError:
-			dialogResult := askUserInput(askDpPassword, "Please enter DataPower password: ", "", true)
-			// updateView := showInputDialog(&dialogSession, askDpPassword, "Please enter DataPower password: ", "", true)
+			dialogResult := askUserInput("Please enter DataPower password: ", "", true)
 			if dialogResult.inputAnswer != "" {
 				setCurrentDpPlainPassword(dialogResult.inputAnswer)
 			}
@@ -183,21 +167,15 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 
 	case key.Chf:
 		cf := workingModel.CurrentFilter()
-		dialogResult := askUserInput(askFilter, "Filter by: ", cf, false)
+		dialogResult := askUserInput("Filter by: ", cf, false)
 		workingModel.SetCurrentFilter(dialogResult.inputAnswer)
 
 	case key.Slash:
 		workingModel.SearchBy = ""
-		dialogResult := askUserInput(askSearchNext, "Search by: ", workingModel.SearchBy, false)
+		dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
 		workingModel.SearchBy = dialogResult.inputAnswer
 		if workingModel.SearchBy != "" {
-			found := false
-			switch dialogSession.dialogType {
-			case askSearchNext:
-				found = workingModel.SearchNext(workingModel.SearchBy)
-			case askSearchPrev:
-				found = workingModel.SearchPrev(workingModel.SearchBy)
-			}
+			found := workingModel.SearchNext(workingModel.SearchBy)
 			if !found {
 				notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
 				updateStatus(notFoundStatus)
@@ -206,40 +184,21 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 
 	case key.Chn, key.Chp:
 		if workingModel.SearchBy == "" {
-			var dialogType userDialogType
+			dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
+			workingModel.SearchBy = dialogResult.inputAnswer
+		}
+		if workingModel.SearchBy != "" {
+			found := false
 			switch keyCode {
 			case key.Chn:
-				dialogType = askSearchNext
+				found = workingModel.SearchNext(workingModel.SearchBy)
 			case key.Chp:
-				dialogType = askSearchPrev
+				found = workingModel.SearchPrev(workingModel.SearchBy)
 			}
-			dialogResult := askUserInput(dialogType, "Search by: ", workingModel.SearchBy, false)
-			workingModel.SearchBy = dialogResult.inputAnswer
-			if workingModel.SearchBy != "" {
-				found := false
-				switch dialogResult.dialogType {
-				case askSearchNext:
-					found = workingModel.SearchNext(workingModel.SearchBy)
-				case askSearchPrev:
-					found = workingModel.SearchPrev(workingModel.SearchBy)
-				}
-				if !found {
-					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-					updateStatus(notFoundStatus)
-				}
+			if !found {
+				notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
+				updateStatus(notFoundStatus)
 			}
-		}
-
-		var found bool
-		switch keyCode {
-		case key.Chn:
-			found = workingModel.SearchNext(workingModel.SearchBy)
-		case key.Chp:
-			found = workingModel.SearchPrev(workingModel.SearchBy)
-		}
-		if !found {
-			notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-			updateStatus(notFoundStatus)
 		}
 
 	case key.F2, key.Ch2:
@@ -318,9 +277,8 @@ func showInputDialog(dialogSession *userDialogInputSessionInfo) events.UpdateVie
 		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
 }
 
-func askUserInput(dialogType userDialogType, question, answer string, answerMasked bool) userDialogResult {
-	dialogSession := userDialogInputSessionInfo{dialogType: dialogType,
-		inputQuestion:        question,
+func askUserInput(question, answer string, answerMasked bool) userDialogResult {
+	dialogSession := userDialogInputSessionInfo{inputQuestion: question,
 		inputAnswer:          answer,
 		inputAnswerCursorIdx: utf8.RuneCountInString(answer),
 		inputAnswerMasked:    answerMasked}
@@ -338,8 +296,7 @@ loop:
 			break loop
 		}
 	}
-	return userDialogResult{dialogType: dialogSession.dialogType,
-		inputAnswer:     dialogSession.inputAnswer,
+	return userDialogResult{inputAnswer: dialogSession.inputAnswer,
 		dialogCanceled:  dialogSession.dialogCanceled,
 		dialogSubmitted: dialogSession.dialogSubmitted}
 }
@@ -671,7 +628,7 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	case model.ItemFile:
 		if res != "ya" && res != "na" {
 			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
-			dialogResult := askUserInput(askConfirmOverwrite,
+			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
 					fileName, toViewConfig.Path), "", false)
 			if dialogResult.dialogSubmitted {
@@ -712,8 +669,7 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 
 func createEmptyFile(m *model.Model) error {
 	logging.LogDebugf("ui/createEmptyFile()")
-	dialogResult := askUserInput(askCreateEmptyFile,
-		fmt.Sprint("Enter file name for file to create: "), "", false)
+	dialogResult := askUserInput("Enter file name for file to create: ", "", false)
 	if dialogResult.dialogSubmitted {
 		fileName := dialogResult.inputAnswer
 		side := m.CurrSide()
@@ -740,8 +696,7 @@ func createEmptyFile(m *model.Model) error {
 
 func createDirectory(m *model.Model) error {
 	logging.LogDebugf("ui/createDirectory()")
-	dialogResult := askUserInput(askCreateDirectory,
-		"Enter directory name for file to create: ", "", false)
+	dialogResult := askUserInput("Enter directory name for file to create: ", "", false)
 	if dialogResult.dialogSubmitted {
 		dirName := dialogResult.inputAnswer
 		side := m.CurrSide()
@@ -776,7 +731,7 @@ func deleteCurrent(m *model.Model) error {
 	for _, item := range selectedItems {
 		if confirmResponse != "ya" && confirmResponse != "na" {
 			confirmResponse = "n"
-			dialogResult := askUserInput(askConfirmDelete,
+			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm deletion of file '%s' at '%s' (y/ya/n/na): ",
 					item.Name, viewConfig.Path), "", false)
 			if dialogResult.dialogSubmitted {
