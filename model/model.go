@@ -82,8 +82,8 @@ type Model struct {
 
 // String method returns ItemConfig details.
 func (ic ItemConfig) String() string {
-	return fmt.Sprintf("IC(%s, '%s', '%s', '%s', '%s', %s)",
-		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
+	return fmt.Sprintf("IC(%s, '%s', '%s' (%s) %s)",
+		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore)
 }
 
 // Equals method returns true if other object is refering to same ItemConfig.
