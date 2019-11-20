@@ -488,6 +488,41 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName stri
 	return false, errs.Error("DataPower management interface not set.")
 }
 
+func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath string) (*model.ItemConfig, error) {
+	logging.LogDebugf("repo/dp/GetViewConfigByPath('%s')", dirPath)
+	if currentView.DpDomain == "" {
+		return nil, errs.Errorf("Can't get view for path '%s' if DataPower domain is not selected.", dirPath)
+	}
+
+	dpView := currentView
+	for dpView.Type != model.ItemDpDomain {
+		dpView = dpView.Parent
+	}
+
+	resultView := dpView
+	parentView := dpView
+	dirPath = strings.TrimRight(dirPath, "/")
+	dirPathElements := paths.SplitDpPath(dirPath)
+	for idx, dirFsName := range dirPathElements {
+		itemType := model.ItemDirectory
+		dpFilestore := parentView.DpFilestore
+		if idx == 0 {
+			itemType = model.ItemDpFilestore
+			dpFilestore = dirFsName
+			parentView = dpView
+		}
+		resultView = &model.ItemConfig{Type: itemType,
+			Path:        paths.GetDpPath(parentView.Path, dirFsName),
+			DpAppliance: dpView.DpAppliance,
+			DpDomain:    dpView.DpDomain,
+			DpFilestore: dpFilestore,
+			Parent:      parentView}
+		parentView = resultView
+	}
+
+	return resultView, nil
+}
+
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
 func listAppliances() model.ItemList {
 	appliances := config.Conf.DataPowerAppliances

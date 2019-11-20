@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
 	"io/ioutil"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type localRepo struct {
@@ -141,7 +143,24 @@ func (r localRepo) Delete(currentView *model.ItemConfig, parentPath, fileName st
 	}
 
 	return true, nil
+}
 
+func (r localRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath string) (*model.ItemConfig, error) {
+	logging.LogDebugf("repo/localfs/GetViewConfigByPath('%s')", dirPath)
+	dirPath = strings.TrimRight(dirPath, "/")
+	fileType, err := getFileTypeFromPath(dirPath)
+	if err != nil {
+		logging.LogDebugf("repo/localfs/GetViewConfigByPath(), err: %v", err)
+		return nil, err
+	}
+	switch fileType {
+	case model.ItemDirectory:
+		parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(dirPath, "..")}
+		viewConfig := &model.ItemConfig{Type: model.ItemDirectory, Path: dirPath, Parent: &parentConfig}
+		return viewConfig, nil
+	default:
+		return nil, errs.Errorf("Given path '%s' is not directory.", dirPath)
+	}
 }
 
 func listFiles(dirPath string) ([]model.Item, error) {

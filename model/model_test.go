@@ -57,8 +57,8 @@ func TestItemConfigEquals(t *testing.T) {
 }
 
 func TestItemConfigString(t *testing.T) {
-	itemDp := ItemConfig{Type: ItemDirectory, DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{}}
-	assertValue(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local:)", itemDp.String())
+	itemDp := ItemConfig{Type: ItemDirectory, DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{Type: ItemNone}}
+	assertValue(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local: IC(-, '', '' ()  <nil>))", itemDp.String())
 }
 
 // Item methods tests
@@ -83,7 +83,7 @@ func TestItemGetDisplayableType(t *testing.T) {
 }
 func TestItemString(t *testing.T) {
 	item := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
-	assertValue(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' () ))", item.String())
+	assertValue(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' ()  <nil>))", item.String())
 }
 
 // ItemList methods tests
@@ -573,8 +573,9 @@ func TestStatusHandling(t *testing.T) {
 	assertValue(t, "Statuses() size", maxStatusCount, len(model.Statuses()))
 }
 
-func assertValue(t *testing.T, testName, want, got interface{}) {
-	if !reflect.DeepEqual(want, got) {
+func assertValue(t *testing.T, testName, got, want interface{}) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
 		t.Errorf("%s should be: '%v' but was: '%v'.", testName, want, got)
 	}
 }

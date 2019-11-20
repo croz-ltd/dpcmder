@@ -127,8 +127,8 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		}
 	case key.Space:
 		workingModel.ToggleCurrItem()
-	// case key.Dot:
-	// 	enterPath(m)
+	case key.Dot:
+		err = enterDirectoryPath(&workingModel)
 	case key.ArrowLeft, key.Chj:
 		workingModel.HorizScroll -= 10
 		if workingModel.HorizScroll < 0 {
@@ -680,7 +680,7 @@ func createEmptyFile(m *model.Model) error {
 }
 
 func createDirectory(m *model.Model) error {
-	logging.LogDebugf("ui/createDirectory()")
+	logging.LogDebug("ui/createDirectory()")
 	dialogResult := askUserInput("Enter directory name for file to create: ", "", false)
 	if dialogResult.dialogSubmitted {
 		dirName := dialogResult.inputAnswer
@@ -707,6 +707,7 @@ func createDirectory(m *model.Model) error {
 }
 
 func deleteCurrent(m *model.Model) error {
+	logging.LogDebug("ui/deleteCurrent()")
 	selectedItems := getSelectedOrCurrent(m)
 
 	side := m.CurrSide()
@@ -740,6 +741,36 @@ func deleteCurrent(m *model.Model) error {
 	}
 
 	return nil
+}
+
+func enterDirectoryPath(m *model.Model) error {
+	logging.LogDebug("ui/enterDirectoryPath()")
+	side := m.CurrSide()
+	viewConfig := m.ViewConfig(side)
+
+	if side == model.Left && viewConfig.DpDomain == "" {
+		return errs.Error("Can't enter path if DataPower domain is not selected first.")
+	}
+
+	dialogResult := askUserInput("Enter path: ", viewConfig.Path, false)
+	if dialogResult.dialogCanceled {
+		return errs.Error("Entering path canceled.")
+	}
+
+	path := dialogResult.inputAnswer
+	newViewConfig, err := repos[side].GetViewConfigByPath(viewConfig, path)
+	if err != nil {
+		logging.LogDebugf("ui/enterDirectoryPath(), err: %v", err)
+		return err
+	}
+
+	switch newViewConfig.Type {
+	case model.ItemDirectory, model.ItemDpFilestore, model.ItemDpDomain:
+		updateStatusf("Showing path '%s'.", path)
+		return showItem(side, newViewConfig, ".")
+	default:
+		return errs.Errorf("Can't show path '%s', not directory nor filestore nor domain.", path)
+	}
 }
 
 func showStatusMessages(statuses []string) error {

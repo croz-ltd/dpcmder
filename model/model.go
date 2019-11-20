@@ -87,8 +87,8 @@ type Model struct {
 
 // String method returns ItemConfig details.
 func (ic ItemConfig) String() string {
-	return fmt.Sprintf("IC(%s, '%s', '%s' (%s) %s)",
-		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore)
+	return fmt.Sprintf("IC(%s, '%s', '%s' (%s) %s %v)",
+		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
 }
 
 // Equals method returns true if other object is refering to same ItemConfig.
@@ -257,7 +257,7 @@ func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
 	itemIdx := 0
 	for idx, item := range m.items[m.currSide] {
-		if item.Config.Equals(config) {
+		if item.Config.Path == config.Path {
 			itemIdx = idx
 			break
 		}

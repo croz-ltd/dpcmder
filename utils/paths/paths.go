@@ -35,3 +35,12 @@ func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) strin
 	}
 	return parentPath + pathSeparator + fileName
 }
+
+// SplitDpPath splits DataPower path into splice where first element is
+// filestore name and rest are directory names.
+func SplitDpPath(path string) []string {
+	if path == "" {
+		return make([]string, 0)
+	}
+	return strings.Split(path, "/")
+}
