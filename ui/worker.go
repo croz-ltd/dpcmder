@@ -219,8 +219,8 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 	case key.F5, key.Ch5:
 		err = copyCurrent(&workingModel)
 
-	// case key.Chd:
-	// 	diffCurrent(m)
+	case key.Chd:
+		err = diffCurrent(&workingModel)
 	case key.F7, key.Ch7:
 		err = createDirectory(&workingModel)
 	case key.F8, key.Ch8:
@@ -514,6 +514,35 @@ func copyCurrent(m *model.Model) error {
 	return showItem(toSide, m.ViewConfig(toSide), ".")
 }
 
+func diffCurrent(m *model.Model) error {
+	logging.LogDebug("ui/diffCurrent()")
+	dpItem := m.CurrItemForSide(model.Left)
+	localItem := m.CurrItemForSide(model.Right)
+
+	dpView := m.ViewConfig(model.Left)
+	localView := m.ViewConfig(model.Right)
+
+	if dpItem.Config.Type == localItem.Config.Type {
+		dpCopyDir := extprogs.CreateTempDir("dp")
+		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
+		// func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, item model.Item, confirmOverwrite string) (string, error) {
+		copyItem(&dp.Repo, localfs.Repo, dpView, &localViewTmp, *dpItem, "y")
+		dpCopyItemPath := dp.Repo.GetFilePath(dpCopyDir, dpItem.Name)
+		localItemPath := localfs.Repo.GetFilePath(localView.Path, localItem.Name)
+		err := extprogs.Diff(dpCopyItemPath, localItemPath)
+		if err != nil {
+			logging.LogDebugf("ui/diffCurrent(), err: %v", err)
+			return err
+		}
+		extprogs.DeleteTempDir(dpCopyDir)
+		logging.LogDebug("view.diffCurrent() after DeleteTempDir")
+	}
+	err := errs.Errorf("Can't compare different file types '%s' (%s) to '%s' (%s)",
+		dpItem.Name, string(dpItem.Config.Type), localItem.Name, string(localItem.Config.Type))
+	logging.LogDebug(err)
+	return err
+}
+
 func getSelectedOrCurrent(m *model.Model) []model.Item {
 	selectedItems := m.GetSelectedItems(m.CurrSide())
 	if len(selectedItems) == 0 {
@@ -572,7 +601,9 @@ func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		return confirmOverwrite, errs.Error(errMsg)
 	}
 
-	fromViewConfigDir := model.ItemConfig{Parent: fromViewConfig,
+	fromViewConfigDir := model.ItemConfig{
+		Parent:      fromViewConfig,
+		Type:        model.ItemDirectory,
 		Path:        fromRepo.GetFilePath(fromViewConfig.Path, dirName),
 		DpAppliance: fromViewConfig.DpAppliance,
 		DpDomain:    fromViewConfig.DpDomain,
@@ -635,7 +666,7 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 			if err != nil {
 				return res, err
 			}
-			logging.LogDebugf("view copySuccess: %v", copySuccess)
+			logging.LogDebugf("ui/copyFile(): %v", copySuccess)
 			if copySuccess {
 				copySuccessStatus := fmt.Sprintf("File '%s' copied from '%s' to '%s'.", fileName, fromViewConfig.Path, toViewConfig.Path)
 				updateStatus(copySuccessStatus)
