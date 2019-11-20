@@ -356,6 +356,7 @@ func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName 
 }
 
 func (r *dpRepo) GetFilePath(parentPath, fileName string) string {
+	logging.LogDebugf("repo/dp/GetFilePath('%s', '%s')", parentPath, fileName)
 	return paths.GetDpPath(parentPath, fileName)
 }
 
