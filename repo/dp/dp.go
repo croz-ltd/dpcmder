@@ -497,7 +497,10 @@ func listAppliances() model.ItemList {
 	items := make(model.ItemList, len(appliances))
 	idx := 0
 	for name, config := range appliances {
-		itemConfig := model.ItemConfig{Type: model.ItemDpConfiguration, DpAppliance: name, DpDomain: config.Domain, Parent: &appliancesConfig}
+		itemConfig := model.ItemConfig{Type: model.ItemDpConfiguration,
+			DpAppliance: name,
+			DpDomain:    config.Domain,
+			Parent:      &appliancesConfig}
 		items[idx] = model.Item{Name: name, Config: &itemConfig}
 		idx = idx + 1
 	}
@@ -522,7 +525,9 @@ func listDomains(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 
 	for idx, name := range domainNames {
 		itemConfig := model.ItemConfig{Type: model.ItemDpDomain,
-			DpAppliance: selectedItemConfig.DpAppliance, DpDomain: name, Parent: selectedItemConfig}
+			DpAppliance: selectedItemConfig.DpAppliance,
+			DpDomain:    name,
+			Parent:      selectedItemConfig}
 		items[idx+1] = model.Item{Name: name, Config: &itemConfig}
 	}
 
@@ -555,8 +560,11 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore, DpAppliance: selectedItemConfig.DpAppliance,
-				DpDomain: selectedItemConfig.DpDomain, Path: filestoreName, Parent: selectedItemConfig}
+			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
+				DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain:    selectedItemConfig.DpDomain,
+				Path:        filestoreName,
+				Parent:      selectedItemConfig}
 			items[idx+1] = model.Item{Name: filestoreName, Config: &itemConfig}
 		}
 
@@ -585,8 +593,11 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 		for idx, node := range filestoreNameNodes {
 			// "local:"
 			filestoreName := node.InnerText()
-			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore, DpAppliance: selectedItemConfig.DpAppliance,
-				DpDomain: selectedItemConfig.DpDomain, Path: filestoreName, Parent: selectedItemConfig}
+			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
+				DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain:    selectedItemConfig.DpDomain,
+				Path:        filestoreName,
+				Parent:      selectedItemConfig}
 			items[idx+1] = model.Item{Name: filestoreName, Config: &itemConfig}
 		}
 
@@ -639,8 +650,10 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			dirDpPath := n.SelectElement("name").InnerText()
 			_, dirName := splitOnLast(dirDpPath, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
-				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
-				Path: dirDpPath, Parent: selectedItemConfig}
+				DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain:    selectedItemConfig.DpDomain,
+				Path:        dirDpPath,
+				Parent:      selectedItemConfig}
 			item := model.Item{Name: dirName, Config: &itemConfig}
 			items = append(items, item)
 		}
@@ -652,8 +665,10 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			fileSize := n.SelectElement("size").InnerText()
 			fileModified := n.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
-				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
-				Path: paths.GetDpPath(selectedItemConfig.Path, fileName), Parent: selectedItemConfig}
+				DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain:    selectedItemConfig.DpDomain,
+				Path:        paths.GetDpPath(selectedItemConfig.Path, fileName),
+				Parent:      selectedItemConfig}
 			item := model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
 			items = append(items, item)
 		}
@@ -706,8 +721,10 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			dirFullName := node.SelectAttr("name")
 			_, dirName := splitOnLast(dirFullName, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
-				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
-				Path: dirFullName, Parent: selectedItemConfig}
+				DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain:    selectedItemConfig.DpDomain,
+				Path:        dirFullName,
+				Parent:      selectedItemConfig}
 			// Path: selectedItemConfig.Path
 			items[idx] = model.Item{Name: dirName, Config: &itemConfig}
 		}
@@ -718,8 +735,10 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			fileSize := node.SelectElement("size").InnerText()
 			fileModified := node.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
-				DpAppliance: selectedItemConfig.DpAppliance, DpDomain: selectedItemConfig.DpDomain,
-				Path: selectedItemConfig.Path, Parent: selectedItemConfig}
+				DpAppliance: selectedItemConfig.DpAppliance,
+				DpDomain:    selectedItemConfig.DpDomain,
+				Path:        selectedItemConfig.Path,
+				Parent:      selectedItemConfig}
 			// selectedItemConfig.Path
 			items[idx+dirNum] = model.Item{Name: fileName, Size: fileSize, Modified: fileModified, Config: &itemConfig}
 		}
