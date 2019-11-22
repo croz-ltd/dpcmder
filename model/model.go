@@ -77,6 +77,7 @@ type Model struct {
 	HorizScroll         int
 	SearchBy            string
 	SyncModeOn          bool
+	SyncInitial         bool
 	SyncDomainDp        string
 	SyncDirDp           string
 	SyncDirLocal        string
