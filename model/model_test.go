@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/croz-ltd/dpcmder/utils/assert"
 	"reflect"
 	"testing"
 )
@@ -15,7 +16,7 @@ func TestItemTypeString(t *testing.T) {
 	for idx, gotType := range types {
 		got := gotType.String()
 		want := wantArr[idx]
-		assertValue(t, "ItemType.String()", want, got)
+		assert.DeepEqual(t, "ItemType.String()", want, got)
 	}
 }
 
@@ -52,13 +53,13 @@ func TestItemConfigEquals(t *testing.T) {
 	for _, testRow := range testDataMatrix {
 		gotRes := testRow.one.Equals(testRow.other)
 		extectedRes := testRow.res
-		assertValue(t, "ItemConfig.Equals()", extectedRes, gotRes)
+		assert.DeepEqual(t, "ItemConfig.Equals()", extectedRes, gotRes)
 	}
 }
 
 func TestItemConfigString(t *testing.T) {
 	itemDp := ItemConfig{Type: ItemDirectory, DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{Type: ItemNone}}
-	assertValue(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local: IC(-, '', '' ()  <nil>))", itemDp.String())
+	assert.DeepEqual(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local: IC(-, '', '' ()  <nil>))", itemDp.String())
 }
 
 // Item methods tests
@@ -68,7 +69,7 @@ func TestItemDisplayString(t *testing.T) {
 
 	got := item.DisplayString()
 	want := "f       3000 2019-02-06 14:06:10 master"
-	assertValue(t, "Item.GetDisplayableType()", want, got)
+	assert.DeepEqual(t, "Item.GetDisplayableType()", want, got)
 }
 func TestItemGetDisplayableType(t *testing.T) {
 	itemList := prepareAllTypesItemList()
@@ -78,12 +79,12 @@ func TestItemGetDisplayableType(t *testing.T) {
 	for idx := 0; idx < len(displayedType); idx++ {
 		got := itemList[idx].GetDisplayableType()
 		want := displayedType[idx]
-		assertValue(t, "Item.GetDisplayableType()", want, got)
+		assert.DeepEqual(t, "Item.GetDisplayableType()", want, got)
 	}
 }
 func TestItemString(t *testing.T) {
 	item := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
-	assertValue(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' ()  <nil>))", item.String())
+	assert.DeepEqual(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' ()  <nil>))", item.String())
 }
 
 // ItemList methods tests
@@ -115,7 +116,7 @@ func TestItemListLen(t *testing.T) {
 	itemList := prepareItemList()
 	gotLen := itemList.Len()
 	expectedLen := 9
-	assertValue(t, "ItemList.Len()", expectedLen, gotLen)
+	assert.DeepEqual(t, "ItemList.Len()", expectedLen, gotLen)
 }
 func TestItemListLess(t *testing.T) {
 	itemList := prepareItemList()
@@ -137,7 +138,7 @@ func TestItemListLess(t *testing.T) {
 	for _, testRow := range testDataMatrix {
 		gotRes := itemList.Less(testRow.i, testRow.j)
 		expectedRes := testRow.res
-		assertValue(t, "ItemList.Less()", expectedRes, gotRes)
+		assert.DeepEqual(t, "ItemList.Less()", expectedRes, gotRes)
 	}
 }
 func TestItemListSwap(t *testing.T) {
@@ -148,14 +149,14 @@ func TestItemListSwap(t *testing.T) {
 	gotItem := itemList[0]
 	expectedItem := Item{Config: &ItemConfig{Type: ItemFile, Path: "/path5"}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
 
-	assertValue(t, "ItemList.Swap()", expectedItem, gotItem)
+	assert.DeepEqual(t, "ItemList.Swap()", expectedItem, gotItem)
 }
 
 // Model methods tests
 
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
-	assertValue(t, "Model.CurrItem()", want, got)
+	assert.DeepEqual(t, "Model.CurrItem()", want, got)
 }
 
 func TestModelTitle(t *testing.T) {
@@ -555,7 +556,7 @@ func TestModelSearch(t *testing.T) {
 
 func TestStatusHandling(t *testing.T) {
 	model := Model{}
-	assertValue(t, "LastStatus()", "", model.LastStatus())
+	assert.DeepEqual(t, "LastStatus()", "", model.LastStatus())
 	testStatuses := []string{"Status event no 1",
 		"Status event no 2",
 		"Status event no 3"}
@@ -563,19 +564,12 @@ func TestStatusHandling(t *testing.T) {
 	model.AddStatus(testStatuses[1])
 	model.AddStatus(testStatuses[2])
 
-	assertValue(t, "LastStatus()", testStatuses[2], model.LastStatus())
-	assertValue(t, "Statuses()", testStatuses, model.Statuses())
+	assert.DeepEqual(t, "LastStatus()", testStatuses[2], model.LastStatus())
+	assert.DeepEqual(t, "Statuses()", testStatuses, model.Statuses())
 
 	for index := 0; index < maxStatusCount; index++ {
 		model.AddStatus(fmt.Sprintf("Status event new no %d", index))
 	}
-	assertValue(t, "LastStatus()", fmt.Sprintf("Status event new no %d", maxStatusCount-1), model.LastStatus())
-	assertValue(t, "Statuses() size", maxStatusCount, len(model.Statuses()))
-}
-
-func assertValue(t *testing.T, testName, got, want interface{}) {
-	t.Helper()
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("%s should be: '%v' but was: '%v'.", testName, want, got)
-	}
+	assert.DeepEqual(t, "LastStatus()", fmt.Sprintf("Status event new no %d", maxStatusCount-1), model.LastStatus())
+	assert.DeepEqual(t, "Statuses() size", maxStatusCount, len(model.Statuses()))
 }
