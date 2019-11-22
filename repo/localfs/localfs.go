@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type localRepo struct {
@@ -147,7 +148,9 @@ func (r localRepo) Delete(currentView *model.ItemConfig, parentPath, fileName st
 
 func (r localRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath string) (*model.ItemConfig, error) {
 	logging.LogDebugf("repo/localfs/GetViewConfigByPath('%s')", dirPath)
-	dirPath = strings.TrimRight(dirPath, "/")
+	if dirPath != "/" {
+		dirPath = strings.TrimRight(dirPath, "/")
+	}
 	fileType, err := getFileTypeFromPath(dirPath)
 	if err != nil {
 		logging.LogDebugf("repo/localfs/GetViewConfigByPath(), err: %v", err)
@@ -155,12 +158,94 @@ func (r localRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath st
 	}
 	switch fileType {
 	case model.ItemDirectory:
-		parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(dirPath, "..")}
-		viewConfig := &model.ItemConfig{Type: model.ItemDirectory, Path: dirPath, Parent: &parentConfig}
+		var parentConfig *model.ItemConfig = nil
+		if dirPath != "/" {
+			parentConfig = &model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(dirPath, "..")}
+		}
+		viewConfig := &model.ItemConfig{Type: model.ItemDirectory, Path: dirPath, Parent: parentConfig}
 		return viewConfig, nil
 	default:
 		return nil, errs.Errorf("Given path '%s' is not directory.", dirPath)
 	}
+}
+
+// Tree represents file/dir with all it's children and modification time.
+type Tree struct {
+	Dir          bool
+	Name         string
+	Path         string
+	PathFromRoot string
+	ModTime      time.Time
+	Children     []Tree
+}
+
+func (t Tree) String() string {
+	return fmt.Sprintf("{'%s', dir: '%t', rp: '%s', path: '%s', '%v'}", t.Name, t.Dir, t.PathFromRoot, t.Path, t.Children)
+}
+
+// FindChild finds child of same type and name as one we search for.
+func (t Tree) FindChild(searchChild *Tree) *Tree {
+	for _, child := range t.Children {
+		if child.Dir == searchChild.Dir && child.Name == searchChild.Name {
+			return &child
+		}
+	}
+
+	return nil
+}
+
+// FileChanged check if this file is new or changed file comparing to saved info.
+func (t Tree) FileChanged(anotherTree *Tree) bool {
+	return anotherTree == nil || t.ModTime != anotherTree.ModTime
+}
+
+func LoadTree(pathFromRoot, filePath string) (Tree, error) {
+	tree := Tree{}
+	var errorMsg string
+
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
+		logging.LogDebug("repo.localfs.LoadTree(), err: ", err)
+	}
+
+	if fi.IsDir() {
+		tree.Dir = true
+	} else if fi.Name() == "" {
+		errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): fi.Name() not found.", pathFromRoot, filePath)
+		logging.LogDebug("repo.localfs.LoadTree() fi.Name() not found.")
+	}
+
+	tree.Name = fi.Name()
+	tree.ModTime = fi.ModTime()
+	tree.PathFromRoot = pathFromRoot
+	tree.Path = filePath
+
+	if tree.Dir {
+		files, err := ioutil.ReadDir(filePath)
+		if err != nil {
+			errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
+			logging.LogDebug("repo.localfs.LoadTree(): ", err)
+		}
+
+		tree.Children = make([]Tree, len(files))
+		for i := 0; i < len(files); i++ {
+			file := files[i]
+			childPath := paths.GetFilePath(filePath, file.Name())
+			childRelPath := paths.GetFilePath(pathFromRoot, file.Name())
+			tree.Children[i], err = LoadTree(childRelPath, childPath)
+			if err != nil {
+				errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
+				logging.LogDebug("repo.localfs.LoadTree(): ", err)
+			}
+		}
+	}
+
+	// logging.LogDebug("repo.localfs.LoadTree(), tree: ", tree)
+	if errorMsg != "" {
+		return tree, errs.Error(errorMsg)
+	}
+	return tree, nil
 }
 
 func listFiles(dirPath string) ([]model.Item, error) {
