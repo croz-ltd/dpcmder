@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
@@ -15,12 +16,13 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
-// DpMissingPasswordError is constant error returned if DataPower password is
+// dpMissingPasswordError is constant error returned if DataPower password is
 // not set and we want to connect to appliance.
-const dpMissingPasswordError = errs.Error("DpMissingPasswordError")
+const dpMissingPasswordError = errs.Error("dpMissingPasswordError")
 
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
@@ -60,7 +62,7 @@ var dialogSession = userDialogInputSessionInfo{}
 // InitialLoad initializes DataPower and local filesystem access and load initial views.
 func InitialLoad() {
 	logging.LogDebug("ui/InitialLoad()")
-	dp.InitNetworkSettings()
+	dp.Repo.InitNetworkSettings(config.Conf.DataPowerAppliances[config.PreviousAppliance])
 	initialLoadDp()
 	initialLoadLocalfs()
 
@@ -204,33 +206,23 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		}
 
 	case key.F2, key.Ch2:
-		repo := repos[workingModel.CurrSide()]
-		repo.InvalidateCache()
-		viewConfig := workingModel.ViewConfig(workingModel.CurrSide())
-		showItem(workingModel.CurrSide(), viewConfig, ".")
-		updateStatusf("Current directory (%s) refreshed.", viewConfig.Path)
-
+		err = refreshCurrentView(&workingModel)
 	case key.F3, key.Ch3:
 		err = viewCurrent(&workingModel)
-
 	case key.F4, key.Ch4:
 		err = editCurrent(&workingModel)
-
 	case key.F5, key.Ch5:
 		err = copyCurrent(&workingModel)
-
 	case key.Chd:
 		err = diffCurrent(&workingModel)
 	case key.F7, key.Ch7:
 		err = createDirectory(&workingModel)
 	case key.F8, key.Ch8:
 		err = createEmptyFile(&workingModel)
-
 	case key.Del, key.Chx:
 		err = deleteCurrent(&workingModel)
-
-		// case key.Chs:
-		// 	syncModeToggle(m)
+	case key.Chs:
+		err = syncModeToggle(&workingModel)
 	case key.Chm:
 		err = showStatusMessages(workingModel.Statuses())
 
@@ -409,6 +401,22 @@ func setCurrentDpPlainPassword(password string) {
 func setScreenSize() {
 	_, height := out.GetScreenSize()
 	workingModel.ItemMaxRows = height - 3
+}
+
+func refreshView(m *model.Model, side model.Side) error {
+	repo := repos[side]
+	repo.InvalidateCache()
+	viewConfig := workingModel.ViewConfig(side)
+	err := showItem(side, viewConfig, ".")
+	if err != nil {
+		return err
+	}
+	updateStatusf("Directory (%s) refreshed.", m.ViewConfig(side).Path)
+	return nil
+}
+
+func refreshCurrentView(m *model.Model) error {
+	return refreshView(m, m.CurrSide())
 }
 
 func viewCurrent(m *model.Model) error {
@@ -804,6 +812,7 @@ func enterDirectoryPath(m *model.Model) error {
 	}
 }
 
+// showStatusMessages shows history of status messages in viewer program.
 func showStatusMessages(statuses []string) error {
 	statusesText := ""
 	for _, status := range statuses {
@@ -812,12 +821,198 @@ func showStatusMessages(statuses []string) error {
 	return extprogs.View("Status_Messages", []byte(statusesText))
 }
 
+func syncModeToggle(m *model.Model) error {
+	logging.LogDebug("ui/syncModeToggle()")
+	var syncModeToggleConfirm userDialogResult
+
+	dpViewConfig := m.ViewConfig(model.Left)
+	dpApplianceName := dpViewConfig.DpAppliance
+	dpDomain := dpViewConfig.DpDomain
+	dpDir := dpViewConfig.Path
+
+	if m.SyncModeOn {
+		syncModeToggleConfirm = askUserInput("Are you sure you want to disable sync mode (y/n): ", "", false)
+	} else {
+		if dpDomain != "" && dpDir != "" {
+			syncModeToggleConfirm = askUserInput("Are you sure you want to enable sync mode (y/n): ", "", false)
+		} else {
+			return errs.Errorf("Can't sync if DataPower domain (%s) or path (%s) are not selected.", dpDomain, dpDir)
+		}
+	}
+
+	if syncModeToggleConfirm.dialogSubmitted && syncModeToggleConfirm.inputAnswer == "y" {
+		m.SyncModeOn = !m.SyncModeOn
+		if m.SyncModeOn {
+			dp.SyncRepo.InitNetworkSettings(config.Conf.DataPowerAppliances[dpApplianceName])
+			m.SyncDpDomain = dpDomain
+			m.SyncDirDp = dpDir
+			m.SyncDirLocal = m.ViewConfig(model.Right).Path
+			m.SyncInitial = true
+			go syncLocalToDp(m)
+			updateStatusf("Synchronization mode enabled (%s/'%s' <- '%s').", m.SyncDpDomain, m.SyncDirDp, m.SyncDirLocal)
+		} else {
+			m.SyncDpDomain = ""
+			m.SyncDirDp = ""
+			m.SyncDirLocal = ""
+			m.SyncInitial = false
+			updateStatus("Synchronization mode disabled.")
+		}
+	} else {
+		updateStatus("Synchronization mode change canceled.")
+	}
+
+	return nil
+}
+
+func syncLocalToDp(m *model.Model) {
+	// 1. Fetch dp & local file tree
+	// 2. Initial sync files from local to dp:
+	// 2a. Copy non-existing from local to dp
+	// 2b. Compare existing files and copy different files
+	// 3. Save local file tree (file path + modify timestamp)
+	// 4. Sync files from local to dp:
+	// 4a. When local modify timestamp changes or new file appears copy to dp
+	cnt := 0
+	var treeOld localfs.Tree
+	syncCheckTime := time.Duration(config.Conf.Sync.Seconds) * time.Second
+	for m.SyncModeOn {
+		var changesMade bool
+		tree, err := localfs.LoadTree("", m.SyncDirLocal)
+		if err != nil {
+			updateStatusf("Sync err: %s.", err)
+		}
+		logging.LogDebug("syncLocalToDp(), tree: ", tree)
+
+		if m.SyncInitial {
+			changesMade = syncLocalToDpInitial(&tree)
+			logging.LogDebug("syncLocalToDp(), after initial sync - changesMade: ", changesMade)
+			m.SyncInitial = false
+		} else {
+			changesMade = syncLocalToDpLater(&tree, &treeOld)
+			logging.LogDebug("syncLocalToDp(), after later sync - changesMade: ", changesMade)
+		}
+
+		treeOld = tree
+
+		cnt++
+		if changesMade {
+			refreshView(m, model.Left)
+		}
+		time.Sleep(syncCheckTime)
+	}
+}
+
+func syncLocalToDpInitial(tree *localfs.Tree) bool {
+	changesMade := false
+	logging.LogDebug(fmt.Sprintf("syncLocalToDpInitial(%v)", tree))
+	// m := &model.Model{}
+	m := &workingModel
+	// logging.LogDebug("syncLocalToDpInitial(), syncDirDp: ", syncDirDp, ", tree.PathFromRoot: ", tree.PathFromRoot)
+
+	if tree.Dir {
+		dpPath := dp.SyncRepo.GetFilePath(m.SyncDirDp, tree.PathFromRoot)
+		fileType, err := dp.SyncRepo.GetFileTypeByPath(m.SyncDpDomain, dpPath, ".")
+		if err != nil {
+			logging.LogDebug("worker/syncLocalToDpInitial(), err: ", err)
+		}
+
+		if fileType == model.ItemNone {
+			dp.SyncRepo.CreateDirByPath(m.SyncDpDomain, dpPath, ".")
+			changesMade = true
+		} else if fileType == model.ItemFile {
+			logging.LogDebugf("worker/syncLocalToDpInitial() - In place of dir there is a file on dp: '%s'", dpPath)
+		}
+		for _, child := range tree.Children {
+			if syncLocalToDpInitial(&child) {
+				changesMade = true
+			}
+		}
+	} else {
+		changesMade = updateDpFile(m, tree)
+	}
+
+	return changesMade
+}
+
+func syncLocalToDpLater(tree, treeOld *localfs.Tree) bool {
+	changesMade := false
+	logging.LogDebugf("worker/syncLocalToDpLater(%v, %v)", tree, treeOld)
+	// m := &model.Model{}
+	m := &workingModel
+
+	if tree.Dir {
+		if treeOld == nil {
+			dpPath := dp.SyncRepo.GetFilePath(m.SyncDirDp, tree.PathFromRoot)
+			fileType, err := dp.SyncRepo.GetFileTypeByPath(m.SyncDpDomain, dpPath, ".")
+			if err != nil {
+				logging.LogDebug("worker/syncLocalToDpLater(), err: ", err)
+				return false
+			}
+			if fileType == model.ItemNone {
+				dp.SyncRepo.CreateDirByPath(m.SyncDpDomain, dpPath, ".")
+				changesMade = true
+			} else if fileType == model.ItemFile {
+				logging.LogDebugf("worker/syncLocalToDpLater() - In place of dir there is a file on dp: '%s'", dpPath)
+				return false
+			}
+		}
+
+		for _, child := range tree.Children {
+			var childOld *localfs.Tree
+			if treeOld != nil {
+				childOld = treeOld.FindChild(&child)
+			}
+			if syncLocalToDpLater(&child, childOld) {
+				changesMade = true
+			}
+		}
+	} else {
+		if tree.FileChanged(treeOld) {
+			changesMade = updateDpFile(m, tree)
+		}
+	}
+
+	return changesMade
+}
+
+func updateDpFile(m *model.Model, tree *localfs.Tree) bool {
+	changesMade := false
+	localBytes, err := localfs.GetFileByPath(tree.Path)
+	if err != nil {
+		logging.LogDebug("worker/updateDpFile(), couldn't get local file - err: ", err)
+		return false
+	}
+	dpPath := dp.SyncRepo.GetFilePath(m.SyncDirDp, tree.PathFromRoot)
+	dpBytes, err := dp.SyncRepo.GetFileByPath(m.SyncDpDomain, dpPath)
+	if err != nil {
+		logging.LogDebug("worker/updateDpFile(), couldn't get local file - err: ", err)
+		return false
+	}
+
+	if bytes.Compare(localBytes, dpBytes) != 0 {
+		changesMade = true
+		res, err := dp.SyncRepo.UpdateFileByPath(m.SyncDpDomain, dpPath, localBytes)
+		if err != nil {
+			logging.LogDebug("worker/updateDpFile(), couldn't get local file - err: ", err)
+		}
+		logging.LogDebugf("worker/updateDpFile(), file '%s' updated: %T", dpPath, res)
+		if res {
+			updateStatusf("Dp file '%s' updated.", dpPath)
+		} else {
+			updateStatusf("Error updating file '%s'.", dpPath)
+		}
+	}
+
+	return changesMade
+}
+
 func updateStatusf(format string, v ...interface{}) {
 	status := fmt.Sprintf(format, v...)
 	updateStatus(status)
 }
 
 func updateStatus(status string) {
+	logging.LogDebugf("worker/updateStatus('%s')", status)
 	updateView := events.UpdateViewEvent{
 		Type: events.UpdateViewShowStatus, Status: status, Model: &workingModel}
 	out.DrawEvent(updateView)

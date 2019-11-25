@@ -196,7 +196,7 @@ func showStatus(m *model.Model, status string) {
 		filterMsg = fmt.Sprintf("Filter: '%s' | ", m.CurrentFilter())
 	}
 	if m.SyncModeOn {
-		syncMsg = fmt.Sprintf("Sync: '%s' -> (%s) '%s' | ", m.SyncDirLocal, m.SyncDomainDp, m.SyncDirDp)
+		syncMsg = fmt.Sprintf("Sync (%s/'%s' <- '%s') | ", m.SyncDpDomain, m.SyncDirDp, m.SyncDirLocal)
 	}
 
 	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)

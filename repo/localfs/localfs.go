@@ -73,7 +73,7 @@ func (r localRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]by
 	parentPath := currentView.Path
 	filePath := paths.GetFilePath(parentPath, fileName)
 
-	return getFileByPath(filePath)
+	return GetFileByPath(filePath)
 }
 
 func (r localRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error) {
@@ -277,11 +277,11 @@ func listFiles(dirPath string) ([]model.Item, error) {
 	return items, nil
 }
 
-func getFileByPath(filePath string) ([]byte, error) {
-	logging.LogDebugf("repo/localfs/getFileByPath('%s')", filePath)
+func GetFileByPath(filePath string) ([]byte, error) {
+	logging.LogDebugf("repo/localfs/GetFileByPath('%s')", filePath)
 	result, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		logging.LogDebugf("repo/localfs/getFileByPath('%s') - Error reading file (%v).", filePath, err)
+		logging.LogDebugf("repo/localfs/GetFileByPath('%s') - Error reading file (%v).", filePath, err)
 	}
 	return result, err
 }

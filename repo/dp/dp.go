@@ -1,34 +1,39 @@
 package dp
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"github.com/antchfx/jsonquery"
 	"github.com/antchfx/xmlquery"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/repo/dp/internal/dpnet"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 )
 
 // dpRepo contains basic DataPower repo information and implements Repo interface.
 type dpRepo struct {
-	name            string
-	dpFilestoreXml  string
-	invalidateCache bool
+	name               string
+	dpFilestoreXmls    map[string]string
+	invalidateCache    bool
+	dataPowerAppliance config.DataPowerAppliance
 }
 
-// Repo is instance or DataPower repo/Repo interface implementation.
-var Repo = dpRepo{name: "DpRepo"}
+// Repo is instance or DataPower repo/Repo interface implementation used for all
+// operations on DataPower except syncing local filesystem to DataPower.
+var Repo = dpRepo{name: "DpRepo", dpFilestoreXmls: make(map[string]string)}
 
-// InitNetworkSettings initializes DataPower client network configuration.
-func InitNetworkSettings() {
-	dpnet.InitNetworkSettings()
-}
+// SyncRepo is instance or DataPower repo/Repo interface implementation used for
+// syncing local directory to DataPower directory.
+var SyncRepo = dpRepo{name: "SyncDpRepo", dpFilestoreXmls: make(map[string]string)}
 
 func (r *dpRepo) String() string {
 	return r.name
@@ -38,11 +43,11 @@ func (r *dpRepo) GetInitialItem() model.Item {
 	logging.LogDebug("repo/dp/GetInitialItem()")
 	var initialConfig model.ItemConfig
 	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
-	if config.DpUseRest() || config.DpUseSoma() || *config.DpUsername != "" {
+	if r.dataPowerAppliance.RestUrl != "" || r.dataPowerAppliance.SomaUrl != "" || r.dataPowerAppliance.Username != "" {
 		initialConfig = model.ItemConfig{
 			Type:        model.ItemDpConfiguration,
 			DpAppliance: config.PreviousAppliance,
-			DpDomain:    *config.DpDomain,
+			DpDomain:    r.dataPowerAppliance.Domain,
 			Parent:      &initialConfigTop}
 	} else {
 		initialConfig = initialConfigTop
@@ -58,29 +63,29 @@ func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 	currPath := itemToShow.Path
 
 	var url string
-	if config.DpUseRest() {
-		url = *config.DpRestURL
-	} else if config.DpUseSoma() {
-		url = *config.DpSomaURL
+	if r.dataPowerAppliance.RestUrl != "" {
+		url = r.dataPowerAppliance.RestUrl
+	} else if r.dataPowerAppliance.SomaUrl != "" {
+		url = r.dataPowerAppliance.SomaUrl
 	} else {
 		logging.LogDebug("repo/dp/GetTitle(), using neither REST neither SOMA.")
 	}
 
-	return fmt.Sprintf("%s @ %s (%s) %s", *config.DpUsername, url, dpDomain, currPath)
+	return fmt.Sprintf("%s @ %s (%s) %s", r.dataPowerAppliance.Username, url, dpDomain, currPath)
 }
 func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
 	switch itemToShow.Type {
 	case model.ItemNone:
-		config.ClearDpConfig()
+		r.dataPowerAppliance = config.DataPowerAppliance{}
 		return listAppliances(), nil
 	case model.ItemDpConfiguration:
-		config.LoadDpConfig(itemToShow.DpAppliance)
+		r.dataPowerAppliance = config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
 		if itemToShow.DpDomain != "" {
 			return r.listFilestores(itemToShow)
 		}
-		return listDomains(itemToShow)
+		return r.listDomains(itemToShow)
 	case model.ItemDpDomain:
 		return r.listFilestores(itemToShow)
 	case model.ItemDpFilestore:
@@ -95,7 +100,7 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 
 func (r *dpRepo) InvalidateCache() {
 	logging.LogDebugf("repo/dp/InvalidateCache()")
-	if config.DpUseSoma() {
+	if r.dataPowerAppliance.SomaUrl != "" {
 		r.invalidateCache = true
 	}
 }
@@ -105,46 +110,50 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 	parentPath := currentView.Path
 	filePath := paths.GetDpPath(parentPath, fileName)
 
-	if config.DpUseRest() {
-		restPath := dpnet.MakeRestPath(currentView.DpDomain, filePath)
-		jsonString, err := dpnet.RestGet(restPath)
+	return r.GetFileByPath(currentView.DpDomain, filePath)
+}
+func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetFile('%s', '%s')", dpDomain, filePath)
+
+	if r.dataPowerAppliance.RestUrl != "" {
+		restPath := makeRestPath(dpDomain, filePath)
+		jsonString, err := r.restGet(restPath)
 		if err != nil {
 			return nil, err
 		}
 		// println("jsonString: " + jsonString)
 
 		if jsonString == "" {
-			return nil, errs.Error(fmt.Sprintf("Can't fetch file '%s' from '%s'", fileName, parentPath))
-		} else {
-			doc, err := jsonquery.Parse(strings.NewReader(jsonString))
-			if err != nil {
-				logging.LogDebug("repo/dp/GetFile() - Error parsing response JSON.", err)
-				return nil, err
-			}
-
-			// .filestore.location.directory /name
-			// work-around - for one directory we get JSON object, for multiple directories we get JSON array
-			fileNode := jsonquery.FindOne(doc, "/file")
-			if fileNode == nil {
-				errMsg := fmt.Sprintf("Can't find file '%s' on path '%s' from JSON response.", fileName, parentPath)
-				logging.LogDebug(errMsg)
-				return nil, errs.Error(errMsg)
-			}
-
-			fileB64 := fileNode.InnerText()
-			resultBytes, err := base64.StdEncoding.DecodeString(fileB64)
-			if err != nil {
-				logging.LogDebug("repo/dp/GetFile() - Error decoding base64 file.", err)
-				return nil, err
-			}
-
-			return resultBytes, nil
+			return nil, errs.Errorf("Can't fetch file '%s'.", filePath)
 		}
-	} else if config.DpUseSoma() {
+		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
+		if err != nil {
+			logging.LogDebug("repo/dp/GetFile() - Error parsing response JSON.", err)
+			return nil, err
+		}
+
+		// .filestore.location.directory /name
+		// work-around - for one directory we get JSON object, for multiple directories we get JSON array
+		fileNode := jsonquery.FindOne(doc, "/file")
+		if fileNode == nil {
+			errMsg := fmt.Sprintf("Can't find file '%s' from JSON response.", filePath)
+			logging.LogDebug(errMsg)
+			return nil, errs.Error(errMsg)
+		}
+
+		fileB64 := fileNode.InnerText()
+		resultBytes, err := base64.StdEncoding.DecodeString(fileB64)
+		if err != nil {
+			logging.LogDebug("repo/dp/GetFile() - Error decoding base64 file.", err)
+			return nil, err
+		}
+
+		return resultBytes, nil
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
+			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
 			"<dp:get-file name=\"" + filePath + "\"/></dp:request></soapenv:Body></soapenv:Envelope>"
-		somaResponse, err := dpnet.Soma(somaRequest)
+		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +165,7 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 		fileNode := xmlquery.FindOne(doc, "//*[local-name()='file']")
 
 		if fileNode == nil {
-			errMsg := fmt.Sprintf("Can't find file '%s' on path '%s' from SOMA response.", fileName, parentPath)
+			errMsg := fmt.Sprintf("Can't find file '%s' from SOMA response.", filePath)
 			logging.LogDebug(errMsg)
 			return nil, errs.Error(errMsg)
 		}
@@ -177,35 +186,42 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error) {
 	logging.LogDebugf("repo/dp/UpdateFile(%s, '%s', ...)\n", currentView, fileName)
 	parentPath := currentView.Path
-	fileType, err := r.GetFileType(currentView, parentPath, fileName)
+	filePath := paths.GetDpPath(parentPath, fileName)
+	return r.UpdateFileByPath(currentView.DpDomain, filePath, newFileContent)
+	// fileType, err := r.GetFileType(currentView, parentPath, fileName)
+}
+func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []byte) (bool, error) {
+	logging.LogDebugf("repo/dp/UpdateFile('%s', '%s', ...)\n", dpDomain, filePath)
+	fileType, err := r.GetFileTypeByPath(dpDomain, filePath, ".")
 	if err != nil {
 		return false, err
 	}
 
-	if config.DpUseRest() {
+	if r.dataPowerAppliance.RestUrl != "" {
 		updateFilePath := ""
 		restMethod := ""
 		switch fileType {
 		case model.ItemNone:
-			updateFilePath = parentPath
+			updateFilePath = paths.GetDpPath(filePath, "..")
 			restMethod = "POST"
 		case model.ItemFile:
-			updateFilePath = paths.GetDpPath(parentPath, fileName)
+			updateFilePath = filePath
 			restMethod = "PUT"
 		case model.ItemDirectory:
-			errMsg := fmt.Sprintf("Can't upload file '%s' to '%s', directory with same name exists.", fileName, parentPath)
+			errMsg := fmt.Sprintf("Can't upload file '%s', directory with same name exists.", filePath)
 			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		default:
-			errMsg := fmt.Sprintf("Can't upload file '%s' to '%s', type '%s' with same name exists.", fileName, parentPath, fileType)
+			errMsg := fmt.Sprintf("Can't upload file '%s', type '%s' with same name exists.", filePath, fileType)
 			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		}
 
+		_, fileName := splitOnLast(filePath, "/")
 		requestBody := "{\"file\":{\"name\":\"" + fileName + "\",\"content\":\"" + base64.StdEncoding.EncodeToString(newFileContent) + "\"}}"
 
-		restPath := dpnet.MakeRestPath(currentView.DpDomain, updateFilePath)
-		jsonString, err := dpnet.Rest(restPath, restMethod, requestBody)
+		restPath := makeRestPath(dpDomain, updateFilePath)
+		jsonString, err := r.rest(restPath, restMethod, requestBody)
 		if err != nil {
 			return false, err
 		}
@@ -218,21 +234,20 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 
 		jsonError := jsonquery.Find(doc, "/error")
 		if len(jsonError) != 0 {
-			errMsg := fmt.Sprintf("Uploading file '%s' to '%s', returned '%s'.", fileName, parentPath, jsonString)
+			errMsg := fmt.Sprintf("Uploading file '%s', returned '%s'.", filePath, jsonString)
 			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
 			return false, err
 		}
 
 		return true, nil
-	} else if config.DpUseSoma() {
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		switch fileType {
 		case model.ItemNone, model.ItemFile:
-			filePath := paths.GetDpPath(parentPath, fileName)
 			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
 				"<dp:set-file name=\"" + filePath + "\">" + base64.StdEncoding.EncodeToString(newFileContent) + "</dp:set-file>" +
 				"</dp:request></soapenv:Body></soapenv:Envelope>"
-			somaResponse, err := dpnet.Soma(somaRequest)
+			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
 				return false, err
 			}
@@ -241,7 +256,8 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 				logging.LogDebug("repo/dp/UpdateFile() - Error parsing response SOAP.", err)
 				return false, err
 			}
-			err = r.refreshSomaFiles(currentView)
+			parentPath := paths.GetDpPath(filePath, "..")
+			err = r.refreshSomaFilesByPath(dpDomain, parentPath)
 			if err != nil {
 				return false, err
 			}
@@ -253,11 +269,11 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 				}
 			}
 		case model.ItemDirectory:
-			errMsg := fmt.Sprintf("Can't upload file '%s' to '%s', directory with same name exists.", fileName, parentPath)
+			errMsg := fmt.Sprintf("Can't upload file '%s', directory with same name exists.", filePath)
 			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		default:
-			errMsg := fmt.Sprintf("Can't upload file '%s' to '%s', type '%s' with same name exists.", fileName, parentPath, fileType)
+			errMsg := fmt.Sprintf("Can't upload file '%s', type '%s' with same name exists.", filePath, fileType)
 			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		}
@@ -270,18 +286,23 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
 	logging.LogDebug(fmt.Sprintf("repo/dp/getFileType(%v, '%s', '%s')\n", viewConfig, parentPath, fileName))
 	dpDomain := viewConfig.DpDomain
+
+	return r.GetFileTypeByPath(dpDomain, parentPath, fileName)
+}
+
+func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model.ItemType, error) {
+	logging.LogDebug(fmt.Sprintf("repo/dp/GetFileTypeByPath('%s', '%s', '%s')\n", dpDomain, parentPath, fileName))
 	filePath := paths.GetDpPath(parentPath, fileName)
 
-	if config.DpUseRest() {
-		restPath := dpnet.MakeRestPath(dpDomain, filePath)
-		jsonString, err := dpnet.RestGet(restPath)
+	if r.dataPowerAppliance.RestUrl != "" {
+		restPath := makeRestPath(dpDomain, filePath)
+		jsonString, err := r.restGet(restPath)
 		if err != nil {
 			unexErr, ok := err.(errs.UnexpectedHTTPResponse)
 			if ok && unexErr.StatusCode == 404 {
 				return model.ItemNone, nil
-			} else {
-				return model.ItemNone, err
 			}
+			return model.ItemNone, err
 		}
 		// println("jsonString: " + jsonString)
 
@@ -309,14 +330,14 @@ func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName 
 		errMsg := fmt.Sprintf("Wrong JSON response: '%s'", jsonString)
 		logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
 		return model.ItemNone, errs.Error(errMsg)
-	} else if config.DpUseSoma() {
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		if parentPath != "" {
 			dpFilestoreLocation, _ := splitOnFirst(parentPath, "/")
 			dpFilestoreIsRoot := !strings.Contains(parentPath, "/")
 			var dpDirNodes []*xmlquery.Node
 			var dpFileNodes []*xmlquery.Node
 			if dpFilestoreIsRoot {
-				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 				if err != nil {
 					logging.LogFatal(err)
 				}
@@ -324,7 +345,7 @@ func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName 
 				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file[@name='"+fileName+"']")
 				// println(dpFilestoreLocation)
 			} else {
-				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 				if err != nil {
 					logging.LogFatal(err)
 				}
@@ -341,13 +362,12 @@ func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName 
 				return model.ItemNone, nil
 			}
 
-			errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXml)
+			errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXmls[dpFilestoreLocation])
 			logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
 			return model.ItemNone, errs.Error(errMsg)
-		} else {
-			if dpDomain != "" {
-				return model.ItemDpDomain, nil
-			}
+		}
+		if dpDomain != "" {
+			return model.ItemDpDomain, nil
 		}
 	}
 
@@ -360,19 +380,32 @@ func (r *dpRepo) GetFilePath(parentPath, fileName string) string {
 	return paths.GetDpPath(parentPath, fileName)
 }
 
+// func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
+// func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model.ItemType, error) {
+// func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, error) {
+// 	logging.LogDebugf("repo/dp/CreateDirByPath('%s', '%s', '%s')", dpDomain, parentPath, dirName)
+// 	fileType, err := r.GetFileTypeByPath(dpDomain, parentPath, dirName)
 func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
 	logging.LogDebugf("repo/dp/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
-	fileType, err := r.GetFileType(viewConfig, parentPath, dirName)
+	return r.CreateDirByPath(viewConfig.DpDomain, parentPath, dirName)
+}
+func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, error) {
+	logging.LogDebugf("repo/dp/CreateDirByPath('%s', '%s', '%s')", dpDomain, parentPath, dirName)
+	fileType, err := r.GetFileTypeByPath(dpDomain, parentPath, dirName)
+	// func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
+	// 	logging.LogDebugf("repo/dp/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
+	// 	fileType, err := r.GetFileType(viewConfig, parentPath, dirName)
 	if err != nil {
 		return false, err
 	}
+	// dpDomain := viewConfig.DpDomain
 
 	switch fileType {
 	case model.ItemNone:
-		if config.DpUseRest() {
+		if r.dataPowerAppliance.RestUrl != "" {
 			requestBody := "{\"directory\":{\"name\":\"" + dirName + "\"}}"
-			restPath := dpnet.MakeRestPath(viewConfig.DpDomain, parentPath)
-			jsonString, err := dpnet.Rest(restPath, "POST", requestBody)
+			restPath := makeRestPath(dpDomain, parentPath)
+			jsonString, err := r.rest(restPath, "POST", requestBody)
 			if err != nil {
 				return false, err
 			}
@@ -389,14 +422,14 @@ func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName str
 				return true, nil
 			}
 			errMsg := fmt.Sprintf("Can't create dir '%s' at '%s', json returned : '%s'.", dirName, parentPath, jsonString)
-			logging.LogDebugf("repo/dp/CreateDir() - %v", errMsg)
+			logging.LogDebugf("repo/dp/CreateDirByPath() - %v", errMsg)
 			return false, errs.Error(errMsg)
-		} else if config.DpUseSoma() {
+		} else if r.dataPowerAppliance.SomaUrl != "" {
 			dirPath := r.GetFilePath(parentPath, dirName)
 			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + viewConfig.DpDomain + "\">" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
 				"<dp:do-action><CreateDir><Dir>" + dirPath + "</Dir></CreateDir></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
-			somaResponse, err := dpnet.Soma(somaRequest)
+			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
 				return false, err
 			}
@@ -405,7 +438,7 @@ func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName str
 				logging.LogDebug("Error parsing response SOAP.", err)
 				return false, err
 			}
-			r.refreshSomaFiles(viewConfig)
+			r.refreshSomaFilesByPath(dpDomain, dirPath)
 			resultNode := xmlquery.FindOne(doc, "//*[local-name()='response']/*[local-name()='result']")
 			if resultNode != nil {
 				resultText := strings.Trim(resultNode.InnerText(), " \n\r\t")
@@ -414,16 +447,16 @@ func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName str
 				}
 			}
 			errMsg := fmt.Sprintf("Error creating '%s' dir in path '%s'", dirName, parentPath)
-			logging.LogDebug("repo/dp/CreateDir() - %s", errMsg)
+			logging.LogDebug("repo/dp/CreateDirByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		}
-		logging.LogDebug("repo/dp/CreateDir(), using neither REST neither SOMA.")
+		logging.LogDebug("repo/dp/CreateDirByPath(), using neither REST neither SOMA.")
 		return false, errs.Error("DataPower management interface not set.")
 	case model.ItemDirectory:
 		return true, nil
 	default:
 		errMsg := fmt.Sprintf("Can't create dir '%s' at '%s' (%v) with same name exists.", dirName, parentPath, fileType)
-		logging.LogDebugf("repo/dp/CreateDir() - %s", errMsg)
+		logging.LogDebugf("repo/dp/CreateDirByPath() - %s", errMsg)
 		return false, nil
 	}
 }
@@ -432,9 +465,9 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName stri
 	logging.LogDebugf("repo/dp/Delete(%v, '%s', '%s')", currentView, parentPath, fileName)
 	filePath := r.GetFilePath(parentPath, fileName)
 
-	if config.DpUseRest() {
-		restPath := dpnet.MakeRestPath(currentView.DpDomain, filePath)
-		jsonString, err := dpnet.Rest(restPath, "DELETE", "")
+	if r.dataPowerAppliance.RestUrl != "" {
+		restPath := makeRestPath(currentView.DpDomain, filePath)
+		jsonString, err := r.rest(restPath, "DELETE", "")
 		if err != nil {
 			return false, err
 		}
@@ -450,7 +483,7 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName stri
 		if len(error) == 0 {
 			return true, nil
 		}
-	} else if config.DpUseSoma() {
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		fileType, err := r.GetFileType(currentView, parentPath, fileName)
 		if err != nil {
 			return false, err
@@ -466,7 +499,7 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName stri
 				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
 				"<dp:do-action><DeleteFile><File>" + filePath + "</File></DeleteFile></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
 		}
-		somaResponse, err := dpnet.Soma(somaRequest)
+		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
 			return false, err
 		}
@@ -548,9 +581,9 @@ func listAppliances() model.ItemList {
 }
 
 // listDomains loads DataPower domains from current DataPower.
-func listDomains(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
+func (r *dpRepo) listDomains(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listDomains('%s')", selectedItemConfig)
-	domainNames, err := fetchDpDomains()
+	domainNames, err := r.fetchDpDomains()
 	if err != nil {
 		return nil, err
 	}
@@ -575,8 +608,8 @@ func listDomains(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 // listFilestores loads DataPower filestores in current domain (cert:, local:,..).
 func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listFilestores('%s')", selectedItemConfig)
-	if config.DpUseRest() {
-		jsonString, err := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
+	if r.dataPowerAppliance.RestUrl != "" {
+		jsonString, err := r.restGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
 		if err != nil {
 			return nil, err
 		}
@@ -607,12 +640,12 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 		sort.Sort(items)
 
 		return items, nil
-	} else if config.DpUseSoma() {
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
 			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
 			"<dp:get-filestore layout-only=\"true\" no-subdirectories=\"true\"/></dp:request>" +
 			"</soapenv:Body></soapenv:Envelope>"
-		dpFilestoresXML, err := dpnet.Soma(somaRequest)
+		dpFilestoresXML, err := r.soma(somaRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -662,13 +695,32 @@ func (r *dpRepo) listDpDir(selectedItemConfig *model.ItemConfig) (model.ItemList
 	return itemsWithParentDir, nil
 }
 
+func (r *dpRepo) fetchFilestoreIfNeeded(dpDomain, dpFilestoreLocation string, forceReload bool) error {
+	if r.dataPowerAppliance.SomaUrl != "" {
+		// If we open filestore or open file but want to reload - refresh current filestore XML cache.
+		if forceReload || r.invalidateCache || r.dpFilestoreXmls[dpFilestoreLocation] == "" {
+			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
+				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
+				"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\" location=\"" + dpFilestoreLocation + "\"/></dp:request>" +
+				"</soapenv:Body></soapenv:Envelope>"
+			var err error
+			r.dpFilestoreXmls[dpFilestoreLocation], err = r.soma(somaRequest)
+			if err != nil {
+				return err
+			}
+			r.invalidateCache = false
+		}
+	}
+	return nil
+}
+
 func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, error) {
 	logging.LogDebugf("repo/dp/listFiles('%s')", selectedItemConfig)
 
-	if config.DpUseRest() {
+	if r.dataPowerAppliance.RestUrl != "" {
 		items := make(model.ItemList, 0)
 		currRestDirPath := strings.Replace(selectedItemConfig.Path, ":", "", 1)
-		jsonString, err := dpnet.RestGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
+		jsonString, err := r.restGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
 		if err != nil {
 			return nil, err
 		}
@@ -711,28 +763,21 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 
 		sort.Sort(items)
 		return items, nil
-	} else if config.DpUseSoma() {
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		dpFilestoreLocation, _ := splitOnFirst(selectedItemConfig.Path, "/")
 		dpFilestoreIsRoot := !strings.Contains(selectedItemConfig.Path, "/")
 		var dpDirNodes []*xmlquery.Node
 		var dpFileNodes []*xmlquery.Node
 
 		// If we open filestore or open file but want to reload - refresh current filestore XML cache.
-		if dpFilestoreIsRoot || r.invalidateCache {
-			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
-				"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\" location=\"" + dpFilestoreLocation + "\"/></dp:request>" +
-				"</soapenv:Body></soapenv:Envelope>"
-			var err error
-			r.dpFilestoreXml, err = dpnet.Soma(somaRequest)
-			if err != nil {
-				return nil, err
-			}
-			r.invalidateCache = false
+		err := r.fetchFilestoreIfNeeded(selectedItemConfig.DpDomain, dpFilestoreLocation, dpFilestoreIsRoot)
+		if err != nil {
+			logging.LogDebug("Error parsing response JSON.", err)
+			return nil, err
 		}
 
 		if dpFilestoreIsRoot {
-			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 			if err != nil {
 				logging.LogDebug("Error parsing response JSON.", err)
 				return nil, err
@@ -741,7 +786,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file")
 			// println(dpFilestoreLocation)
 		} else {
-			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXml))
+			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 			if err != nil {
 				logging.LogFatal(err)
 			}
@@ -788,40 +833,40 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 }
 
 func (r *dpRepo) refreshSomaFiles(viewConfig *model.ItemConfig) error {
-	if config.DpUseSoma() {
-		switch viewConfig.Type {
-		case model.ItemDpFilestore:
-			r.InvalidateCache()
-			_, err := r.listFiles(viewConfig)
-			return err
-		case model.ItemDirectory:
-			return r.refreshSomaFiles(viewConfig.Parent)
-		default:
+	return r.refreshSomaFilesByPath(viewConfig.DpDomain, viewConfig.Path)
+}
+func (r *dpRepo) refreshSomaFilesByPath(dpDomain, path string) error {
+	if r.dataPowerAppliance.SomaUrl != "" {
+		filestoreEndIdx := strings.Index(path, ":")
+		if filestoreEndIdx == -1 {
 			return nil
 		}
+
+		dpFilestoreLocation := path[:filestoreEndIdx] + ":"
+		err := r.fetchFilestoreIfNeeded(dpDomain, dpFilestoreLocation, true)
+		return err
 	}
 
-	logging.LogDebug("repo/dp/refreshSomaFiles() - called for non-SOMA.")
-	return errs.Error("Internal error - refreshSomaFiles() called for non-SOMA.")
-
+	logging.LogDebug("repo/dp/refreshSomaFilesByPath() - called for non-SOMA.")
+	return errs.Error("Internal error - refreshSomaFilesByPath() called for non-SOMA.")
 }
 
-func findItemConfigParentDomain(itemConfig *model.ItemConfig) *model.ItemConfig {
+func (r *dpRepo) findItemConfigParentDomain(itemConfig *model.ItemConfig) *model.ItemConfig {
 	if itemConfig.Type == model.ItemDpDomain {
 		return itemConfig
 	}
 	if itemConfig.Parent == nil {
 		return nil
 	}
-	return findItemConfigParentDomain(itemConfig.Parent)
+	return r.findItemConfigParentDomain(itemConfig.Parent)
 }
 
-func fetchDpDomains() ([]string, error) {
+func (r *dpRepo) fetchDpDomains() ([]string, error) {
 	logging.LogDebug("repo/dp/fetchDpDomains()")
 	domains := make([]string, 0)
 
-	if config.DpUseRest() {
-		bodyString, err := dpnet.RestGet("/mgmt/domains/config/")
+	if r.dataPowerAppliance.RestUrl != "" {
+		bodyString, err := r.restGet("/mgmt/domains/config/")
 		if err != nil {
 			return nil, err
 		}
@@ -836,11 +881,11 @@ func fetchDpDomains() ([]string, error) {
 		for _, n := range list {
 			domains = append(domains, n.InnerText())
 		}
-	} else if config.DpUseSoma() {
+	} else if r.dataPowerAppliance.SomaUrl != "" {
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
 			"<soapenv:Body><dp:GetDomainListRequest xmlns:dp=\"http://www.datapower.com/schemas/appliance/management/1.0\"/></soapenv:Body>" +
 			"</soapenv:Envelope>"
-		somaResponse, err := dpnet.Amp(somaRequest)
+		somaResponse, err := r.amp(somaRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -890,4 +935,90 @@ func splitOnLast(wholeString string, splitterString string) (string, string) {
 	}
 
 	return prefix, suffix
+}
+
+// InitNetworkSettings initializes DataPower client network configuration.
+func (r *dpRepo) InitNetworkSettings(dpa config.DataPowerAppliance) {
+	logging.LogDebug("repo/dp/InitNetworkSettings(%v)", dpa)
+	r.dataPowerAppliance = dpa
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	if r.dataPowerAppliance.Proxy != "" {
+		proxyURL, err := url.Parse(r.dataPowerAppliance.Proxy)
+		if err != nil {
+			logging.LogFatal("Couldn't initialize network settings to access DataPower.", err)
+		}
+		http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(proxyURL)
+	}
+}
+
+// rest makes http request from relative URL path given, method and body.
+func (r *dpRepo) rest(urlPath, method, body string) (string, error) {
+	fullURL := r.dataPowerAppliance.RestUrl + urlPath
+	return r.httpRequest(fullURL, method, body)
+}
+
+// restGet makes DataPower REST GET request.
+func (r *dpRepo) restGet(urlPath string) (string, error) {
+	return r.rest(urlPath, "GET", "")
+}
+
+// amp makes DataPower AMP request.
+func (r *dpRepo) amp(body string) (string, error) {
+	return r.httpRequest(r.dataPowerAppliance.SomaUrl+"/service/mgmt/amp/1.0", "POST", body)
+}
+
+// soma makes DataPower SOMA request.
+func (r *dpRepo) soma(body string) (string, error) {
+	return r.httpRequest(r.dataPowerAppliance.SomaUrl+"/service/mgmt/current", "POST", body)
+}
+
+// httpRequest makes DataPower HTTP request.
+func (r *dpRepo) httpRequest(urlFullPath, method, body string) (string, error) {
+	logging.LogTracef("repo/dp/httpRequest(%s, %s, '%s')", urlFullPath, method, body)
+
+	client := &http.Client{}
+	var bodyReader io.Reader
+	if body != "" {
+		bodyReader = strings.NewReader(body)
+	}
+	req, err := http.NewRequest(method, urlFullPath, bodyReader)
+	if err != nil {
+		logging.LogDebug("repo/dp/httpRequest() - Can't prepare request: ", err)
+		return "", err
+	}
+
+	req.SetBasicAuth(r.dataPowerAppliance.Username, r.dataPowerAppliance.DpPlaintextPassword())
+	resp, err := client.Do(req)
+
+	if err != nil {
+		logging.LogDebug("repo/dp/httpRequest() - Can't send request: ", err)
+		return "", err
+		// 2019/10/22 08:39:14 dp Can't send request: Post https://10.123.56.55:5550/service/mgmt/current: dial tcp 10.123.56.55:5550: i/o timeout
+		//exit status 1
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			logging.LogDebug("repo/dp/httpRequest() - Can't read response: ", err)
+			return "", err
+		}
+		logging.LogTracef("repo/dp/httpRequest() - httpResponse: '%s'", string(bodyBytes))
+		return string(bodyBytes), nil
+	}
+	// logging.LogTracef("repo/dp/httpRequest() - resp.StatusCode: '%d'", resp.StatusCode)
+	// if resp.StatusCode == 403 || resp.StatusCode == 404 {
+	// 	return ""
+	// }
+	logging.LogDebugf("repo/dp/httpRequest() - HTTP %s call to '%s' returned HTTP StatusCode %v (%s)",
+		method, urlFullPath, resp.StatusCode, resp.Status)
+	return "", errs.UnexpectedHTTPResponse{StatusCode: resp.StatusCode, Status: resp.Status}
+}
+
+// makeRestPath creates DataPower REST path to given domain.
+func makeRestPath(dpDomain, filePath string) string {
+	logging.LogDebugf("repo/dp/makeRestPath('%s', '%s')", dpDomain, filePath)
+	currRestFilePath := strings.Replace(filePath, ":", "", 1)
+	return "/mgmt/filestore/" + dpDomain + "/" + currRestFilePath
 }

@@ -12,6 +12,9 @@ func GetFilePath(parentPath, fileName string) string {
 
 // GetDpPath generates local os correct path from parentPath and fileName.
 func GetDpPath(parentPath, fileName string) string {
+	if fileName == "." {
+		return parentPath
+	}
 	return GetFilePathUsingSeparator(parentPath, fileName, "/")
 }
 

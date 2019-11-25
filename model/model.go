@@ -78,7 +78,7 @@ type Model struct {
 	SearchBy            string
 	SyncModeOn          bool
 	SyncInitial         bool
-	SyncDomainDp        string
+	SyncDpDomain        string
 	SyncDirDp           string
 	SyncDirLocal        string
 	statuses            []string

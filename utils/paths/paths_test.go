@@ -10,8 +10,10 @@ func TestGetDpPath(t *testing.T) {
 		{"local:/dir1/dir2", "myfile", "local:/dir1/dir2/myfile"},
 		{"local:", "myfile", "local:/myfile"},
 		{"local:/dir1/dir2", "..", "local:/dir1"},
+		{"local:/dir1/dir2", ".", "local:/dir1/dir2"},
 		{"local:/dir1", "..", "local:"},
 		{"local:", "..", "local:"},
+		{"local:", ".", "local:"},
 	}
 	for _, testCase := range testDataMatrix {
 		newPath := GetDpPath(testCase[0], testCase[1])
