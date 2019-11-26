@@ -80,7 +80,7 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	switch itemToShow.Type {
 	case model.ItemNone:
 		r.dataPowerAppliance = config.DataPowerAppliance{}
-		return listAppliances(), nil
+		return listAppliances()
 	case model.ItemDpConfiguration:
 		r.dataPowerAppliance = config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
 		if itemToShow.DpDomain != "" {
@@ -559,7 +559,7 @@ func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath stri
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
-func listAppliances() model.ItemList {
+func listAppliances() (model.ItemList, error) {
 	appliances := config.Conf.DataPowerAppliances
 	logging.LogDebugf("repo/dp/listAppliances(), appliances: %v", appliances)
 
@@ -578,7 +578,12 @@ func listAppliances() model.ItemList {
 	sort.Sort(items)
 	logging.LogDebugf("repo/dp/listAppliances(), items: %v", items)
 
-	return items
+	var err error
+	if len(items) == 0 {
+		err = errs.Error("No appliances found, have to configure dpcmder with command line params first.")
+	}
+
+	return items, err
 }
 
 // listDomains loads DataPower domains from current DataPower.

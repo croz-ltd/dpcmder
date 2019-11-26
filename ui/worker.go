@@ -81,6 +81,7 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	itemList, err := repo.GetList(initialItem.Config)
 	if err != nil {
 		logging.LogDebug("ui/initialLoadRepo(): ", err)
+		updateStatus(err.Error())
 		return
 	}
 	workingModel.SetItems(side, itemList)
@@ -121,7 +122,6 @@ func ProcessInputEvent(keyCode key.KeyCode) error {
 		case nil:
 			// If no error occurs.
 		default:
-			updateStatus(err.Error())
 			switch err.(type) {
 			case errs.UnexpectedHTTPResponse:
 				setCurrentDpPlainPassword("")
@@ -344,6 +344,9 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 
 func enterCurrentDirectory() error {
 	item := workingModel.CurrItem()
+	if item == nil {
+		return errs.Error("Nothing found, can't enter current directory.")
+	}
 	return showItem(workingModel.CurrSide(), item.Config, item.Name)
 }
 

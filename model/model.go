@@ -239,6 +239,9 @@ func (m *Model) IsCurrentRow(side Side, rowIdx int) bool {
 
 // CurrItemForSide returns current item under cursor for given side.
 func (m *Model) CurrItemForSide(side Side) *Item {
+	if len(m.items[side]) == 0 {
+		return nil
+	}
 	return &m.items[side][m.currItemIdx[side]]
 }
 
