@@ -37,9 +37,6 @@ var DebugLogFile *bool
 // TraceLogFile enables writing of trace messages to dpcmder.log file in current folder.
 var TraceLogFile *bool
 
-// Help flag shows dpcmder usage help.
-var Help *bool
-
 // DataPower configuration from command flags.
 var (
 	dpRestURL    *string
@@ -49,6 +46,7 @@ var (
 	dpDomain     *string
 	proxy        *string
 	DpConfigName *string
+	help         *bool
 )
 
 // DpTransientPasswordMap contains passwords entered through dpcmder usage and not saved to config.
@@ -145,7 +143,7 @@ func parseProgramArgs() {
 	DpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
 	DebugLogFile = flag.Bool("debug", false, "Write debug dpcmder.log file in current dir")
 	TraceLogFile = flag.Bool("trace", false, "Write trace dpcmder.log file in current dir")
-	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
+	help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
 	flag.Parse()
 	SetDpPasswordPlain(*password)
@@ -165,7 +163,7 @@ func Init() {
 // validateProgramArgs validate parsed program arguments and/or shows usage
 // message in case some mandatory arguments are missing.
 func validateProgramArgs() {
-	if *Help {
+	if *help {
 		usage(0)
 	}
 
@@ -276,10 +274,10 @@ func PrintConfig() {
 	fmt.Println("dpDomain: ", *dpDomain)
 	fmt.Println("proxy: ", *proxy)
 	fmt.Println("DpConfigName: ", *DpConfigName)
-	fmt.Println("Help: ", *Help)
+	fmt.Println("help: ", *help)
 }
 
-// PrintConfig prints configuration values to console.
+// LogConfig logs configuration values to log file.
 func LogConfig() {
 	logging.LogDebug("LocalFolderPath: ", *LocalFolderPath)
 	logging.LogDebug("dpRestURL: ", *dpRestURL)
@@ -289,7 +287,7 @@ func LogConfig() {
 	logging.LogDebug("dpDomain: ", *dpDomain)
 	logging.LogDebug("proxy: ", *proxy)
 	logging.LogDebug("DpConfigName: ", *DpConfigName)
-	logging.LogDebug("Help: ", *Help)
+	logging.LogDebug("help: ", *help)
 }
 
 func usage(exitStatus int) {
