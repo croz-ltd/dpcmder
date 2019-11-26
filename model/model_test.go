@@ -2,132 +2,121 @@ package model
 
 import (
 	"fmt"
+	"github.com/croz-ltd/dpcmder/utils/assert"
 	"reflect"
 	"testing"
 )
 
+// ItemType methods tests
+
+func TestItemTypeString(t *testing.T) {
+	types := []ItemType{ItemFile, ItemDirectory, ItemDpConfiguration, ItemDpDomain, ItemDpFilestore, ItemNone}
+	wantArr := []string{"f", "d", "A", "D", "F", "-"}
+
+	for idx, gotType := range types {
+		got := gotType.String()
+		want := wantArr[idx]
+		assert.DeepEqual(t, "ItemType.String()", want, got)
+	}
+}
+
+// ItemConfig methods tests
+
+func TestItemConfigEquals(t *testing.T) {
+	itemDp1a := ItemConfig{DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{}}
+	itemDp1b := ItemConfig{DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{DpAppliance: "other"}}
+	itemDp2 := ItemConfig{DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello", Parent: &ItemConfig{}}
+	itemLocal1a := ItemConfig{Path: "/hello/world/dir", Parent: &ItemConfig{}}
+	itemLocal1b := ItemConfig{Path: "/hello/world/dir", Parent: &ItemConfig{Path: "/asdf"}}
+	itemLocal2 := ItemConfig{Path: "/hello/world/dirother", Parent: &ItemConfig{Path: "/asdf"}}
+
+	testDataMatrix := []struct {
+		one   ItemConfig
+		other *ItemConfig
+		res   bool
+	}{
+		{itemDp1a, nil, false},
+		{itemDp1a, &itemDp1b, true},
+		{itemDp1a, &itemDp1a, true},
+		{itemDp1b, &itemDp1a, true},
+		{itemDp1a, &itemDp2, false},
+		{itemDp1a, &itemLocal1a, false},
+		{itemDp1a, &itemLocal2, false},
+		{itemLocal1a, nil, false},
+		{itemLocal1a, &itemLocal1a, true},
+		{itemLocal1a, &itemLocal1b, true},
+		{itemLocal1b, &itemLocal1a, true},
+		{itemLocal1a, &itemLocal2, false},
+		{itemLocal1a, &itemDp1a, false},
+	}
+
+	for _, testRow := range testDataMatrix {
+		gotRes := testRow.one.Equals(testRow.other)
+		extectedRes := testRow.res
+		assert.DeepEqual(t, "ItemConfig.Equals()", extectedRes, gotRes)
+	}
+}
+
+func TestItemConfigString(t *testing.T) {
+	itemDp := ItemConfig{Type: ItemDirectory, DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{Type: ItemNone}}
+	assert.DeepEqual(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local: IC(-, '', '' ()  <nil>))", itemDp.String())
+}
+
 // Item methods tests
 
-func TestItemString(t *testing.T) {
-	item := Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
+func TestItemDisplayString(t *testing.T) {
+	item := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
 
-	got := item.String()
+	got := item.DisplayString()
 	want := "f       3000 2019-02-06 14:06:10 master"
-	if got != want {
-		t.Errorf("Got: %s, want: %s.", got, want)
-	}
+	assert.DeepEqual(t, "Item.GetDisplayableType()", want, got)
 }
 func TestItemGetDisplayableType(t *testing.T) {
 	itemList := prepareAllTypesItemList()
 
-	displayedType := []string{"", "", "", "d", "f"}
+	displayedType := []string{"A", "D", "F", "d", "f"}
 
 	for idx := 0; idx < len(displayedType); idx++ {
 		got := itemList[idx].GetDisplayableType()
 		want := displayedType[idx]
-		if got != want {
-			t.Errorf("Got: %s, want: %s (item: %v).", got, want, itemList[idx])
-		}
+		assert.DeepEqual(t, "Item.GetDisplayableType()", want, got)
 	}
 }
-func TestItemIsFile(t *testing.T) {
-	itemList := prepareAllTypesItemList()
-
-	files := []bool{false, false, false, false, true}
-
-	for idx := 0; idx < len(files); idx++ {
-		got := itemList[idx].IsFile()
-		want := files[idx]
-		if got != want {
-			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
-		}
-	}
-}
-func TestItemIsDirectory(t *testing.T) {
-	itemList := prepareAllTypesItemList()
-
-	dirs := []bool{false, false, false, true, false}
-
-	for idx := 0; idx < len(dirs); idx++ {
-		got := itemList[idx].IsDirectory()
-		want := dirs[idx]
-		if got != want {
-			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
-		}
-	}
-}
-func TestItemIsDpAppliance(t *testing.T) {
-	itemList := prepareAllTypesItemList()
-
-	datapowers := []bool{true, false, false, false, false}
-
-	for idx := 0; idx < len(datapowers); idx++ {
-		got := itemList[idx].IsDpAppliance()
-		want := datapowers[idx]
-		if got != want {
-			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
-		}
-	}
-}
-func TestItemIsDpDomain(t *testing.T) {
-	itemList := prepareAllTypesItemList()
-
-	domains := []bool{false, true, false, false, false}
-
-	for idx := 0; idx < len(domains); idx++ {
-		got := itemList[idx].IsDpDomain()
-		want := domains[idx]
-		if got != want {
-			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
-		}
-	}
-}
-func TestItemIsDpFilestore(t *testing.T) {
-	itemList := prepareAllTypesItemList()
-
-	filestores := []bool{false, false, true, false, false}
-
-	for idx := 0; idx < len(filestores); idx++ {
-		got := itemList[idx].IsDpFilestore()
-		want := filestores[idx]
-		if got != want {
-			t.Errorf("Got: %v, want: %v (item: %v).", got, want, itemList[idx])
-		}
-	}
+func TestItemString(t *testing.T) {
+	item := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
+	assert.DeepEqual(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' ()  <nil>))", item.String())
 }
 
 // ItemList methods tests
 
 func prepareItemList() ItemList {
 	return ItemList{
-		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'd', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'f', Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
-		Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDirectory, Path: "/path1"}, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDirectory, Path: "/path2"}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path3"}, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path4"}, Name: "Macro", Size: "2000", Modified: "2019-02-06 13:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path5"}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path6"}, Name: "mister", Size: "3001", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path7"}, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path8"}, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path9"}, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
 	}
 }
 
 func prepareAllTypesItemList() ItemList {
 	return ItemList{
-		Item{Type: 'A', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'D', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'F', Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Type: 'd', Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
-		Item{Type: 'f', Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpConfiguration}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpDomain}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpFilestore}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDirectory}, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
 	}
 }
 func TestItemListLen(t *testing.T) {
 	itemList := prepareItemList()
 	gotLen := itemList.Len()
 	expectedLen := 9
-	if gotLen != expectedLen {
-		t.Errorf("Got len: %d, want len: %d.", gotLen, expectedLen)
-	}
+	assert.DeepEqual(t, "ItemList.Len()", expectedLen, gotLen)
 }
 func TestItemListLess(t *testing.T) {
 	itemList := prepareItemList()
@@ -148,11 +137,8 @@ func TestItemListLess(t *testing.T) {
 
 	for _, testRow := range testDataMatrix {
 		gotRes := itemList.Less(testRow.i, testRow.j)
-		extectedRes := testRow.res
-		if gotRes != extectedRes {
-			t.Errorf("Got res: %v, want res: %v (%d - '%v', %d - '%v').",
-				gotRes, extectedRes, testRow.i, itemList[testRow.i], testRow.j, itemList[testRow.j])
-		}
+		expectedRes := testRow.res
+		assert.DeepEqual(t, "ItemList.Less()", expectedRes, gotRes)
 	}
 }
 func TestItemListSwap(t *testing.T) {
@@ -161,54 +147,16 @@ func TestItemListSwap(t *testing.T) {
 	itemList.Swap(0, 4)
 
 	gotItem := itemList[0]
-	expectedItem := Item{Type: 'f', Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
+	expectedItem := Item{Config: &ItemConfig{Type: ItemFile, Path: "/path5"}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: false}
 
-	if gotItem != expectedItem {
-		t.Errorf("Got item: %v, want item: %v.", gotItem, expectedItem)
-	}
+	assert.DeepEqual(t, "ItemList.Swap()", expectedItem, gotItem)
 }
 
 // Model methods tests
 
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
-	if got != want {
-		t.Errorf("checkCurr - got '%v' but want '%v' (%s).", got, want, msg)
-	}
-}
-
-func TestModelM(t *testing.T) {
-	if M.currSide != Left {
-		t.Errorf("Initial model currSide should be Left (%v) but is (%v).", Left, M.currSide)
-	}
-}
-
-func TestModelDpAppliance(t *testing.T) {
-	model := Model{}
-
-	if model.DpAppliance() != "" {
-		t.Errorf("Initial model DpAppliance should be '' but is '%s'.", model.DpAppliance())
-	}
-
-	applianceName := "MyLocalDp"
-	model.SetDpAppliance(applianceName)
-	if model.DpAppliance() != applianceName {
-		t.Errorf("Changed model DpAppliance should be '%s' but is '%s'.", applianceName, model.DpAppliance())
-	}
-}
-
-func TestModelDpDomain(t *testing.T) {
-	model := Model{}
-
-	if model.DpDomain() != "" {
-		t.Errorf("Initial model DpDomain should be '' but is '%s'.", model.DpDomain())
-	}
-
-	domainName := "my domain name"
-	model.SetDpDomain(domainName)
-	if model.DpDomain() != domainName {
-		t.Errorf("Changed model DpDomain should be '%s' but is '%s'.", domainName, model.DpDomain())
-	}
+	assert.DeepEqual(t, "Model.CurrItem()", want, got)
 }
 
 func TestModelTitle(t *testing.T) {
@@ -220,13 +168,25 @@ func TestModelTitle(t *testing.T) {
 			t.Errorf("Model Title(%v) should be '%s' but is '%s'.", side, wantedTitle, model.Title(side))
 		}
 	}
+	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig) {
+		t.Helper()
+		if model.ViewConfig(side) != wantedViewConfig {
+			t.Errorf("Model ViewConfig(%v) should be '%s' but is '%s'.", side, wantedViewConfig, model.ViewConfig(side))
+		}
+	}
 	checkTitle(Left, "")
 	checkTitle(Right, "")
+	checkViewConfig(Left, nil)
+	checkViewConfig(Right, nil)
 
-	model.SetTitle(Left, "Left Title")
-	model.SetTitle(Right, "Right Title")
+	itemConfig1 := &ItemConfig{Path: "/path/1"}
+	itemConfig2 := &ItemConfig{Path: "/path/2"}
+	model.SetCurrentView(Left, itemConfig1, "Left Title")
+	model.SetCurrentView(Right, itemConfig2, "Right Title")
 	checkTitle(Left, "Left Title")
 	checkTitle(Right, "Right Title")
+	checkViewConfig(Left, itemConfig1)
+	checkViewConfig(Right, itemConfig2)
 }
 
 func TestModelToggleSide(t *testing.T) {
@@ -293,7 +253,7 @@ func TestModelSetItemsAndFiltering(t *testing.T) {
 func TestModelGetVisibleItemCount(t *testing.T) {
 	model := Model{}
 
-	model.SetItemsMaxSize(3, 30)
+	model.ItemMaxRows = 3
 	got := model.GetVisibleItemCount(Left)
 	want := 0
 	if got != want {
@@ -313,7 +273,7 @@ func TestModelVisibleItems(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxSize(4, 30)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -346,7 +306,7 @@ func TestModelNavigate(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxSize(4, 30)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -409,7 +369,7 @@ func TestModelSelect(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxSize(4, 30)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -433,7 +393,7 @@ func TestModelSelect(t *testing.T) {
 		}
 	}
 
-	model.SetCurrPath("/some/path")
+	model.SetCurrentView(side, &ItemConfig{Path: "/some/path"}, "Some Title")
 	selectionTestMatrix := []struct {
 		sf         []selectionFunc
 		selItemIdx []int
@@ -475,7 +435,7 @@ func TestModelCurrentRow(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxSize(4, 30)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -494,7 +454,7 @@ func TestModelSetCurrItemForSide(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
-	model.SetItemsMaxSize(4, 30)
+	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
 
@@ -505,6 +465,24 @@ func TestModelSetCurrItemForSide(t *testing.T) {
 	checkCurrentRow(t, model, side, 3, false)
 
 	checkCurrItem(t, model, items[6], "")
+}
+
+func TestModelSetCurrItemForSideAndConfig(t *testing.T) {
+	model := Model{}
+	side := model.CurrSide()
+
+	model.ItemMaxRows = 4
+	items := prepareItemList()
+	model.SetItems(side, items)
+
+	checkCurrentRow(t, model, side, 0, true)
+
+	itemConfig := ItemConfig{Path: "/path4"}
+	model.SetCurrItemForSideAndConfig(side, &itemConfig)
+	checkCurrentRow(t, model, side, 0, false)
+	checkCurrentRow(t, model, side, 3, true)
+
+	checkCurrItem(t, model, items[3], "")
 }
 
 func TestModelSortSide(t *testing.T) {
@@ -574,4 +552,24 @@ func TestModelSearch(t *testing.T) {
 
 	model.SearchPrev("ali")
 	checkCurrItem(t, model, items[0], "Prev 'ali'")
+}
+
+func TestStatusHandling(t *testing.T) {
+	model := Model{}
+	assert.DeepEqual(t, "LastStatus()", "", model.LastStatus())
+	testStatuses := []string{"Status event no 1",
+		"Status event no 2",
+		"Status event no 3"}
+	model.AddStatus(testStatuses[0])
+	model.AddStatus(testStatuses[1])
+	model.AddStatus(testStatuses[2])
+
+	assert.DeepEqual(t, "LastStatus()", testStatuses[2], model.LastStatus())
+	assert.DeepEqual(t, "Statuses()", testStatuses, model.Statuses())
+
+	for index := 0; index < maxStatusCount; index++ {
+		model.AddStatus(fmt.Sprintf("Status event new no %d", index))
+	}
+	assert.DeepEqual(t, "LastStatus()", fmt.Sprintf("Status event new no %d", maxStatusCount-1), model.LastStatus())
+	assert.DeepEqual(t, "Statuses() size", maxStatusCount, len(model.Statuses()))
 }

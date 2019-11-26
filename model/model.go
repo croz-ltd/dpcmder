@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/croz-ltd/dpcmder/utils/logging"
 	"reflect"
 	"sort"
 	"strings"
@@ -16,14 +17,46 @@ const (
 	Right = Side(1)
 )
 
+// maxStatusCount - maximum number of statuses we keep in history
+const maxStatusCount = 1000
+
+// ItemType is used for defining type of Item (or current "directory")
+type ItemType byte
+
+func (it ItemType) String() string {
+	return string(it)
+}
+
+// Available types of Item
+const (
+	ItemDirectory       = ItemType('d')
+	ItemFile            = ItemType('f')
+	ItemDpConfiguration = ItemType('A')
+	ItemDpDomain        = ItemType('D')
+	ItemDpFilestore     = ItemType('F')
+	ItemNone            = ItemType('-')
+)
+
 // Item contains information about File, Directory, DataPower filestore,
-// DataPower domain or DataPower configuration.
+// DataPower domain or DataPower configuration which is shown on screen.
 type Item struct {
-	Type     byte // d - directory; f - file; A - appliance configuration; D - domain; F - filestore
 	Name     string
 	Size     string
 	Modified string
 	Selected bool
+	Config   *ItemConfig
+}
+
+// ItemConfig contains information about File, Directory, DataPower filestore,
+// DataPower domain or DataPower configuration which is required to uniquely
+// identify Item.
+type ItemConfig struct {
+	Type        ItemType
+	Path        string
+	DpAppliance string
+	DpDomain    string
+	DpFilestore string
+	Parent      *ItemConfig
 }
 
 // ItemList is slice extended as a sortable list of Items (implements sort.Interface).
@@ -32,63 +65,57 @@ type ItemList []Item
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
-	dpAppliance         string
-	dpDomain            string
+	viewConfig          [2]*ItemConfig
 	title               [2]string
 	items               [2]ItemList
 	allItems            [2]ItemList
 	currentFilter       [2]string
 	currItemIdx         [2]int
 	currFirstRowItemIdx [2]int
-	currPath            [2]string
 	currSide            Side
-	screenSizeW         int
-	screenSizeH         int
-	itemMaxRows         int
-	itemMaxCols         int
+	ItemMaxRows         int
+	HorizScroll         int
+	SearchBy            string
+	SyncModeOn          bool
+	SyncInitial         bool
+	SyncDpDomain        string
+	SyncDirDp           string
+	SyncDirLocal        string
+	statuses            []string
+}
+
+// ItemConfig methods
+
+// String method returns ItemConfig details.
+func (ic ItemConfig) String() string {
+	return fmt.Sprintf("IC(%s, '%s', '%s' (%s) %s %v)",
+		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
+}
+
+// Equals method returns true if other object is refering to same ItemConfig.
+func (ic *ItemConfig) Equals(other *ItemConfig) bool {
+	if other == nil {
+		return false
+	}
+	return ic.Path == other.Path && ic.DpAppliance == other.DpAppliance && ic.DpDomain == other.DpDomain && ic.DpFilestore == other.DpFilestore
 }
 
 // Item methods
 
-// String method returns formatted string representing how item will be shown.
-func (item *Item) String() string {
+// String method returns Item details.
+func (item Item) String() string {
+	return fmt.Sprintf("Item('%s', '%s', '%s', %t, %s)",
+		item.Name, item.Size, item.Modified, item.Selected, item.Config)
+}
+
+// DisplayString method returns formatted string representing how item will be shown.
+func (item *Item) DisplayString() string {
 	return fmt.Sprintf("%s %10s %19s %s", item.GetDisplayableType(), item.Size, item.Modified, item.Name)
 }
 
-// GetDisplayableType retuns "f" for files, "" for configuration and "d" for all other.
+// GetDisplayableType retuns single character string representation of Item type.
 func (item *Item) GetDisplayableType() string {
-	if item.Type == 'f' {
-		return "f"
-	} else if item.Type == 'd' {
-		return "d"
-	} else {
-		return ""
-	}
-}
-
-// IsFile returns true if Item is a file.
-func (item *Item) IsFile() bool {
-	return item.Type == 'f'
-}
-
-// IsDirectory returns true if Item is a directory.
-func (item *Item) IsDirectory() bool {
-	return item.Type == 'd'
-}
-
-// IsDpAppliance returns true if Item is a DataPower appliance configuration.
-func (item *Item) IsDpAppliance() bool {
-	return item.Type == 'A'
-}
-
-// IsDpDomain returns true if Item is a DataPower domain.
-func (item *Item) IsDpDomain() bool {
-	return item.Type == 'D'
-}
-
-// IsDpFilestore returns true if Item is a DataPower filestore (cert:, local:,..).
-func (item *Item) IsDpFilestore() bool {
-	return item.Type == 'F'
+	return string(item.Config.Type)
 }
 
 // ItemList methods (implements sort.Interface)
@@ -100,8 +127,8 @@ func (items ItemList) Len() int {
 
 // Less returns true if item at first index should be before second one.
 func (items ItemList) Less(i, j int) bool {
-	return items[i].Type < items[j].Type ||
-		(items[i].Type == items[j].Type &&
+	return items[i].Config.Type < items[j].Config.Type ||
+		(items[i].Config.Type == items[j].Config.Type &&
 			strings.ToLower(items[i].Name) < strings.ToLower(items[j].Name))
 }
 
@@ -112,26 +139,6 @@ func (items ItemList) Swap(i, j int) {
 
 // Model methods
 
-// DpAppliance returns name of configuration of current DataPower configuration.
-func (m *Model) DpAppliance() string {
-	return m.dpAppliance
-}
-
-// SetDpAppliance sets name of configuration of current DataPower configuration.
-func (m *Model) SetDpAppliance(dpAppliance string) {
-	m.dpAppliance = dpAppliance
-}
-
-// DpDomain returns name of current DataPower domain.
-func (m *Model) DpDomain() string {
-	return m.dpDomain
-}
-
-// SetDpDomain sets name of current DataPower domain.
-func (m *Model) SetDpDomain(dpDomain string) {
-	m.dpDomain = dpDomain
-}
-
 // SetItems changes list of items for given side.
 func (m *Model) SetItems(side Side, items []Item) {
 	m.allItems[side] = items
@@ -139,24 +146,20 @@ func (m *Model) SetItems(side Side, items []Item) {
 	m.applyFilter(side)
 }
 
-// SetItemsMaxSize sets maximum number of items which can be shown on screen.
-func (m *Model) SetItemsMaxSize(itemMaxRows, itemMaxCols int) {
-	m.itemMaxRows, m.itemMaxCols = itemMaxRows, itemMaxCols
-}
-
 // GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
-	if m.itemMaxRows < visibleItemCount {
-		return m.itemMaxRows
-	} else {
-		return visibleItemCount
+	logging.LogTrace("model/GetVisibleItemCount(", side, "), visibleItemCount: ", visibleItemCount, ", m.ItemMaxRows: ", m.ItemMaxRows)
+	if m.ItemMaxRows < visibleItemCount {
+		return m.ItemMaxRows
 	}
+	return visibleItemCount
 }
 
 // GetVisibleItem returns (visible) item from given side at given index.
 func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	itemIdx := rowIdx + m.currFirstRowItemIdx[side]
+	logging.LogTrace("model/GetVisibleItem(), rowIdx: ", rowIdx, ", itemIdx: ", itemIdx)
 
 	item := m.items[side][itemIdx]
 
@@ -165,7 +168,7 @@ func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 
 // IsSelectable returns true if we can select current item.
 func (m *Model) IsSelectable() bool {
-	return m.CurrPath() != ""
+	return m.ViewConfig(m.currSide).Path != ""
 }
 
 // CurrSide returns currently used Side.
@@ -173,7 +176,7 @@ func (m *Model) CurrSide() Side {
 	return m.currSide
 }
 
-// CurrSide returns currently non-used Side.
+// OtherSide returns currently non-used Side.
 func (m *Model) OtherSide() Side {
 	return 1 - m.currSide
 }
@@ -183,9 +186,39 @@ func (m *Model) Title(side Side) string {
 	return m.title[side]
 }
 
-// SetTitle sets title for given Side.
-func (m *Model) SetTitle(side Side, title string) {
-	m.title[side] = title
+// ViewConfig returns view config for given Side.
+func (m *Model) ViewConfig(side Side) *ItemConfig {
+	return m.viewConfig[side]
+}
+
+// AddStatus adds new status event to history of statuses.
+func (m *Model) AddStatus(status string) {
+	m.statuses = append(m.statuses, status)
+	overflowStatusCount := len(m.statuses) - maxStatusCount
+	if overflowStatusCount > 0 {
+		// m.statuses = m.statuses[overflowStatusCount:]
+		m.statuses = m.statuses[overflowStatusCount:]
+	}
+}
+
+// LastStatus returns last status event added to history.
+func (m *Model) LastStatus() string {
+	statusCount := len(m.statuses)
+	if statusCount > 0 {
+		return m.statuses[statusCount-1]
+	}
+	return ""
+}
+
+// Statuses returns history of all status events.
+func (m *Model) Statuses() []string {
+	return m.statuses
+}
+
+// SetCurrentView sets title and view config for given Side.
+func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
+	m.title[side] = viewTitle
+	m.viewConfig[side] = viewConfig
 }
 
 // IsCurrentSide returns true if given side is currently used.
@@ -206,6 +239,9 @@ func (m *Model) IsCurrentRow(side Side, rowIdx int) bool {
 
 // CurrItemForSide returns current item under cursor for given side.
 func (m *Model) CurrItemForSide(side Side) *Item {
+	if len(m.items[side]) == 0 {
+		return nil
+	}
 	return &m.items[side][m.currItemIdx[side]]
 }
 
@@ -213,7 +249,6 @@ func (m *Model) CurrItemForSide(side Side) *Item {
 func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 	itemIdx := 0
 	for idx, item := range m.items[side] {
-		// DebugInfo += "itemName: " + itemName + ", idx: " + strconv.Itoa(idx) + ", item.Name: " + item.Name + "\n"
 		if item.Name == itemName {
 			itemIdx = idx
 			break
@@ -222,29 +257,22 @@ func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 	m.currItemIdx[side] = itemIdx
 }
 
+// SetCurrItemForSideAndConfig sets current item under cursor for Side to ItemConfig.
+func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
+	itemIdx := 0
+	for idx, item := range m.items[m.currSide] {
+		if item.Config.Path == config.Path {
+			itemIdx = idx
+			break
+		}
+	}
+	logging.LogDebugf("model/SetCurrItemForSideAndConfig(%v, %v), itemIdx: %v", side, config, itemIdx)
+	m.currItemIdx[m.currSide] = itemIdx
+}
+
 // CurrItem returns current item under cursor for used side.
 func (m *Model) CurrItem() *Item {
 	return m.CurrItemForSide(m.currSide)
-}
-
-// CurrPathForSide returns current path for given side.
-func (m *Model) CurrPathForSide(side Side) string {
-	return m.currPath[side]
-}
-
-// CurrPath returns current path for used side.
-func (m *Model) CurrPath() string {
-	return m.CurrPathForSide(m.currSide)
-}
-
-// SetCurrPathForSide sets current path for given side.
-func (m *Model) SetCurrPathForSide(side Side, newPath string) {
-	m.currPath[side] = newPath
-}
-
-// SetCurrPath sets current path for used side.
-func (m *Model) SetCurrPath(newPath string) {
-	m.SetCurrPathForSide(m.currSide, newPath)
 }
 
 func (m *Model) applyFilter(side Side) {
@@ -254,7 +282,7 @@ func (m *Model) applyFilter(side Side) {
 		filteredItems := make([]Item, 0)
 		searchStr := strings.ToLower(filterString)
 		for _, item := range allItems {
-			itemStr := strings.ToLower(item.String())
+			itemStr := strings.ToLower(item.DisplayString())
 			if strings.Contains(itemStr, searchStr) || item.Name == ".." {
 				filteredItems = append(filteredItems, item)
 			}
@@ -375,6 +403,7 @@ func (m *Model) SelToBottom() {
 
 func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
+	logging.LogDebug("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	if newCurr < 0 {
 		newCurr = 0
@@ -390,6 +419,7 @@ func (m *Model) navUpDown(side Side, move int) {
 	} else if newCurr < minIdx {
 		m.currFirstRowItemIdx[side] = newCurr
 	}
+	logging.LogTrace("model/navUpDown(), newCurr: ", newCurr, ", minIdx: ", minIdx, ", maxIdx: ", maxIdx, ", maxRows: ", maxRows, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
 
 	m.currItemIdx[side] = newCurr
 }
@@ -412,6 +442,7 @@ func (m *Model) GetSelectedItems(side Side) []Item {
 
 // SearchNext moves cursor to next item containing given searchStr and returns true if item is found.
 func (m *Model) SearchNext(searchStr string) bool {
+	logging.LogDebugf("model/SearchNext('%s')", searchStr)
 	side := m.CurrSide()
 	nextItemIdx := m.currItemIdx[side] + 1
 	if nextItemIdx >= len(m.items[side]) {
@@ -420,7 +451,7 @@ func (m *Model) SearchNext(searchStr string) bool {
 	searchStr = strings.ToLower(searchStr)
 	for idx := nextItemIdx; idx < len(m.items[side]); idx++ {
 		item := m.items[side][idx]
-		itemStr := strings.ToLower(item.String())
+		itemStr := strings.ToLower(item.DisplayString())
 		if strings.Contains(itemStr, searchStr) {
 			move := idx - m.currItemIdx[side]
 			m.navUpDown(side, move)
@@ -430,8 +461,9 @@ func (m *Model) SearchNext(searchStr string) bool {
 	return false
 }
 
-// SearchNext moves cursor to previous item containing given searchStr and returns true if item is found.
+// SearchPrev moves cursor to previous item containing given searchStr and returns true if item is found.
 func (m *Model) SearchPrev(searchStr string) bool {
+	logging.LogDebugf("model/SearchPrev('%s')", searchStr)
 	side := m.CurrSide()
 	prevItemIdx := m.currItemIdx[side] - 1
 	if prevItemIdx < 0 {
@@ -441,7 +473,7 @@ func (m *Model) SearchPrev(searchStr string) bool {
 	for idx := prevItemIdx; idx >= 0; idx-- {
 		item := m.items[side][idx]
 		// for idx, item := range m.items[side][nextItemIdx:] {
-		itemStr := strings.ToLower(item.String())
+		itemStr := strings.ToLower(item.DisplayString())
 		if strings.Contains(itemStr, searchStr) {
 			move := idx - m.currItemIdx[side]
 			m.navUpDown(side, move)
@@ -450,7 +482,3 @@ func (m *Model) SearchPrev(searchStr string) bool {
 	}
 	return false
 }
-
-// M contains Model with all information on current DataPower and filesystem
-// we are showing in dpcmder.
-var M Model = Model{currSide: Left}

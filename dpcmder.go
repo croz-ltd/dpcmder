@@ -2,11 +2,8 @@ package main
 
 import (
 	"github.com/croz-ltd/dpcmder/config"
-	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/repo/dp"
+	"github.com/croz-ltd/dpcmder/ui"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/view"
-	"github.com/nsf/termbox-go"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,17 +12,12 @@ import (
 func main() {
 	config.Init()
 	config.PrintConfig()
-	dp.InitNetworkSettings()
-	model.M.SetDpDomain(*config.DpDomain)
-	if *config.DpUsername != "" {
-		model.M.SetDpAppliance(config.PreviousAppliance)
-	}
 
 	setupCloseHandler()
 
-	view.Init()
+	ui.Start()
 	// model.M.Print()
-	logging.LogDebug("...dpcmder ending.")
+	logging.LogDebug("main/main() - ...dpcmder ending.")
 }
 
 // SetupCloseHandler creates a 'listener' on a new goroutine which will notify the
@@ -38,8 +30,8 @@ func setupCloseHandler() {
 	signal.Notify(c, os.Interrupt, syscall.SIGHUP)
 	go func() {
 		s := <-c
-		logging.LogDebug("System interrupt signal received, dpcmder ending. s: ", s)
-		termbox.Close()
+		logging.LogDebug("main/setupCloseHandler() - System interrupt signal received, dpcmder ending. s: ", s)
+		go ui.Stop()
 		os.Exit(0)
 	}()
 }

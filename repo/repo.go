@@ -6,19 +6,15 @@ import (
 
 // Repo is a common repository methods implemented by local filesystem and DataPower
 type Repo interface {
-	InitialLoad(m *model.Model)
-	LoadCurrent(m *model.Model)
-	EnterCurrentDirectoryMissingPassword(m *model.Model) bool
-	EnterCurrentDirectorySetPassword(m *model.Model, password string) bool
-	EnterCurrentDirectory(m *model.Model)
-	ListFiles(m *model.Model, dirPath string) []model.Item
-	GetFileType(m *model.Model, parentPath, fileName string) byte
-	GetFileTypeFromPath(m *model.Model, filePath string) byte
-	GetFileName(filePath string) string
+	GetInitialItem() model.Item
+	GetTitle(currentView *model.ItemConfig) string
+	GetList(currentView *model.ItemConfig) (model.ItemList, error)
+	InvalidateCache()
+	GetFile(currentView *model.ItemConfig, fileName string) ([]byte, error)
+	UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error)
+	GetFileType(currentView *model.ItemConfig, parentPath, fileName string) (model.ItemType, error)
 	GetFilePath(parentPath, fileName string) string
-	GetFile(m *model.Model, parentPath, fileName string) []byte
-	UpdateFile(m *model.Model, parentPath, fileName string, newFileContent []byte) bool
-	Delete(m *model.Model, parentPath, fileName string) bool
-	CreateDir(m *model.Model, parentPath, dirName string) bool
-	IsEmptyDir(m *model.Model, parentPath, dirName string) bool
+	CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error)
+	Delete(currentView *model.ItemConfig, parentPath, fileName string) (bool, error)
+	GetViewConfigByPath(currentView *model.ItemConfig, dirPath string) (*model.ItemConfig, error)
 }

@@ -13,7 +13,11 @@ import (
 
 // View shows given bytes in external text editor
 func View(name string, content []byte) error {
-	logging.LogDebug("extprogs.View() ", name)
+	debugContentLen := len(content)
+	if debugContentLen > 20 {
+		debugContentLen = 20
+	}
+	logging.LogDebugf("extprogs.View('%s', '%s...')", name, string(content[:debugContentLen]))
 	if config.Conf.Cmd.Viewer == "" {
 		return errors.New("Viewer command not configured.")
 	}

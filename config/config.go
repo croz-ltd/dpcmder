@@ -6,8 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/croz-ltd/confident"
-	"github.com/croz-ltd/dpcmder/utils"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/utils/paths"
 	"github.com/howeyc/gopass"
 	"os"
 	"os/user"
@@ -15,34 +15,46 @@ import (
 )
 
 const (
-	configDirName     = ".dpcmder"
-	configFileName    = "config.json"
-	PreviousAppliance = "_PreviousAppliance_"
+	configDirName  = ".dpcmder"
+	configFileName = "config.json"
+	// PreviousApplianceName is name of configuration for the last appliance
+	// configured with command-line parameters (without explicitly saving config).
+	PreviousApplianceName = "_PreviousAppliance_"
 )
+
+// CurrentAppliance stores configuration value of current appliance used.
+var CurrentAppliance DataPowerAppliance
+
+// CurrentApplianceName stores configuration of current appliance name used.
+var CurrentApplianceName string
 
 // LocalFolderPath is a folder where dpcmder start showing files - set by command flag.
 var LocalFolderPath *string
 
-// DebugLogFile enables writing of debug messages to dpcmder.log file in current folder.
-var DebugLogFile *bool
-
-// Help flag shows dpcmder usage help.
-var Help *bool
+// DebugLogFile/TraceLogFile enables writing of debug/trace messages to
+// dpcmder.log file in current folder.
+var (
+	DebugLogFile *bool
+	TraceLogFile *bool
+)
 
 // DataPower configuration from command flags.
 var (
-	DpRestURL    *string
-	DpSomaURL    *string
-	DpUsername   *string
+	dpRestURL    *string
+	dpSomaURL    *string
+	dpUsername   *string
 	dpPassword   *string
-	DpDomain     *string
-	Proxy        *string
-	DpConfigName *string
+	dpDomain     *string
+	proxy        *string
+	dpConfigName *string
+	help         *bool
 )
 
-// DpTransientPasswordMap contains passwords entered through dpcmder usage and not saved to config.
+// DpTransientPasswordMap contains passwords entered through dpcmder usage,
+// not saved to config during [other] configuration changes.
 var DpTransientPasswordMap = make(map[string]string)
 
+// Config is a structure containing dpcmder configuration (saved to JSON).
 type Config struct {
 	Cmd                 Command
 	Log                 Log
@@ -50,20 +62,26 @@ type Config struct {
 	DataPowerAppliances map[string]DataPowerAppliance
 }
 
+// Command is a structure containing dpcmder external command configuration.
 type Command struct {
 	Viewer string
 	Editor string
 	Diff   string
 }
 
+// Log is a structure containing dpcmder logging configuration.
 type Log struct {
 	MaxEntrySize int
 }
 
+// Sync is a structure containing dpcmder synchronization configuration used
+// when syncing local filesystem to datapower is enabled.
 type Sync struct {
 	Seconds int
 }
 
+// DataPowerAppliance is a structure containing dpcmder DataPower appliance
+// configuration details required to connect to appliances.
 type DataPowerAppliance struct {
 	RestUrl  string
 	SomaUrl  string
@@ -73,7 +91,23 @@ type DataPowerAppliance struct {
 	Proxy    string
 }
 
-//var Cmd = Command{Viewer: "less", Editor: "vi"}
+// SetDpPlaintextPassword sets encoded Password field on DataPowerAppliance
+// from plaintext password.
+func (dpa *DataPowerAppliance) SetDpPlaintextPassword(password string) {
+	b32password := base32.StdEncoding.EncodeToString([]byte(password))
+	dpa.Password = b32password
+}
+
+// DpPlaintextPassword fetches decoded password from DataPowerAppliance struct.
+func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
+	passBytes, err := base32.StdEncoding.DecodeString(dpa.Password)
+	if err != nil {
+		logging.LogFatal("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: ", err)
+	}
+	return string(passBytes)
+}
+
+// Conf variable contains all configuration parameters for dpcmder.
 var Conf = Config{
 	Cmd: Command{
 		Viewer: "less", Editor: "vi", Diff: "ldiff"},
@@ -81,97 +115,84 @@ var Conf = Config{
 	Sync:                Sync{Seconds: 4},
 	DataPowerAppliances: make(map[string]DataPowerAppliance)}
 
+// k is Confident library configuration instance.
 var k *confident.Confident
 
-func confidentBootstrap() {
+// initConfiguration reads dpcmder configuration and defines DataPower appliance
+// to use.
+func initConfiguration() {
 	k = confident.New()
 	k.WithConfiguration(&Conf)
-	// <Optional>
 	k.Name = "config"
 	k.Type = "json"
 	k.Path = configDirPath()
 	k.Path = configDirPathEnsureExists()
 	k.Permission = os.FileMode(0644)
-	// </Optional>
-	logging.LogDebug("Conf before read: ", Conf)
+	logging.LogDebug("config/initConfiguration() - Conf before read: ", Conf)
 	k.Read()
-	logging.LogDebug("Conf after read: ", Conf)
-	if *DpRestURL != "" || *DpSomaURL != "" {
-		if *DpConfigName != "" {
-			Conf.DataPowerAppliances[*DpConfigName] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
+	logging.LogDebug("config/initConfiguration() - Conf after read: ", Conf)
+	if *dpRestURL != "" || *dpSomaURL != "" {
+		if *dpConfigName != "" {
+			Conf.DataPowerAppliances[*dpConfigName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
+			CurrentApplianceName = *dpConfigName
 		} else {
-			Conf.DataPowerAppliances[PreviousAppliance] = DataPowerAppliance{Domain: *DpDomain, Proxy: *Proxy, RestUrl: *DpRestURL, SomaUrl: *DpSomaURL, Username: *DpUsername, Password: *dpPassword}
+			Conf.DataPowerAppliances[PreviousApplianceName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
+			CurrentApplianceName = PreviousApplianceName
 		}
 		k.Persist()
-		logging.LogDebug("Conf after persist: ", Conf)
+		logging.LogDebug("config/initConfiguration() - Conf after persist: ", Conf)
 	}
+	CurrentAppliance = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
 }
 
-// ParseProgramArgs parses program arguments and fill config package variables with flag values.
+// parseProgramArgs parses program arguments and fill config package variables with flag values.
 func parseProgramArgs() {
 	LocalFolderPath = flag.String("l", ".", "Path to local directory to open, default is '.'")
-	DpRestURL = flag.String("r", "", "DataPower REST URL")
-	DpSomaURL = flag.String("s", "", "DataPower SOMA URL")
-	DpUsername = flag.String("u", "", "DataPower user username")
+	dpRestURL = flag.String("r", "", "DataPower REST URL")
+	dpSomaURL = flag.String("s", "", "DataPower SOMA URL")
+	dpUsername = flag.String("u", "", "DataPower user username")
 	password := flag.String("p", "", "DataPower user password")
-	DpDomain = flag.String("d", "", "DataPower domain name")
-	Proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
-	DpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
-	DebugLogFile = flag.Bool("debug", false, "Write dpcmder.log file in current dir")
-	Help = flag.Bool("h", false, "Show dpcmder usage with examples")
+	dpDomain = flag.String("d", "", "DataPower domain name")
+	proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
+	dpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
+	DebugLogFile = flag.Bool("debug", false, "Write debug dpcmder.log file in current dir")
+	TraceLogFile = flag.Bool("trace", false, "Write trace dpcmder.log file in current dir")
+	help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
 	flag.Parse()
-	SetDpPassword(*password)
+	setDpPasswordPlain(*password)
 }
 
 // Init intializes configuration: parses command line flags and creates config directory.
 func Init() {
 	parseProgramArgs()
 	logging.DebugLogFile = *DebugLogFile
-	logging.LogDebug("dpcmder starting...")
+	logging.TraceLogFile = *TraceLogFile
+	logging.LogDebug("config/Init() - dpcmder starting...")
 	validateProgramArgs()
-	confidentBootstrap()
+	initConfiguration()
 	validatePassword()
-}
-
-func ClearDpConfig() {
-	*DpRestURL = ""
-	*DpSomaURL = ""
-	*DpUsername = ""
-	*dpPassword = ""
-	*DpDomain = ""
-	*Proxy = ""
-}
-func LoadDpConfig(configName string) {
-	appliance := Conf.DataPowerAppliances[configName]
-
-	*DpRestURL = appliance.RestUrl
-	*DpSomaURL = appliance.SomaUrl
-	*DpUsername = appliance.Username
-	if appliance.Password != "" {
-		*dpPassword = appliance.Password
-	}
-	*DpDomain = appliance.Domain
-	*Proxy = appliance.Proxy
 }
 
 // validateProgramArgs validate parsed program arguments and/or shows usage
 // message in case some mandatory arguments are missing.
 func validateProgramArgs() {
-	if *Help {
+	if *help {
 		usage(0)
 	}
 
 	if *LocalFolderPath == "" ||
-		(*DpUsername != "" && *DpRestURL == "" && *DpSomaURL == "") {
+		(*dpUsername != "" && *dpRestURL == "" && *dpSomaURL == "") {
 		usage(1)
 	}
 }
 
-// validatePassword validates password argument and asks for password input and/or
-// shows usage message in case it is missing.
+// validatePassword validates password argument and asks for password input
+// and/or shows usage message in case it is missing - need to call it after
+// initial command line paramter reading to avoid saving password entered during
+// dpcmder start to config file.
 func validatePassword() {
-	if *DpUsername != "" {
+	if *dpUsername != "" {
 		if *dpPassword == "" {
 			fmt.Println("DataPower password: ")
 			// Silent. For printing *'s use gopass.GetPasswdMasked()
@@ -180,8 +201,7 @@ func validatePassword() {
 				usage(1)
 			} else {
 				password := string(pass)
-				SetDpPassword(password)
-				SetDpTransientPassword(password)
+				setDpPasswordPlain(password)
 			}
 		}
 
@@ -193,18 +213,21 @@ func validatePassword() {
 	}
 }
 
+// configDirPath returns dpcmder configuration directory path.
 func configDirPath() string {
 	usr, err := user.Current()
 	if err != nil {
-		logging.LogFatal("Can't find current user: ", err)
+		logging.LogFatal("config/configDirPath() - Can't find current user: ", err)
 	}
 
-	println("usr.HomeDir: ", usr.HomeDir)
-	configDirPath := utils.GetFilePath(usr.HomeDir, configDirName)
+	// println("usr.HomeDir: ", usr.HomeDir)
+	configDirPath := paths.GetFilePath(usr.HomeDir, configDirName)
 
 	return configDirPath
 }
 
+// configDirPathEnsureExists returns dpcmder configuration directory path and
+// in case it doesn't exist creates directory.
 func configDirPathEnsureExists() string {
 	configDirPath := configDirPath()
 
@@ -212,61 +235,71 @@ func configDirPathEnsureExists() string {
 	if err != nil {
 		err = os.Mkdir(configDirPath, os.ModePerm)
 		if err != nil {
-			logging.LogFatal("Can't create configuration directory: ", err)
+			logging.LogFatal("config/configDirPathEnsureExists() - Can't create configuration directory: ", err)
 		}
 	}
 
 	return configDirPath
 }
 
-// DpUseRest returns true if we configured dpcmder to use DataPower REST Management interface.
-func DpUseRest() bool {
-	return *DpRestURL != ""
-}
-
-// DpUseSoma returns true if we configured dpcmder to use DataPower SOMA Management interface.
-func DpUseSoma() bool {
-	return *DpSomaURL != ""
-}
-
-func SetDpPassword(password string) {
+// setDpPasswordPlain sets config dpPassword encoded password field from
+// plaintext password.
+func setDpPasswordPlain(password string) {
 	b32password := base32.StdEncoding.EncodeToString([]byte(password))
 	dpPassword = &b32password
 }
-func DpPassword() string {
-	passBytes, err := base32.StdEncoding.DecodeString(*dpPassword)
-	if err != nil {
-		logging.LogFatal("Can't decode password: ", err)
-	}
-	return string(passBytes)
-}
 
-func SetDpTransientPassword(password string) {
-	DpTransientPasswordMap[PreviousAppliance] = password
-}
-
-func (c *Config) GetDpApplianceConfig(name string) []byte {
+// GetDpApplianceConfig fetches DataPower appliance JSON configuration as byte array.
+func (c *Config) GetDpApplianceConfig(name string) ([]byte, error) {
 	dpAppliance := c.DataPowerAppliances[name]
 	json, err := json.MarshalIndent(dpAppliance, "", "  ")
 	if err != nil {
-		logging.LogFatal("Can't unmarshal DataPower appliance configuration: ", err)
+		logging.LogDebugf("config/GetDpApplianceConfig('%s') - Can't marshal DataPower appliance configuration: ", name)
+		return nil, err
 	}
-	return json
+	return json, nil
+}
+
+// SetDpApplianceConfig sets DataPower appliance JSON configuration as byte array.
+func (c *Config) SetDpApplianceConfig(name string, contents []byte) error {
+	dpAppliance := c.DataPowerAppliances[name]
+	err := json.Unmarshal(contents, &dpAppliance)
+	if err != nil {
+		logging.LogDebugf("config/SetDpApplianceConfig('%s', ...) - Can't unmarshal DataPower appliance configuration: ", name)
+		return err
+	}
+	c.DataPowerAppliances[name] = dpAppliance
+	k.Persist()
+	return nil
 }
 
 // PrintConfig prints configuration values to console.
 func PrintConfig() {
 	fmt.Println("LocalFolderPath: ", *LocalFolderPath)
-	fmt.Println("DpRestURL: ", *DpRestURL)
-	fmt.Println("DpSomaURL: ", *DpSomaURL)
-	fmt.Println("DpUsername: ", *DpUsername)
+	fmt.Println("dpRestURL: ", *dpRestURL)
+	fmt.Println("dpSomaURL: ", *dpSomaURL)
+	fmt.Println("dpUsername: ", *dpUsername)
 	fmt.Println("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
-	fmt.Println("DpDomain: ", *DpDomain)
-	fmt.Println("Proxy: ", *Proxy)
-	fmt.Println("DpConfigName: ", *DpConfigName)
-	fmt.Println("Help: ", *Help)
+	fmt.Println("dpDomain: ", *dpDomain)
+	fmt.Println("proxy: ", *proxy)
+	fmt.Println("dpConfigName: ", *dpConfigName)
+	fmt.Println("help: ", *help)
 }
 
+// LogConfig logs configuration values to log file.
+func LogConfig() {
+	logging.LogDebug("LocalFolderPath: ", *LocalFolderPath)
+	logging.LogDebug("dpRestURL: ", *dpRestURL)
+	logging.LogDebug("dpSomaURL: ", *dpSomaURL)
+	logging.LogDebug("dpUsername: ", *dpUsername)
+	logging.LogDebug("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
+	logging.LogDebug("dpDomain: ", *dpDomain)
+	logging.LogDebug("proxy: ", *proxy)
+	logging.LogDebug("dpConfigName: ", *dpConfigName)
+	logging.LogDebug("help: ", *help)
+}
+
+// usage prints usage help information with examples to console.
 func usage(exitStatus int) {
 	fmt.Println("Usage:")
 	fmt.Printf(" %s [-l LOCAL_FOLDER_PATH] [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug] [-h]\n", os.Args[0])
