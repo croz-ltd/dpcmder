@@ -54,6 +54,7 @@ var (
 // not saved to config during [other] configuration changes.
 var DpTransientPasswordMap = make(map[string]string)
 
+// Config is a structure containing dpcmder configuration (saved to JSON).
 type Config struct {
 	Cmd                 Command
 	Log                 Log
@@ -61,20 +62,26 @@ type Config struct {
 	DataPowerAppliances map[string]DataPowerAppliance
 }
 
+// Command is a structure containing dpcmder external command configuration.
 type Command struct {
 	Viewer string
 	Editor string
 	Diff   string
 }
 
+// Log is a structure containing dpcmder logging configuration.
 type Log struct {
 	MaxEntrySize int
 }
 
+// Sync is a structure containing dpcmder synchronization configuration used
+// when syncing local filesystem to datapower is enabled.
 type Sync struct {
 	Seconds int
 }
 
+// DataPowerAppliance is a structure containing dpcmder DataPower appliance
+// configuration details required to connect to appliances.
 type DataPowerAppliance struct {
 	RestUrl  string
 	SomaUrl  string
@@ -84,10 +91,14 @@ type DataPowerAppliance struct {
 	Proxy    string
 }
 
+// SetDpPlaintextPassword sets encoded Password field on DataPowerAppliance
+// from plaintext password.
 func (dpa *DataPowerAppliance) SetDpPlaintextPassword(password string) {
 	b32password := base32.StdEncoding.EncodeToString([]byte(password))
 	dpa.Password = b32password
 }
+
+// DpPlaintextPassword fetches decoded password from DataPowerAppliance struct.
 func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
 	passBytes, err := base32.StdEncoding.DecodeString(dpa.Password)
 	if err != nil {
@@ -96,7 +107,7 @@ func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
 	return string(passBytes)
 }
 
-//var Cmd = Command{Viewer: "less", Editor: "vi"}
+// Conf variable contains all configuration parameters for dpcmder.
 var Conf = Config{
 	Cmd: Command{
 		Viewer: "less", Editor: "vi", Diff: "ldiff"},
@@ -104,21 +115,22 @@ var Conf = Config{
 	Sync:                Sync{Seconds: 4},
 	DataPowerAppliances: make(map[string]DataPowerAppliance)}
 
+// k is Confident library configuration instance.
 var k *confident.Confident
 
-func confidentBootstrap() {
+// initConfiguration reads dpcmder configuration and defines DataPower appliance
+// to use.
+func initConfiguration() {
 	k = confident.New()
 	k.WithConfiguration(&Conf)
-	// <Optional>
 	k.Name = "config"
 	k.Type = "json"
 	k.Path = configDirPath()
 	k.Path = configDirPathEnsureExists()
 	k.Permission = os.FileMode(0644)
-	// </Optional>
-	logging.LogDebug("config/confidentBootstrap() - Conf before read: ", Conf)
+	logging.LogDebug("config/initConfiguration() - Conf before read: ", Conf)
 	k.Read()
-	logging.LogDebug("config/confidentBootstrap() - Conf after read: ", Conf)
+	logging.LogDebug("config/initConfiguration() - Conf after read: ", Conf)
 	if *dpRestURL != "" || *dpSomaURL != "" {
 		if *dpConfigName != "" {
 			Conf.DataPowerAppliances[*dpConfigName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
@@ -128,12 +140,12 @@ func confidentBootstrap() {
 			CurrentApplianceName = PreviousApplianceName
 		}
 		k.Persist()
+		logging.LogDebug("config/initConfiguration() - Conf after persist: ", Conf)
 	}
 	CurrentAppliance = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
-	logging.LogDebug("config/confidentBootstrap() - Conf after persist: ", Conf)
 }
 
-// ParseProgramArgs parses program arguments and fill config package variables with flag values.
+// parseProgramArgs parses program arguments and fill config package variables with flag values.
 func parseProgramArgs() {
 	LocalFolderPath = flag.String("l", ".", "Path to local directory to open, default is '.'")
 	dpRestURL = flag.String("r", "", "DataPower REST URL")
@@ -158,7 +170,7 @@ func Init() {
 	logging.TraceLogFile = *TraceLogFile
 	logging.LogDebug("config/Init() - dpcmder starting...")
 	validateProgramArgs()
-	confidentBootstrap()
+	initConfiguration()
 	validatePassword()
 }
 
@@ -175,8 +187,10 @@ func validateProgramArgs() {
 	}
 }
 
-// validatePassword validates password argument and asks for password input and/or
-// shows usage message in case it is missing.
+// validatePassword validates password argument and asks for password input
+// and/or shows usage message in case it is missing - need to call it after
+// initial command line paramter reading to avoid saving password entered during
+// dpcmder start to config file.
 func validatePassword() {
 	if *dpUsername != "" {
 		if *dpPassword == "" {
@@ -199,6 +213,7 @@ func validatePassword() {
 	}
 }
 
+// configDirPath returns dpcmder configuration directory path.
 func configDirPath() string {
 	usr, err := user.Current()
 	if err != nil {
@@ -211,6 +226,8 @@ func configDirPath() string {
 	return configDirPath
 }
 
+// configDirPathEnsureExists returns dpcmder configuration directory path and
+// in case it doesn't exist creates directory.
 func configDirPathEnsureExists() string {
 	configDirPath := configDirPath()
 
@@ -225,6 +242,8 @@ func configDirPathEnsureExists() string {
 	return configDirPath
 }
 
+// setDpPasswordPlain sets config dpPassword encoded password field from
+// plaintext password.
 func setDpPasswordPlain(password string) {
 	b32password := base32.StdEncoding.EncodeToString([]byte(password))
 	dpPassword = &b32password
