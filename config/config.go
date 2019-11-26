@@ -31,11 +31,12 @@ var CurrentApplianceName string
 // LocalFolderPath is a folder where dpcmder start showing files - set by command flag.
 var LocalFolderPath *string
 
-// DebugLogFile enables writing of debug messages to dpcmder.log file in current folder.
-var DebugLogFile *bool
-
-// TraceLogFile enables writing of trace messages to dpcmder.log file in current folder.
-var TraceLogFile *bool
+// DebugLogFile/TraceLogFile enables writing of debug/trace messages to
+// dpcmder.log file in current folder.
+var (
+	DebugLogFile *bool
+	TraceLogFile *bool
+)
 
 // DataPower configuration from command flags.
 var (
@@ -49,7 +50,8 @@ var (
 	help         *bool
 )
 
-// DpTransientPasswordMap contains passwords entered through dpcmder usage and not saved to config.
+// DpTransientPasswordMap contains passwords entered through dpcmder usage,
+// not saved to config during [other] configuration changes.
 var DpTransientPasswordMap = make(map[string]string)
 
 type Config struct {
@@ -186,7 +188,6 @@ func validatePassword() {
 			} else {
 				password := string(pass)
 				SetDpPasswordPlain(password)
-				SetDpTransientPassword(password)
 			}
 		}
 
@@ -234,10 +235,6 @@ func DpPasswordPlain() string {
 		logging.LogFatal("config/DpPassword() - Can't decode password: ", err)
 	}
 	return string(passBytes)
-}
-
-func SetDpTransientPassword(password string) {
-	DpTransientPasswordMap[PreviousApplianceName] = password
 }
 
 // GetDpApplianceConfig fetches DataPower appliance JSON configuration as byte array.
@@ -290,6 +287,7 @@ func LogConfig() {
 	logging.LogDebug("help: ", *help)
 }
 
+// usage prints usage help information with examples to console.
 func usage(exitStatus int) {
 	fmt.Println("Usage:")
 	fmt.Printf(" %s [-l LOCAL_FOLDER_PATH] [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug] [-h]\n", os.Args[0])

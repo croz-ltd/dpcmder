@@ -83,6 +83,9 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 		return listAppliances()
 	case model.ItemDpConfiguration:
 		r.dataPowerAppliance = config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
+		if r.dataPowerAppliance.Password == "" {
+			r.dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
+		}
 		if itemToShow.DpDomain != "" {
 			return r.listFilestores(itemToShow)
 		}

@@ -358,8 +358,9 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 		applianceName := itemName
 		if applianceName != ".." {
 			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
+			dpTransientPassword := config.DpTransientPasswordMap[applianceName]
 			logging.LogDebugf("ui/showItem(), applicanceConfig: '%s'", applicanceConfig)
-			if applicanceConfig.Password == "" {
+			if applicanceConfig.Password == "" && dpTransientPassword == "" {
 				return dpMissingPasswordError
 			}
 		}
@@ -394,11 +395,7 @@ func setCurrentDpPlainPassword(password string) {
 	item := workingModel.CurrItem()
 	applianceName := item.Config.DpAppliance
 	logging.LogDebugf("ui/setDpPlainPassword() applicanceName: '%s'", applianceName)
-	applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
-	logging.LogDebugf("ui/setDpPlainPassword() applicanceConfig before: '%s'", applicanceConfig)
-	applicanceConfig.SetDpPlaintextPassword(password)
-	config.Conf.DataPowerAppliances[applianceName] = applicanceConfig
-	logging.LogDebugf("ui/setDpPlainPassword() applicanceConfig after : '%s'", applicanceConfig)
+	config.DpTransientPasswordMap[applianceName] = password
 }
 
 func setScreenSize() {
