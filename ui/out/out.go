@@ -44,25 +44,17 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebugf("ui/out/drawEvent(%v)", updateViewEvent)
 
 	switch updateViewEvent.Type {
-	case events.UpdateViewQuit:
-		logging.LogDebug("ui/out/drawLoop() received events.UpdateViewQuit")
 	case events.UpdateViewShowStatus:
 		showStatus(updateViewEvent.Model, updateViewEvent.Status)
-	default:
-		draw(updateViewEvent)
-	}
-
-	logging.LogDebug("ui/out/drawEvent() finished")
-}
-
-func draw(updateViewEvent events.UpdateViewEvent) {
-	logging.LogDebug("ui/out/draw(", updateViewEvent, ")")
-	switch updateViewEvent.Type {
 	case events.UpdateViewRefresh:
 		refreshScreen(*updateViewEvent.Model)
 	case events.UpdateViewShowDialog:
 		showQuestionDialog(updateViewEvent.DialogQuestion, updateViewEvent.DialogAnswer, updateViewEvent.DialogAnswerCursorIdx)
+	default:
+		logging.LogDebugf("ui/out/drawEvent() unknown event received: %v", updateViewEvent)
 	}
+
+	logging.LogDebug("ui/out/drawEvent() finished")
 }
 
 func refreshScreen(m model.Model) {
