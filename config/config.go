@@ -45,7 +45,7 @@ var (
 	dpPassword   *string
 	dpDomain     *string
 	proxy        *string
-	DpConfigName *string
+	dpConfigName *string
 	help         *bool
 )
 
@@ -118,9 +118,9 @@ func confidentBootstrap() {
 	k.Read()
 	logging.LogDebug("config/confidentBootstrap() - Conf after read: ", Conf)
 	if *dpRestURL != "" || *dpSomaURL != "" {
-		if *DpConfigName != "" {
-			Conf.DataPowerAppliances[*DpConfigName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
-			CurrentApplianceName = *DpConfigName
+		if *dpConfigName != "" {
+			Conf.DataPowerAppliances[*dpConfigName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
+			CurrentApplianceName = *dpConfigName
 		} else {
 			Conf.DataPowerAppliances[PreviousApplianceName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
 			CurrentApplianceName = PreviousApplianceName
@@ -140,7 +140,7 @@ func parseProgramArgs() {
 	password := flag.String("p", "", "DataPower user password")
 	dpDomain = flag.String("d", "", "DataPower domain name")
 	proxy = flag.String("x", "", "URL of proxy server for DataPower connection")
-	DpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
+	dpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
 	DebugLogFile = flag.Bool("debug", false, "Write debug dpcmder.log file in current dir")
 	TraceLogFile = flag.Bool("trace", false, "Write trace dpcmder.log file in current dir")
 	help = flag.Bool("h", false, "Show dpcmder usage with examples")
@@ -273,7 +273,7 @@ func PrintConfig() {
 	fmt.Println("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
 	fmt.Println("dpDomain: ", *dpDomain)
 	fmt.Println("proxy: ", *proxy)
-	fmt.Println("DpConfigName: ", *DpConfigName)
+	fmt.Println("dpConfigName: ", *dpConfigName)
 	fmt.Println("help: ", *help)
 }
 
@@ -286,7 +286,7 @@ func LogConfig() {
 	logging.LogDebug("DpPassword: ", strings.Repeat("*", len(*dpPassword)))
 	logging.LogDebug("dpDomain: ", *dpDomain)
 	logging.LogDebug("proxy: ", *proxy)
-	logging.LogDebug("DpConfigName: ", *DpConfigName)
+	logging.LogDebug("dpConfigName: ", *dpConfigName)
 	logging.LogDebug("help: ", *help)
 }
 
