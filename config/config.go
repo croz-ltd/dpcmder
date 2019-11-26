@@ -91,7 +91,7 @@ func (dpa *DataPowerAppliance) SetDpPlaintextPassword(password string) {
 func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
 	passBytes, err := base32.StdEncoding.DecodeString(dpa.Password)
 	if err != nil {
-		logging.LogFatal("config/DataPowerAppliance.DpPasswordPlain() - Can't decode password: ", err)
+		logging.LogFatal("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: ", err)
 	}
 	return string(passBytes)
 }
@@ -148,7 +148,7 @@ func parseProgramArgs() {
 	help = flag.Bool("h", false, "Show dpcmder usage with examples")
 
 	flag.Parse()
-	SetDpPasswordPlain(*password)
+	setDpPasswordPlain(*password)
 }
 
 // Init intializes configuration: parses command line flags and creates config directory.
@@ -187,7 +187,7 @@ func validatePassword() {
 				usage(1)
 			} else {
 				password := string(pass)
-				SetDpPasswordPlain(password)
+				setDpPasswordPlain(password)
 			}
 		}
 
@@ -225,16 +225,9 @@ func configDirPathEnsureExists() string {
 	return configDirPath
 }
 
-func SetDpPasswordPlain(password string) {
+func setDpPasswordPlain(password string) {
 	b32password := base32.StdEncoding.EncodeToString([]byte(password))
 	dpPassword = &b32password
-}
-func DpPasswordPlain() string {
-	passBytes, err := base32.StdEncoding.DecodeString(*dpPassword)
-	if err != nil {
-		logging.LogFatal("config/DpPassword() - Can't decode password: ", err)
-	}
-	return string(passBytes)
 }
 
 // GetDpApplianceConfig fetches DataPower appliance JSON configuration as byte array.
