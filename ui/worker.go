@@ -62,7 +62,7 @@ var dialogSession = userDialogInputSessionInfo{}
 // InitialLoad initializes DataPower and local filesystem access and load initial views.
 func InitialLoad() {
 	logging.LogDebug("ui/InitialLoad()")
-	dp.Repo.InitNetworkSettings(config.Conf.DataPowerAppliances[config.PreviousAppliance])
+	dp.Repo.InitNetworkSettings(config.CurrentAppliance)
 	initialLoadDp()
 	initialLoadLocalfs()
 

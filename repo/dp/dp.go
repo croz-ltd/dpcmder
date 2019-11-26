@@ -40,18 +40,19 @@ func (r *dpRepo) String() string {
 }
 
 func (r *dpRepo) GetInitialItem() model.Item {
-	logging.LogDebug("repo/dp/GetInitialItem()")
+	logging.LogDebugf("repo/dp/GetInitialItem(), dataPowerAppliance: %#v", r.dataPowerAppliance)
 	var initialConfig model.ItemConfig
 	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
 	if r.dataPowerAppliance.RestUrl != "" || r.dataPowerAppliance.SomaUrl != "" || r.dataPowerAppliance.Username != "" {
 		initialConfig = model.ItemConfig{
 			Type:        model.ItemDpConfiguration,
-			DpAppliance: config.PreviousAppliance,
+			DpAppliance: config.CurrentApplianceName,
 			DpDomain:    r.dataPowerAppliance.Domain,
 			Parent:      &initialConfigTop}
 	} else {
 		initialConfig = initialConfigTop
 	}
+	logging.LogDebugf("repo/dp/GetInitialItem() initialConfig: %#v", initialConfig)
 	initialItem := model.Item{Config: &initialConfig}
 
 	return initialItem

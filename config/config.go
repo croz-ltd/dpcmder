@@ -15,10 +15,18 @@ import (
 )
 
 const (
-	configDirName     = ".dpcmder"
-	configFileName    = "config.json"
-	PreviousAppliance = "_PreviousAppliance_"
+	configDirName  = ".dpcmder"
+	configFileName = "config.json"
+	// PreviousApplianceName is name of configuration for the last appliance
+	// configured with command-line parameters (without explicitly saving config).
+	PreviousApplianceName = "_PreviousAppliance_"
 )
+
+// CurrentAppliance stores configuration value of current appliance used.
+var CurrentAppliance DataPowerAppliance
+
+// CurrentApplianceName stores configuration of current appliance name used.
+var CurrentApplianceName string
 
 // LocalFolderPath is a folder where dpcmder start showing files - set by command flag.
 var LocalFolderPath *string
@@ -114,10 +122,14 @@ func confidentBootstrap() {
 	if *dpRestURL != "" || *dpSomaURL != "" {
 		if *DpConfigName != "" {
 			Conf.DataPowerAppliances[*DpConfigName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
+			CurrentApplianceName = *DpConfigName
+		} else {
+			Conf.DataPowerAppliances[PreviousApplianceName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
+			CurrentApplianceName = PreviousApplianceName
 		}
 		k.Persist()
 	}
-	Conf.DataPowerAppliances[PreviousAppliance] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
+	CurrentAppliance = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
 	logging.LogDebug("config/confidentBootstrap() - Conf after persist: ", Conf)
 }
 
@@ -227,7 +239,7 @@ func DpPasswordPlain() string {
 }
 
 func SetDpTransientPassword(password string) {
-	DpTransientPasswordMap[PreviousAppliance] = password
+	DpTransientPasswordMap[PreviousApplianceName] = password
 }
 
 // GetDpApplianceConfig fetches DataPower appliance JSON configuration as byte array.
