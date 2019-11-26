@@ -110,7 +110,7 @@ Space               - select current item
 TAB                 - switch from left to right panel and vice versa
 Return              - enter directory
 F2/2                - refresh focused pane (reload files/dirs)
-F3/3                - view current file
+F3/3                - view current file or DataPower configuration
 F4/4                - edit file
 F5/5                - copy selected (or current if none selected) directories and files
                     - if selected is DataPower domain create export of domain (TODO)
@@ -119,9 +119,11 @@ F7/7                - create directory
 F8/8                - create empty file
 DEL/x               - delete selected (or current if none selected) directories and files
 d                   - diff current files/directories
-                      ("blocking" diff command have to be used, for example script ldiff.sh containing "diff $1 $2 | less")
+                      ("blocking" diff command have to be used, for example
+                       script ldiff.sh containing "diff $1 $2 | less")
 /                   - find string
 n                   - find next string
+m                   - show all status messages saved in history
 p                   - find previous string
 f                   - filter shown items by string
 .                   - enter location (full path) for local file system
@@ -139,11 +141,14 @@ u i o
 j k l
 a   z
 
-Custom Viewer/Editor commands:
+Custom external (Viewer/Editor/Diff) commands:
 dpcmder configuration is saved to ~/.dpcmder/config.json where commands used for
-calling viewer and editor are set. By default these are "less" and "vi" but could
-be any commands although edit command should not be started in background (for
-example: a new tab in editor which is already open) for editing to work as expected.
+calling external commands are set. By default these are "less", "vi" and "ldiff"
+but could be any commands. All of those commands should be started in foreground
+and should wait for user's input to complete. For example for viewer "less" or
+"more" can be used while "cat" will not work. For file comparison normal "diff"
+command can't be used but "blocking" diff script must be prepared
+(something like: diff "$1" "$2" | less).
 
 SOMA (+ AMP) vs REST:
 SOMA and AMP interfaces have one shortcoming - you can't see domain list if you

@@ -33,7 +33,8 @@ F7/7                - create directory
 F8/8                - create empty file
 DEL/x               - delete selected (or current if none selected) directories and files
 d                   - diff current files/directories
-                      ("blocking" diff command have to be used, for example script ldiff.sh containing "diff $1 $2 | less")
+                      ("blocking" diff command have to be used, for example
+                       script ldiff.sh containing "diff $1 $2 | less")
 /                   - find string
 n                   - find next string
 m                   - show all status messages saved in history
@@ -69,13 +70,9 @@ don't have proper rights. With REST you can get domain list without any credenti
 
 TODO:
 
-- refactoring/clean up
 - add domain/appliance export[/import?]
 - add creation of files/directories/domains/objects
 - add object editing
-- add default value for input questions (set it after first user selection), for example:
-  - Are you sure you want to disable sync mode [y/n] (): y
-	- Are you sure you want to disable sync mode [y/n] (y):
 - handle border cases (open domain for which you don't have rights...)
 - tests
 - docs
