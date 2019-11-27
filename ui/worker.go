@@ -11,7 +11,6 @@ import (
 	"github.com/croz-ltd/dpcmder/repo"
 	"github.com/croz-ltd/dpcmder/repo/dp"
 	"github.com/croz-ltd/dpcmder/repo/localfs"
-	"github.com/croz-ltd/dpcmder/ui/key"
 	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
@@ -24,6 +23,9 @@ import (
 // dpMissingPasswordError is constant error returned if DataPower password is
 // not set and we want to connect to appliance.
 const dpMissingPasswordError = errs.Error("dpMissingPasswordError")
+
+// QuitError is constant used to recognize when user wants to quit dpcmder.
+const QuitError = errs.Error("QuitError")
 
 // userDialogInputSessionInfo is structure containing all information neccessary
 // for user entering information into input dialog.
@@ -75,6 +77,7 @@ func InitialLoad() {
 	out.DrawEvent(events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel})
 }
 
+// initialLoadRepo loads initial view for given repo on given side.
 func initialLoadRepo(side model.Side, repo repo.Repo) {
 	logging.LogDebugf("ui/initialLoadRepo(%v, %v)", side, repo)
 	initialItem, err := repo.GetInitialItem()
@@ -97,16 +100,18 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	workingModel.SetItems(side, itemList)
 }
 
+// initialLoadDp loads initial DataPower view on the left side.
 func initialLoadDp() {
 	initialLoadRepo(model.Left, &dp.Repo)
 }
 
+// initialLoadLocalfs loads initial local filesystem view on the right side.
 func initialLoadLocalfs() {
 	initialLoadRepo(model.Right, &localfs.Repo)
 }
 
-const QuitError = errs.Error("QuitError")
-
+// ProcessInputEvent processes given input event and do appropriate action.
+// This is function with main logic of dpcmder.
 func ProcessInputEvent(event tcell.Event) error {
 	logging.LogDebugf("ui/ProcessInputEvent(%#v)", event)
 
@@ -249,7 +254,6 @@ func ProcessInputEvent(event tcell.Event) error {
 			updateStatusf("Key event value (before showing help): '%#v'", event)
 		}
 	case *tcell.EventResize:
-		// out.Re()
 	}
 
 	if err != nil {
@@ -261,7 +265,8 @@ func ProcessInputEvent(event tcell.Event) error {
 	return nil
 }
 
-func showInputDialog(dialogSession *userDialogInputSessionInfo) events.UpdateViewEvent {
+// prepareInputDialog prepares information for input dialog showing on console screen.
+func prepareInputDialog(dialogSession *userDialogInputSessionInfo) events.UpdateViewEvent {
 	answer := dialogSession.inputAnswer
 	if dialogSession.inputAnswerMasked {
 		answerLen := utf8.RuneCountInString(dialogSession.inputAnswer)
@@ -275,6 +280,8 @@ func showInputDialog(dialogSession *userDialogInputSessionInfo) events.UpdateVie
 		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
 }
 
+// askUserInput asks user for input like confirmation of some action or name of
+// new file/directory.
 func askUserInput(question, answer string, answerMasked bool) userDialogResult {
 	dialogSession := userDialogInputSessionInfo{inputQuestion: question,
 		inputAnswer:          answer,
@@ -282,14 +289,14 @@ func askUserInput(question, answer string, answerMasked bool) userDialogResult {
 		inputAnswerMasked:    answerMasked}
 loop:
 	for {
-		updateViewEvent := showInputDialog(&dialogSession)
+		updateViewEvent := prepareInputDialog(&dialogSession)
 		out.DrawEvent(updateViewEvent)
-		keyCode, err := kcr.readNext()
-		if err != nil {
-			updateStatus(err.Error())
-			break loop
+		event := out.Screen.PollEvent()
+		switch event := event.(type) {
+		case *tcell.EventKey:
+			processInputDialogInput(&dialogSession, event)
 		}
-		processInputDialogInput(&dialogSession, keyCode)
+
 		if dialogSession.dialogCanceled || dialogSession.dialogSubmitted {
 			break loop
 		}
@@ -298,10 +305,36 @@ loop:
 		dialogCanceled:  dialogSession.dialogCanceled,
 		dialogSubmitted: dialogSession.dialogSubmitted}
 }
-func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode key.KeyCode) {
+
+// processInputDialogInput processes user's input to input dialog.
+func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyEvent *tcell.EventKey) {
 	logging.LogDebugf("ui/processInputDialogInput(): '%s'", dialogSession)
-	switch keyCode {
-	case key.Backspace, key.BackspaceWin:
+	c := keyEvent.Rune()
+	k := keyEvent.Key()
+	switch {
+	case k == tcell.KeyRune:
+		changedAnswer := ""
+		answerLen := utf8.RuneCountInString(dialogSession.inputAnswer)
+		runeIdx := 0
+		for _, runeVal := range dialogSession.inputAnswer {
+			if runeIdx == dialogSession.inputAnswerCursorIdx {
+				changedAnswer = changedAnswer + string(c)
+			}
+			changedAnswer = changedAnswer + string(runeVal)
+			runeIdx = runeIdx + 1
+		}
+		if answerLen == runeIdx && runeIdx == dialogSession.inputAnswerCursorIdx {
+			changedAnswer = changedAnswer + string(c)
+		}
+		dialogSession.inputAnswer = changedAnswer
+		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
+	case k == tcell.KeyEsc:
+		logging.LogDebug("ui/processInputDialogInput() canceling user input: '%s'", dialogSession)
+		dialogSession.dialogCanceled = true
+	case k == tcell.KeyEnter:
+		logging.LogDebugf("ui/processInputDialogInput() accepting user input: '%s'", dialogSession)
+		dialogSession.dialogSubmitted = true
+	case k == tcell.KeyDEL:
 		if dialogSession.inputAnswerCursorIdx > 0 {
 			changedAnswer := ""
 			runeIdx := 0
@@ -314,7 +347,7 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 			dialogSession.inputAnswer = changedAnswer
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
 		}
-	case key.Del:
+	case k == tcell.KeyDelete:
 		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
 			changedAnswer := ""
 			runeIdx := 0
@@ -326,40 +359,18 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyCode 
 			}
 			dialogSession.inputAnswer = changedAnswer
 		}
-	case key.ArrowLeft:
+	case k == tcell.KeyLeft:
 		if dialogSession.inputAnswerCursorIdx > 0 {
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
 		}
-	case key.ArrowRight:
+	case k == tcell.KeyRight:
 		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
 			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
 		}
-	case key.Home:
+	case k == tcell.KeyHome:
 		dialogSession.inputAnswerCursorIdx = 0
-	case key.End:
+	case k == tcell.KeyEnd:
 		dialogSession.inputAnswerCursorIdx = utf8.RuneCountInString(dialogSession.inputAnswer)
-	case key.Esc:
-		logging.LogDebug("ui/processInputDialogInput() canceling user input: '%s'", dialogSession)
-		dialogSession.dialogCanceled = true
-	case key.Return:
-		logging.LogDebugf("ui/processInputDialogInput() accepting user input: '%s'", dialogSession)
-		dialogSession.dialogSubmitted = true
-	default:
-		changedAnswer := ""
-		answerLen := utf8.RuneCountInString(dialogSession.inputAnswer)
-		runeIdx := 0
-		for _, runeVal := range dialogSession.inputAnswer {
-			if runeIdx == dialogSession.inputAnswerCursorIdx {
-				changedAnswer = changedAnswer + key.ConvertKeyCodeStringToString(keyCode)
-			}
-			changedAnswer = changedAnswer + string(runeVal)
-			runeIdx = runeIdx + 1
-		}
-		if answerLen == runeIdx && runeIdx == dialogSession.inputAnswerCursorIdx {
-			changedAnswer = changedAnswer + key.ConvertKeyCodeStringToString(keyCode)
-		}
-		dialogSession.inputAnswer = changedAnswer
-		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
 	}
 }
 
