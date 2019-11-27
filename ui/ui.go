@@ -5,6 +5,7 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/logging"
 )
 
+// Start starts dpcmder UI.
 func Start() {
 	logging.LogDebug("ui/Start()")
 
@@ -15,6 +16,7 @@ func Start() {
 	logging.LogDebug("ui/Start() end")
 }
 
+// Stop stopps and cleans up dpcmder UI.
 func Stop() {
 	logging.LogDebug("ui/Stop()")
 	out.Stop()

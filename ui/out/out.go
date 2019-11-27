@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 )
 
+// Colors used for coloring text and background.
 const (
 	fgNormal   = tcell.ColorDefault
 	fgSelected = tcell.ColorRed
@@ -18,14 +19,20 @@ const (
 	bgCurrent  = tcell.ColorGreen
 )
 
-var stNormal = tcell.StyleDefault.Foreground(fgNormal).Background(bgNormal)
-var stSelected = tcell.StyleDefault.Foreground(fgSelected).Background(bgNormal)
-var stCurrent = tcell.StyleDefault.Foreground(fgNormal).Background(bgCurrent)
-var stCurrentSelected = tcell.StyleDefault.Foreground(fgSelected).Background(bgCurrent)
-var stCursor = tcell.StyleDefault.Foreground(bgNormal).Background(fgNormal)
+// Styles used for console cell (text with background) coloring.
+var (
+	stNormal          = tcell.StyleDefault.Foreground(fgNormal).Background(bgNormal)
+	stSelected        = tcell.StyleDefault.Foreground(fgSelected).Background(bgNormal)
+	stCurrent         = tcell.StyleDefault.Foreground(fgNormal).Background(bgCurrent)
+	stCurrentSelected = tcell.StyleDefault.Foreground(fgSelected).Background(bgCurrent)
+	stCursor          = tcell.StyleDefault.Foreground(bgNormal).Background(fgNormal)
+)
 
+// Screen is used to show text on console and poll input events (key press,
+// console resize, could add mouse).
 var Screen tcell.Screen
 
+// Init initializes console screen.
 func Init() {
 	logging.LogDebug("ui/out/Init()")
 
@@ -42,18 +49,22 @@ func Init() {
 	}
 }
 
+// Stop terminates console screen.
 func Stop() {
 	logging.LogDebug("ui/out/Stop()")
 	Screen.Fini()
 	logging.LogDebug("ui/out/Stop() end")
 }
 
+// GetScreenSize returns size of console screen.
 func GetScreenSize() (width, height int) {
 	width, height = Screen.Size()
 	logging.LogTracef("ui/out/GetScreenSize(), width: %d, height: %d", width, height)
 	return width, height
 }
 
+// DrawEvent crates appropriate changes to screen for given event. Usually either
+// refresh whole screen or just update status message.
 func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebugf("ui/out/drawEvent(%v)", updateViewEvent)
 
@@ -71,6 +82,7 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebug("ui/out/drawEvent() finished")
 }
 
+// refreshScreen refreshes whole console screen.
 func refreshScreen(m model.Model) {
 	logging.LogDebugf("ui/out/refreshScreen('%v')", m)
 
@@ -118,6 +130,7 @@ func refreshScreen(m model.Model) {
 	showStatus(&m, m.LastStatus())
 }
 
+// showQuestionDialog shows question dialog on console screen.
 func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	logging.LogDebugf("ui/out/showQuestionDialog('%s', '%s', %d)", question, answer, answerCursorIdx)
 
@@ -139,12 +152,12 @@ func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	Screen.Show()
 }
 
-// func writeLine(x, y int, line string, horizScroll int, fg, bg termbox.Attribute) int {
+// writeLine writes given line on console screen at given position using given style.
 func writeLine(x, y int, line string, horizScroll int, stNormal tcell.Style) int {
 	return writeLineWithCursor(x, y, line, horizScroll, stNormal, -1, stNormal)
 }
 
-// func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
+// writeLineWithCursor writes given line with cursor shown at given position.
 func writeLineWithCursor(x, y int, line string, horizScroll int, stNormal tcell.Style, cursorX int, stCursor tcell.Style) int {
 	scrolledLine := scrollLineHoriz(line, horizScroll)
 
@@ -178,6 +191,8 @@ func buildLine(first, middle, last string, length int) string {
 	return first + strings.Repeat(middle, middleLen) + last
 }
 
+// scrollLineHoriz returns horizontaly scrolled line (prefix of line is cut if
+// we need to show scrolled line).
 func scrollLineHoriz(line string, horizScroll int) string {
 	var scrollh = horizScroll
 	runeCount := utf8.RuneCountInString(line)
@@ -201,6 +216,7 @@ func scrollLineHoriz(line string, horizScroll int) string {
 	return line
 }
 
+// showStatus shows status string at bottom of dpcmder console screen.
 func showStatus(m *model.Model, status string) {
 	var filterMsg string
 	var syncMsg string

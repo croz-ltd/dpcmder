@@ -108,7 +108,7 @@ func initialLoadLocalfs() {
 const QuitError = errs.Error("QuitError")
 
 func ProcessInputEvent(event tcell.Event) error {
-	logging.LogTracef("ui/ProcessInputEvent(%#v)", event)
+	logging.LogDebugf("ui/ProcessInputEvent(%#v)", event)
 
 	setScreenSize()
 
