@@ -21,7 +21,8 @@ func main() {
 }
 
 // SetupCloseHandler creates a 'listener' on a new goroutine which will notify the
-// program if it receives an interrupt from the OS - so we can cleanup/close termbox.
+// program if it receives an interrupt from the OS. Since tcell input catch Ctrl+C
+// it probably comes from Ctrl+C combination sent to external program - ignoring it.
 func setupCloseHandler() {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -30,8 +31,6 @@ func setupCloseHandler() {
 	signal.Notify(c, os.Interrupt, syscall.SIGHUP)
 	go func() {
 		s := <-c
-		logging.LogDebug("main/setupCloseHandler() - System interrupt signal received, dpcmder ending. s: ", s)
-		go ui.Stop()
-		os.Exit(0)
+		logging.LogDebug("main/setupCloseHandler() - System interrupt signal received from external program, ignoring it - s: ", s)
 	}()
 }

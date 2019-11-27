@@ -121,7 +121,7 @@ func ProcessInputEvent(event tcell.Event) error {
 		m := event.Modifiers()
 		// updateStatusf("Key pressed value: '%#v'", k)
 		switch {
-		case c == 'q':
+		case c == 'q', (k == tcell.KeyCtrlC && m == tcell.ModCtrl):
 			return QuitError
 		case k == tcell.KeyTab:
 			workingModel.ToggleSide()
