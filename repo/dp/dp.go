@@ -467,12 +467,12 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 	}
 }
 
-func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName string) (bool, error) {
-	logging.LogDebugf("repo/dp/Delete(%v, '%s', '%s')", currentView, parentPath, fileName)
+func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, parentPath, fileName string) (bool, error) {
+	logging.LogDebugf("repo/dp/Delete(%v, '%s', '%s' (%s))", currentView, parentPath, fileName, itemType)
 	filePath := r.GetFilePath(parentPath, fileName)
 
-	switch currentView.Type {
-	case model.ItemNone:
+	switch itemType {
+	case model.ItemDpConfiguration:
 		// deleting DataPower configuration
 		config.Conf.DeleteDpApplianceConfig(fileName)
 		return true, nil
@@ -533,8 +533,11 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, parentPath, fileName stri
 			logging.LogDebug("repo/dp/Delete(), using neither REST neither SOMA.")
 			return false, errs.Error("DataPower management interface not set.")
 		}
+	default:
+		logging.LogDebugf("repo/dp/Delete(), don't know how to delete item type %s.", itemType)
+		return false, errs.Errorf("Don't know how to delete item type %s.", itemType.UserFriendlyString())
 	}
-	return false, errs.Errorf("Can't delete '%s' at path '%s'.", fileName, parentPath)
+	return false, errs.Errorf("Can't delete '%s' (%s) at path '%s'.", fileName, itemType.UserFriendlyString(), parentPath)
 }
 
 func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath string) (*model.ItemConfig, error) {

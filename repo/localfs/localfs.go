@@ -118,8 +118,8 @@ func (r localRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName s
 	return true, nil
 }
 
-func (r localRepo) Delete(currentView *model.ItemConfig, parentPath, fileName string) (bool, error) {
-	logging.LogDebugf("repo/localfs/Delete(%v, '%s', '%s')", currentView, parentPath, fileName)
+func (r localRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, parentPath, fileName string) (bool, error) {
+	logging.LogDebugf("repo/localfs/Delete(%v, '%s', '%s' (%s))", currentView, parentPath, fileName, itemType)
 	fileType, err := r.GetFileType(currentView, parentPath, fileName)
 	if err != nil {
 		logging.LogDebugf("repo/localfs/Delete(), err: %v", err)
@@ -138,7 +138,7 @@ func (r localRepo) Delete(currentView *model.ItemConfig, parentPath, fileName st
 			return false, err
 		}
 		for _, subFile := range subFiles {
-			r.Delete(currentView, filePath, subFile.Name())
+			r.Delete(currentView, model.ItemAny, filePath, subFile.Name())
 		}
 		os.Remove(filePath)
 	default:

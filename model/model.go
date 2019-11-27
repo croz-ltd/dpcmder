@@ -27,6 +27,25 @@ func (it ItemType) String() string {
 	return string(it)
 }
 
+func (it ItemType) UserFriendlyString() string {
+	switch it {
+	case ItemDirectory:
+		return "directory"
+	case ItemFile:
+		return "file"
+	case ItemDpConfiguration:
+		return "appliance configuration"
+	case ItemDpDomain:
+		return "domain"
+	case ItemDpFilestore:
+		return "filestore"
+	case ItemNone:
+		return "-"
+	default:
+		return string(it)
+	}
+}
+
 // Available types of Item
 const (
 	ItemDirectory       = ItemType('d')
@@ -35,6 +54,7 @@ const (
 	ItemDpDomain        = ItemType('D')
 	ItemDpFilestore     = ItemType('F')
 	ItemNone            = ItemType('-')
+	ItemAny             = ItemType('*')
 )
 
 // Item contains information about File, Directory, DataPower filestore,

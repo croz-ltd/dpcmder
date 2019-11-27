@@ -16,7 +16,18 @@ func TestItemTypeString(t *testing.T) {
 	for idx, gotType := range types {
 		got := gotType.String()
 		want := wantArr[idx]
-		assert.DeepEqual(t, "ItemType.String()", want, got)
+		assert.DeepEqual(t, "ItemType.String()", got, want)
+	}
+}
+
+func TestUserFriendlyString(t *testing.T) {
+	types := []ItemType{ItemFile, ItemDirectory, ItemDpConfiguration, ItemDpDomain, ItemDpFilestore, ItemNone}
+	wantArr := []string{"file", "directory", "appliance configuration", "domain", "filestore", "-"}
+
+	for idx, gotType := range types {
+		got := gotType.UserFriendlyString()
+		want := wantArr[idx]
+		assert.DeepEqual(t, "ItemType.String()", got, want)
 	}
 }
 

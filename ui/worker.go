@@ -789,25 +789,28 @@ func deleteCurrent(m *model.Model) error {
 		if confirmResponse != "ya" && confirmResponse != "na" {
 			confirmResponse = "n"
 			dialogResult := askUserInput(
-				fmt.Sprintf("Confirm deletion of file '%s' at '%s' (y/ya/n/na): ",
-					item.Name, viewConfig.Path), "", false)
+				fmt.Sprintf("Confirm deletion of '%s' (%s) at '%s' (y/ya/n/na): ",
+					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path), "", false)
 			if dialogResult.dialogSubmitted {
 				confirmResponse = dialogResult.inputAnswer
 			}
 		}
 		if confirmResponse == "y" || confirmResponse == "ya" {
-			res, err := repos[m.CurrSide()].Delete(viewConfig, viewConfig.Path, item.Name)
-			if err != nil {
+			res, err := repos[m.CurrSide()].Delete(viewConfig, item.Config.Type, viewConfig.Path, item.Name)
+			switch {
+			case err != nil:
 				updateStatus(err.Error())
-			}
-			if res {
-				updateStatusf("Successfully deleted '%s'.", item.Name)
-			} else {
-				updateStatusf("ERROR: couldn't delete '%s'.", item.Name)
+			case res:
+				updateStatusf("Successfully deleted '%s' (%s).",
+					item.Name, item.Config.Type.UserFriendlyString())
+			default:
+				updateStatusf("Couldn't delete '%s' (%s).",
+					item.Name, item.Config.Type.UserFriendlyString())
 			}
 			showItem(side, viewConfig, item.Name)
 		} else {
-			updateStatusf("Canceled deleting of '%s'.", item.Name)
+			updateStatusf("Canceled deleting of '%s' (%s).",
+				item.Name, item.Config.Type.UserFriendlyString())
 		}
 	}
 
