@@ -598,6 +598,11 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	res := confirmOverwrite
 	var err error
 	switch item.Config.Type {
+	case model.ItemDpFilestore:
+		res, err = copyFilestore(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		if err != nil {
+			return res, err
+		}
 	case model.ItemDirectory:
 		res, err = copyDirs(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
 		if err != nil {
@@ -617,17 +622,26 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	return res, nil
 }
 
+func copyFilestore(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, dirName, confirmOverwrite string) (string, error) {
+	dirToName := dirName[0 : len(dirName)-1]
+	return copyDirsOrFilestores(fromRepo, toRepo, fromViewConfig, toViewConfig, dirName, dirToName, confirmOverwrite)
+}
+
 func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, dirName, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyDirs(.., .., %v, %v, '%s', '%s')", fromViewConfig, toViewConfig, dirName, confirmOverwrite)
+	return copyDirsOrFilestores(fromRepo, toRepo, fromViewConfig, toViewConfig, dirName, dirName, confirmOverwrite)
+}
+
+func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, dirFromName, dirToName, confirmOverwrite string) (string, error) {
+	logging.LogDebugf("ui/copyDirs(.., .., %v, %v, '%s', '%s', '%s')", fromViewConfig, toViewConfig, dirFromName, dirToName, confirmOverwrite)
 	toParentPath := toViewConfig.Path
-	toFileType, err := toRepo.GetFileType(toViewConfig, toParentPath, dirName)
+	toFileType, err := toRepo.GetFileType(toViewConfig, toParentPath, dirToName)
 	if err != nil {
 		return confirmOverwrite, err
 	}
-	toPath := toRepo.GetFilePath(toParentPath, dirName)
+	toPath := toRepo.GetFilePath(toParentPath, dirToName)
 	switch toFileType {
 	case model.ItemNone:
-		_, err = toRepo.CreateDir(toViewConfig, toParentPath, dirName)
+		_, err = toRepo.CreateDir(toViewConfig, toParentPath, dirToName)
 		if err != nil {
 			logging.LogDebugf("ui/copyDirs() - err: %v", err)
 			return confirmOverwrite, err
@@ -644,7 +658,7 @@ func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	fromViewConfigDir := model.ItemConfig{
 		Parent:      fromViewConfig,
 		Type:        model.ItemDirectory,
-		Path:        fromRepo.GetFilePath(fromViewConfig.Path, dirName),
+		Path:        fromRepo.GetFilePath(fromViewConfig.Path, dirFromName),
 		DpAppliance: fromViewConfig.DpAppliance,
 		DpDomain:    fromViewConfig.DpDomain,
 		DpFilestore: fromViewConfig.DpFilestore}
@@ -655,7 +669,7 @@ func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	for _, item := range items {
 		if item.Name != ".." {
 			toViewConfigDir := model.ItemConfig{Parent: toViewConfig,
-				Path:        toRepo.GetFilePath(toViewConfig.Path, dirName),
+				Path:        toRepo.GetFilePath(toViewConfig.Path, dirToName),
 				DpAppliance: toViewConfig.DpAppliance,
 				DpDomain:    toViewConfig.DpDomain,
 				DpFilestore: toViewConfig.DpFilestore}
