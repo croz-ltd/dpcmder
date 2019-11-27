@@ -801,13 +801,13 @@ func deleteCurrent(m *model.Model) error {
 				updateStatus(err.Error())
 			}
 			if res {
-				updateStatusf("Successfully deleted file '%s'.", item.Name)
+				updateStatusf("Successfully deleted '%s'.", item.Name)
 			} else {
-				updateStatusf("ERROR: couldn't delete file '%s'.", item.Name)
+				updateStatusf("ERROR: couldn't delete '%s'.", item.Name)
 			}
 			showItem(side, viewConfig, item.Name)
 		} else {
-			updateStatusf("Cancelete deleting of file '%s'.", item.Name)
+			updateStatusf("Canceled deleting of '%s'.", item.Name)
 		}
 	}
 

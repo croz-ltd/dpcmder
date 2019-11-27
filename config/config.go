@@ -273,6 +273,12 @@ func (c *Config) SetDpApplianceConfig(name string, contents []byte) error {
 	return nil
 }
 
+// DeleteDpApplianceConfig deletes DataPower appliance JSON configuration.
+func (c *Config) DeleteDpApplianceConfig(name string) {
+	delete(c.DataPowerAppliances, name)
+	k.Persist()
+}
+
 // PrintConfig prints configuration values to console.
 func PrintConfig() {
 	fmt.Println("LocalFolderPath: ", *LocalFolderPath)
