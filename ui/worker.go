@@ -632,7 +632,7 @@ func copyDirs(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 }
 
 func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, dirFromName, dirToName, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyDirs(.., .., %v, %v, '%s', '%s', '%s')", fromViewConfig, toViewConfig, dirFromName, dirToName, confirmOverwrite)
+	logging.LogDebugf("ui/copyDirsOrFilestores(.., .., %v, %v, '%s', '%s', '%s')", fromViewConfig, toViewConfig, dirFromName, dirToName, confirmOverwrite)
 	toParentPath := toViewConfig.Path
 	toFileType, err := toRepo.GetFileType(toViewConfig, toParentPath, dirToName)
 	if err != nil {
@@ -643,7 +643,7 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 	case model.ItemNone:
 		_, err = toRepo.CreateDir(toViewConfig, toParentPath, dirToName)
 		if err != nil {
-			logging.LogDebugf("ui/copyDirs() - err: %v", err)
+			logging.LogDebugf("ui/copyDirsOrFilestores() - err: %v", err)
 			return confirmOverwrite, err
 		}
 		updateStatusf("Directory '%s' created.", toPath)
@@ -651,7 +651,7 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 		updateStatusf("Directory '%s' already exists.", toPath)
 	default:
 		errMsg := fmt.Sprintf("Non dir '%s' exists (%v), can't create dir.", toPath, toFileType)
-		logging.LogDebugf("ui/copyDirs() - %s", errMsg)
+		logging.LogDebugf("ui/copyDirsOrFilestores() - %s", errMsg)
 		return confirmOverwrite, errs.Error(errMsg)
 	}
 

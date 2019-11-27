@@ -192,7 +192,6 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 	parentPath := currentView.Path
 	filePath := paths.GetDpPath(parentPath, fileName)
 	return r.UpdateFileByPath(currentView.DpDomain, filePath, newFileContent)
-	// fileType, err := r.GetFileType(currentView, parentPath, fileName)
 }
 func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []byte) (bool, error) {
 	logging.LogDebugf("repo/dp/UpdateFile('%s', '%s', ...)\n", dpDomain, filePath)
@@ -321,8 +320,11 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 		}
 
 		filestore := jsonquery.Find(doc, "/filestore")
+		locationName := jsonquery.Find(doc, "/filestore/location/name")
 		file := jsonquery.Find(doc, "/file")
 		switch {
+		case len(locationName) == 1 && strings.HasSuffix(locationName[0].InnerText(), ":"):
+			return model.ItemDpFilestore, nil
 		case len(filestore) == 1:
 			return model.ItemDirectory, nil
 		case len(file) == 1:
@@ -332,10 +334,11 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 		}
 
 		errMsg := fmt.Sprintf("Wrong JSON response: '%s'", jsonString)
-		logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
+		logging.LogDebugf("repo/dp/GetFileTypeByPath() - %s", errMsg)
 		return model.ItemNone, errs.Error(errMsg)
 	} else if r.dataPowerAppliance.SomaUrl != "" {
-		if parentPath != "" {
+		switch {
+		case parentPath != "":
 			dpFilestoreLocation, _ := splitOnFirst(parentPath, "/")
 			dpFilestoreIsRoot := !strings.Contains(parentPath, "/")
 			var dpDirNodes []*xmlquery.Node
@@ -369,15 +372,16 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 			}
 
 			errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXmls[dpFilestoreLocation])
-			logging.LogDebugf("repo/dp/getFileType() - %s", errMsg)
+			logging.LogDebugf("repo/dp/GetFileTypeByPath() - %s", errMsg)
 			return model.ItemNone, errs.Error(errMsg)
-		}
-		if dpDomain != "" {
+		case dpDomain != "":
+			return model.ItemDpFilestore, nil
+		case dpDomain == "":
 			return model.ItemDpDomain, nil
 		}
 	}
 
-	logging.LogDebug("repo/dp/getFileType(), using neither REST neither SOMA.")
+	logging.LogDebug("repo/dp/GetFileTypeByPath(), using neither REST neither SOMA.")
 	return model.ItemNone, errs.Error("DataPower management interface not set.")
 }
 
@@ -386,11 +390,6 @@ func (r *dpRepo) GetFilePath(parentPath, fileName string) string {
 	return paths.GetDpPath(parentPath, fileName)
 }
 
-// func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
-// func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model.ItemType, error) {
-// func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, error) {
-// 	logging.LogDebugf("repo/dp/CreateDirByPath('%s', '%s', '%s')", dpDomain, parentPath, dirName)
-// 	fileType, err := r.GetFileTypeByPath(dpDomain, parentPath, dirName)
 func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
 	logging.LogDebugf("repo/dp/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
 	return r.CreateDirByPath(viewConfig.DpDomain, parentPath, dirName)
@@ -398,13 +397,9 @@ func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName str
 func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, error) {
 	logging.LogDebugf("repo/dp/CreateDirByPath('%s', '%s', '%s')", dpDomain, parentPath, dirName)
 	fileType, err := r.GetFileTypeByPath(dpDomain, parentPath, dirName)
-	// func (r *dpRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
-	// 	logging.LogDebugf("repo/dp/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
-	// 	fileType, err := r.GetFileType(viewConfig, parentPath, dirName)
 	if err != nil {
 		return false, err
 	}
-	// dpDomain := viewConfig.DpDomain
 
 	switch fileType {
 	case model.ItemNone:
