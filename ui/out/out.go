@@ -14,8 +14,8 @@ import (
 // Colors used for coloring text and background.
 const (
 	fgNormal   = tcell.ColorDefault
-	fgSelected = tcell.ColorRed
 	bgNormal   = tcell.ColorDefault
+	fgSelected = tcell.ColorRed
 	bgCurrent  = tcell.ColorGreen
 )
 
@@ -25,7 +25,7 @@ var (
 	stSelected        = tcell.StyleDefault.Foreground(fgSelected).Background(bgNormal)
 	stCurrent         = tcell.StyleDefault.Foreground(fgNormal).Background(bgCurrent)
 	stCurrentSelected = tcell.StyleDefault.Foreground(fgSelected).Background(bgCurrent)
-	stCursor          = tcell.StyleDefault.Foreground(bgNormal).Background(fgNormal)
+	stCursor          = stNormal.Reverse(true)
 )
 
 // Screen is used to show text on console and poll input events (key press,
