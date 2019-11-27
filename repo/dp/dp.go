@@ -39,7 +39,7 @@ func (r *dpRepo) String() string {
 	return r.name
 }
 
-func (r *dpRepo) GetInitialItem() model.Item {
+func (r *dpRepo) GetInitialItem() (model.Item, error) {
 	logging.LogDebugf("repo/dp/GetInitialItem(), dataPowerAppliance: %#v", r.dataPowerAppliance)
 	var initialConfig model.ItemConfig
 	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
@@ -55,7 +55,7 @@ func (r *dpRepo) GetInitialItem() model.Item {
 	logging.LogDebugf("repo/dp/GetInitialItem() initialConfig: %#v", initialConfig)
 	initialItem := model.Item{Config: &initialConfig}
 
-	return initialItem
+	return initialItem, nil
 }
 
 func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
@@ -343,7 +343,8 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 			if dpFilestoreIsRoot {
 				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 				if err != nil {
-					logging.LogFatal(err)
+					logging.LogDebug("Error parsing response SOAP.", err)
+					return model.ItemNone, err
 				}
 				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/directory[@name='"+filePath+"']")
 				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file[@name='"+fileName+"']")
@@ -351,7 +352,8 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 			} else {
 				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 				if err != nil {
-					logging.LogFatal(err)
+					logging.LogDebug("Error parsing response SOAP.", err)
+					return model.ItemNone, err
 				}
 				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+filePath+"']")
 				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+parentPath+"']/file[@name='"+fileName+"']")
@@ -797,7 +799,8 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 		} else {
 			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 			if err != nil {
-				logging.LogFatal(err)
+				logging.LogDebug("Error parsing response SOAP.", err)
+				return nil, err
 			}
 			dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+selectedItemConfig.Path+"']/directory")
 			dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']//directory[@name='"+selectedItemConfig.Path+"']/file")
@@ -947,17 +950,19 @@ func splitOnLast(wholeString string, splitterString string) (string, string) {
 }
 
 // InitNetworkSettings initializes DataPower client network configuration.
-func (r *dpRepo) InitNetworkSettings(dpa config.DataPowerAppliance) {
+func (r *dpRepo) InitNetworkSettings(dpa config.DataPowerAppliance) error {
 	logging.LogDebug("repo/dp/InitNetworkSettings(%v)", dpa)
 	r.dataPowerAppliance = dpa
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	if r.dataPowerAppliance.Proxy != "" {
 		proxyURL, err := url.Parse(r.dataPowerAppliance.Proxy)
 		if err != nil {
-			logging.LogFatal("Couldn't initialize network settings to access DataPower.", err)
+			logging.LogDebug("Couldn't initialize network settings to access DataPower.", err)
+			return err
 		}
 		http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(proxyURL)
 	}
+	return nil
 }
 
 // rest makes http request from relative URL path given, method and body.

@@ -28,16 +28,17 @@ func (r *localRepo) String() string {
 }
 
 // GetInitialView returns initialy opened local directory info.
-func (r localRepo) GetInitialItem() model.Item {
+func (r localRepo) GetInitialItem() (model.Item, error) {
 	logging.LogDebug("repo/localfs/GetInitialItem()")
 	currPath, err := filepath.Abs(*config.LocalFolderPath)
 	if err != nil {
-		logging.LogFatal("repo/localfs/GetInitialItem(): ", err)
+		logging.LogDebug("Loading initial local filesystem view.", err)
+		return model.Item{}, err
 	}
 
 	parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(currPath, "..")}
 	initialItem := model.Item{Config: &model.ItemConfig{Type: model.ItemDirectory, Path: currPath, Parent: &parentConfig}}
-	return initialItem
+	return initialItem, nil
 }
 
 // GetTitle returns title for item to show.

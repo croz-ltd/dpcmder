@@ -63,7 +63,11 @@ var dialogSession = userDialogInputSessionInfo{}
 // InitialLoad initializes DataPower and local filesystem access and load initial views.
 func InitialLoad() {
 	logging.LogDebug("ui/InitialLoad()")
-	dp.Repo.InitNetworkSettings(config.CurrentAppliance)
+	err := dp.Repo.InitNetworkSettings(config.CurrentAppliance)
+	if err != nil {
+		logging.LogDebug("ui/initialLoadRepo(): ", err)
+		updateStatus(err.Error())
+	}
 	initialLoadDp()
 	initialLoadLocalfs()
 
@@ -73,7 +77,12 @@ func InitialLoad() {
 
 func initialLoadRepo(side model.Side, repo repo.Repo) {
 	logging.LogDebugf("ui/initialLoadRepo(%v, %v)", side, repo)
-	initialItem := repo.GetInitialItem()
+	initialItem, err := repo.GetInitialItem()
+	if err != nil {
+		logging.LogDebug("ui/initialLoadRepo(): ", err)
+		updateStatus(err.Error())
+		return
+	}
 	logging.LogDebugf("ui/initialLoadRepo(%v, %v), initialItem: %v", side, repo, initialItem)
 
 	title := repo.GetTitle(initialItem.Config)
@@ -99,7 +108,7 @@ func initialLoadLocalfs() {
 const QuitError = errs.Error("QuitError")
 
 func ProcessInputEvent(event tcell.Event) error {
-	logging.LogDebugf("ui/ProcessInputEvent('%#v')", event)
+	logging.LogTracef("ui/ProcessInputEvent(%#v)", event)
 
 	setScreenSize()
 
@@ -110,7 +119,7 @@ func ProcessInputEvent(event tcell.Event) error {
 		c := event.Rune()
 		k := event.Key()
 		m := event.Modifiers()
-		updateStatusf("Key pressed value: '%#v'", k)
+		// updateStatusf("Key pressed value: '%#v'", k)
 		switch {
 		case c == 'q':
 			return QuitError

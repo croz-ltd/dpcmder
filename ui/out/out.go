@@ -50,7 +50,7 @@ func Stop() {
 
 func GetScreenSize() (width, height int) {
 	width, height = Screen.Size()
-	logging.LogDebug("ui/out/GetScreenSize(), width: ", width, ", height: ", height)
+	logging.LogTracef("ui/out/GetScreenSize(), width: %d, height: %d", width, height)
 	return width, height
 }
 

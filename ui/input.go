@@ -27,7 +27,7 @@ loop:
 		event := out.Screen.PollEvent()
 		// keyCode, err := kcr.readNext()
 
-		logging.LogDebugf("ui/keyPressedLoop(), event: %#v", event)
+		logging.LogTracef("ui/keyPressedLoop(), event: %#v", event)
 		err := ProcessInputEvent(event)
 		if err != nil {
 			break loop

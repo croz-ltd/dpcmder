@@ -19,7 +19,7 @@ func TestLocalRepoGetInitialItem(t *testing.T) {
 	initialDir := "/dir1/dir2/dir3"
 	config.LocalFolderPath = &initialDir
 
-	item := Repo.GetInitialItem()
+	item, _ := Repo.GetInitialItem()
 	want := model.Item{Config: &model.ItemConfig{
 		Type: model.ItemDirectory, Path: initialDir,
 		Parent: &model.ItemConfig{
