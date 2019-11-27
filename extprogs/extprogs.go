@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
+	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/nsf/termbox-go"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -22,8 +22,8 @@ func View(name string, content []byte) error {
 		return errors.New("Viewer command not configured.")
 	}
 
-	termbox.Close()
-	defer termbox.Init()
+	out.Stop()
+	defer out.Init()
 
 	f, err := ioutil.TempFile(".", name)
 	if err != nil {
@@ -56,8 +56,8 @@ func Edit(name string, content []byte) (returnError error, changed bool, newCont
 		return errors.New("Editor command not configured."), false, nil
 	}
 
-	termbox.Close()
-	defer termbox.Init()
+	out.Stop()
+	defer out.Init()
 
 	f, err := ioutil.TempFile(".", name)
 	if err != nil {
@@ -109,7 +109,7 @@ func Edit(name string, content []byte) (returnError error, changed bool, newCont
 func CreateTempDir(dirPrefix string) string {
 	dir, err := ioutil.TempDir(".", dirPrefix)
 	if err != nil {
-		logging.LogFatal("extprogs.CreateTempDir() ", err)
+		logging.LogDebug("extprogs.CreateTempDir() ", err)
 	}
 	return dir
 }
@@ -131,8 +131,9 @@ func Diff(leftPath string, rightPath string) error {
 		return errors.New("Diff command not configured.")
 	}
 
-	termbox.Close()
-	defer termbox.Init()
+	out.Stop()
+	defer out.Init()
+
 	diffCmd := exec.Command(config.Conf.Cmd.Diff, leftPath, rightPath)
 
 	diffCmd.Stdout = os.Stdout

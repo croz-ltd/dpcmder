@@ -5,37 +5,51 @@ import (
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/utils/screen"
-	"github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
+	"os"
 	"strings"
 	"unicode/utf8"
 )
 
 const (
-	fgNormal   = termbox.ColorDefault
-	fgSelected = termbox.ColorRed
-	bgNormal   = termbox.ColorDefault
-	bgCurrent  = termbox.ColorGreen
+	fgNormal   = tcell.ColorDefault
+	fgSelected = tcell.ColorRed
+	bgNormal   = tcell.ColorDefault
+	bgCurrent  = tcell.ColorGreen
 )
+
+var stNormal = tcell.StyleDefault.Foreground(fgNormal).Background(bgNormal)
+var stSelected = tcell.StyleDefault.Foreground(fgSelected).Background(bgNormal)
+var stCurrent = tcell.StyleDefault.Foreground(fgNormal).Background(bgCurrent)
+var stCurrentSelected = tcell.StyleDefault.Foreground(fgSelected).Background(bgCurrent)
+var stCursor = tcell.StyleDefault.Foreground(bgNormal).Background(fgNormal)
+
+var Screen tcell.Screen
 
 func Init() {
 	logging.LogDebug("ui/out/Init()")
 
-	err := termbox.Init()
+	var err error
+	Screen, err = tcell.NewScreen()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	err = Screen.Init()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
 	}
 }
 
 func Stop() {
 	logging.LogDebug("ui/out/Stop()")
-	logging.LogDebug("ui/out/Stop(), termbox.IsInit: ", termbox.IsInit)
-	screen.TermboxClose()
+	Screen.Fini()
 	logging.LogDebug("ui/out/Stop() end")
 }
 
 func GetScreenSize() (width, height int) {
-	width, height = termbox.Size()
+	width, height = Screen.Size()
 	logging.LogDebug("ui/out/GetScreenSize(), width: ", width, ", height: ", height)
 	return width, height
 }
@@ -60,42 +74,45 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 func refreshScreen(m model.Model) {
 	logging.LogDebugf("ui/out/refreshScreen('%v')", m)
 
-	termbox.Clear(fgNormal, bgNormal)
+	Screen.Clear()
+	Screen.SetStyle(tcell.StyleDefault.Foreground(fgNormal).Background(bgNormal))
 
-	width, _ := termbox.Size()
+	width, _ := Screen.Size()
 	if m.IsCurrentSide(model.Left) {
-		writeLine(0, 0, m.Title(model.Left), m.HorizScroll, fgNormal, bgCurrent)
-		writeLine(width/2, 0, m.Title(model.Right), m.HorizScroll, fgNormal, bgNormal)
+		writeLine(0, 0, m.Title(model.Left), m.HorizScroll, stCurrent)
+		writeLine(width/2, 0, m.Title(model.Right), m.HorizScroll, stNormal)
 	} else {
-		writeLine(0, 0, m.Title(model.Left), m.HorizScroll, fgNormal, bgNormal)
-		writeLine(width/2, 0, m.Title(model.Right), m.HorizScroll, fgNormal, bgCurrent)
+		writeLine(0, 0, m.Title(model.Left), m.HorizScroll, stNormal)
+		writeLine(width/2, 0, m.Title(model.Right), m.HorizScroll, stCurrent)
 	}
 
 	for idx := 0; idx < m.GetVisibleItemCount(model.Left); idx++ {
 		logging.LogTrace("ui/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Left, idx)
-		var fg = fgNormal
-		var bg = bgNormal
-		if m.IsCurrentRow(model.Left, idx) {
-			bg = bgCurrent
+		var st = stNormal
+		switch {
+		case m.IsCurrentRow(model.Left, idx) && item.Selected:
+			st = stCurrentSelected
+		case m.IsCurrentRow(model.Left, idx):
+			st = stCurrent
+		case item.Selected:
+			st = stSelected
 		}
-		if item.Selected {
-			fg = fgSelected
-		}
-		writeLine(0, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
+		writeLine(0, idx+2, item.DisplayString(), m.HorizScroll, st)
 	}
 	for idx := 0; idx < m.GetVisibleItemCount(model.Right); idx++ {
 		logging.LogTrace("ui/out/draw(), idx: ", idx)
 		item := m.GetVisibleItem(model.Right, idx)
-		var fg = fgNormal
-		var bg = bgNormal
-		if m.IsCurrentRow(model.Right, idx) {
-			bg = bgCurrent
+		var st = stNormal
+		switch {
+		case m.IsCurrentRow(model.Right, idx) && item.Selected:
+			st = stCurrentSelected
+		case m.IsCurrentRow(model.Right, idx):
+			st = stCurrent
+		case item.Selected:
+			st = stSelected
 		}
-		if item.Selected {
-			fg = fgSelected
-		}
-		writeLine(width/2, idx+2, item.DisplayString(), m.HorizScroll, fg, bg)
+		writeLine(width/2, idx+2, item.DisplayString(), m.HorizScroll, st)
 	}
 
 	showStatus(&m, m.LastStatus())
@@ -105,27 +122,30 @@ func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	logging.LogDebugf("ui/out/showQuestionDialog('%s', '%s', %d)", question, answer, answerCursorIdx)
 
 	// termbox.Clear(fgNormal, bgNormal)
-	width, height := termbox.Size()
+	width, height := Screen.Size()
 	x := 10
 	y := height/2 - 2
 	dialogWidth := width - 20
 	line := question + answer
 	cursorIdx := utf8.RuneCountInString(question) + answerCursorIdx
-	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), 0, fgNormal, bgNormal)
-	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), 0, fgNormal, bgNormal)
-	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), 0, fgNormal, bgNormal)
-	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), 0, fgNormal, bgNormal)
-	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), 0, fgNormal, bgNormal)
-	writeLineWithCursor(x+2, y, line, 0, fgNormal, bgNormal, x+2+cursorIdx, termbox.AttrReverse, termbox.AttrReverse)
 
-	termbox.Flush()
+	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), 0, stNormal)
+	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), 0, stNormal)
+	writeLineWithCursor(x+2, y, line, 0, stNormal, x+2+cursorIdx, stCursor)
+
+	Screen.Show()
 }
 
-func writeLine(x, y int, line string, horizScroll int, fg, bg termbox.Attribute) int {
-	return writeLineWithCursor(x, y, line, horizScroll, fg, bg, -1, fg, bg)
+// func writeLine(x, y int, line string, horizScroll int, fg, bg termbox.Attribute) int {
+func writeLine(x, y int, line string, horizScroll int, stNormal tcell.Style) int {
+	return writeLineWithCursor(x, y, line, horizScroll, stNormal, -1, stNormal)
 }
 
-func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
+// func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.Attribute, cursorX int, cursorFg, cursorBg termbox.Attribute) int {
+func writeLineWithCursor(x, y int, line string, horizScroll int, stNormal tcell.Style, cursorX int, stCursor tcell.Style) int {
 	scrolledLine := scrollLineHoriz(line, horizScroll)
 
 	var xpos int
@@ -134,18 +154,18 @@ func writeLineWithCursor(x, y int, line string, horizScroll int, fg, bg termbox.
 		xpos = x + runeIdx
 		runeIdx = runeIdx + 1
 		if cursorX == xpos {
-			termbox.SetCell(xpos, y, runeVal, cursorFg, cursorBg)
+			Screen.SetCell(xpos, y, stCursor, runeVal)
 		} else {
-			termbox.SetCell(xpos, y, runeVal, fg, bg)
+			Screen.SetCell(xpos, y, stNormal, runeVal)
 		}
 	}
 	// logging.LogDebug("x: ", x, ", scrolledLine: ", scrolledLine, ", len(scrolledLine): ", len(scrolledLine))
 	// logging.LogDebug("cursorX: ", cursorX, "xpos: ", xpos)
 	if cursorX > xpos {
-		termbox.SetCell(cursorX, y, rune(' '), cursorFg, cursorBg)
+		Screen.SetCell(cursorX, y, stCursor, rune(' '))
 	} else if cursorX == -2 {
 		// logging.LogDebug("------ ", "xpos+1: ", (xpos + 1))
-		termbox.SetCell(xpos+1, y, rune(' '), cursorFg, cursorBg)
+		Screen.SetCell(xpos+1, y, stCursor, rune(' '))
 	}
 	return xpos + 1
 }
@@ -193,8 +213,8 @@ func showStatus(m *model.Model, status string) {
 
 	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)
 
-	w, h := termbox.Size()
-	writeLine(0, h-1, strings.Repeat(" ", w), m.HorizScroll, termbox.ColorDefault, termbox.ColorDefault)
-	writeLine(0, h-1, statusMsg, m.HorizScroll, termbox.ColorDefault, termbox.ColorDefault)
-	termbox.Flush()
+	w, h := Screen.Size()
+	writeLine(0, h-1, strings.Repeat(" ", w), m.HorizScroll, stNormal)
+	writeLine(0, h-1, statusMsg, m.HorizScroll, stNormal)
+	Screen.Show()
 }

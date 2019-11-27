@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"github.com/croz-ltd/dpcmder/ui/key"
+	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"io"
 	"os"
@@ -23,20 +24,13 @@ func keyPressedLoop() {
 loop:
 	for {
 		logging.LogTrace("ui/keyPressedLoop(), waiting to read")
-		keyCode, err := kcr.readNext()
+		event := out.Screen.PollEvent()
+		// keyCode, err := kcr.readNext()
 
-		switch err {
-		case nil:
-			logging.LogDebugf("ui/keyPressedLoop(), keyCode: %v", keyCode)
-			err := ProcessInputEvent(keyCode)
-			if err != nil {
-				break loop
-			}
-		case QuitError:
-			logging.LogDebug("ui/keyPressedLoop() received quit key.")
+		logging.LogDebugf("ui/keyPressedLoop(), event: %#v", event)
+		err := ProcessInputEvent(event)
+		if err != nil {
 			break loop
-		default:
-			logging.LogDebug("ui/keyPressedLoop() unexpected error received.", err)
 		}
 	}
 	logging.LogDebug("ui/keyPressedLoop() stopping")

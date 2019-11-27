@@ -15,6 +15,7 @@ import (
 	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/gdamore/tcell"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -97,138 +98,149 @@ func initialLoadLocalfs() {
 
 const QuitError = errs.Error("QuitError")
 
-func ProcessInputEvent(keyCode key.KeyCode) error {
-	logging.LogDebugf("ui/ProcessInputEvent('%s')", keyCode)
+func ProcessInputEvent(event tcell.Event) error {
+	logging.LogDebugf("ui/ProcessInputEvent('%#v')", event)
 
 	setScreenSize()
 
 	var err error
 
-	switch keyCode {
-	case key.Chq:
-		return QuitError
-	case key.Tab:
-		workingModel.ToggleSide()
-	case key.Return:
-		err = enterCurrentDirectory()
-		logging.LogDebug("ui/processInputEvent(), err: ", err)
-		switch err {
-		case dpMissingPasswordError:
-			dialogResult := askUserInput("Please enter DataPower password: ", "", true)
-			if dialogResult.inputAnswer != "" {
-				setCurrentDpPlainPassword(dialogResult.inputAnswer)
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		c := event.Rune()
+		k := event.Key()
+		m := event.Modifiers()
+		updateStatusf("Key pressed value: '%#v'", k)
+		switch {
+		case c == 'q':
+			return QuitError
+		case k == tcell.KeyTab:
+			workingModel.ToggleSide()
+		case k == tcell.KeyEnter:
+			err = enterCurrentDirectory()
+			logging.LogDebug("ui/processInputEvent(), err: ", err)
+			switch err {
+			case dpMissingPasswordError:
+				dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+				if dialogResult.inputAnswer != "" {
+					setCurrentDpPlainPassword(dialogResult.inputAnswer)
+				}
+				err = nil
+			case nil:
+				// If no error occurs.
+			default:
+				switch err.(type) {
+				case errs.UnexpectedHTTPResponse:
+					setCurrentDpPlainPassword("")
+				}
 			}
-			err = nil
-		case nil:
-			// If no error occurs.
-		default:
-			switch err.(type) {
-			case errs.UnexpectedHTTPResponse:
-				setCurrentDpPlainPassword("")
+		case c == ' ':
+			workingModel.ToggleCurrItem()
+		case c == '.':
+			err = enterDirectoryPath(&workingModel)
+		case k == tcell.KeyLeft, c == 'j':
+			workingModel.HorizScroll -= 10
+			if workingModel.HorizScroll < 0 {
+				workingModel.HorizScroll = 0
 			}
-		}
-	case key.Space:
-		workingModel.ToggleCurrItem()
-	case key.Dot:
-		err = enterDirectoryPath(&workingModel)
-	case key.ArrowLeft, key.Chj:
-		workingModel.HorizScroll -= 10
-		if workingModel.HorizScroll < 0 {
-			workingModel.HorizScroll = 0
-		}
-	case key.ArrowRight, key.Chl:
-		workingModel.HorizScroll += 10
-	case key.ArrowUp, key.Chi:
-		workingModel.NavUp()
-	case key.ArrowDown, key.Chk:
-		workingModel.NavDown()
-	case key.ShiftArrowUp, key.ChI:
-		workingModel.ToggleCurrItem()
-		workingModel.NavUp()
-	case key.ShiftArrowDown, key.ChK:
-		workingModel.ToggleCurrItem()
-		workingModel.NavDown()
-	case key.PgUp, key.Chu:
-		workingModel.NavPgUp()
-	case key.PgDown, key.Cho:
-		workingModel.NavPgDown()
-	case key.ShiftPgUp, key.ChU:
-		workingModel.SelPgUp()
-		workingModel.NavPgUp()
-	case key.ShiftPgDown, key.ChO:
-		workingModel.SelPgDown()
-		workingModel.NavPgDown()
-	case key.Home, key.Cha:
-		workingModel.NavTop()
-	case key.End, key.Chz:
-		workingModel.NavBottom()
-	case key.ShiftHome, key.ChA:
-		workingModel.SelToTop()
-		workingModel.NavTop()
-	case key.ShiftEnd, key.ChZ:
-		workingModel.SelToBottom()
-		workingModel.NavBottom()
+		case k == tcell.KeyRight, c == 'l':
+			workingModel.HorizScroll += 10
+		case (k == tcell.KeyUp && m == tcell.ModNone), c == 'i':
+			workingModel.NavUp()
+		case (k == tcell.KeyDown && m == tcell.ModNone), c == 'k':
+			workingModel.NavDown()
+		case (k == tcell.KeyUp && m == tcell.ModShift), c == 'I':
+			workingModel.ToggleCurrItem()
+			workingModel.NavUp()
+		case (k == tcell.KeyDown && m == tcell.ModShift), c == 'K':
+			workingModel.ToggleCurrItem()
+			workingModel.NavDown()
+		case (k == tcell.KeyPgUp && m == tcell.ModNone), c == 'u':
+			workingModel.NavPgUp()
+		case (k == tcell.KeyPgDn && m == tcell.ModNone), c == 'o':
+			workingModel.NavPgDown()
+			// TODO: Shift + PgUp doesn't work - 5 events (mod:4+ch:91,ch:54,ch:59,ch:50,ch:126)
+		case (k == tcell.KeyPgUp && m == tcell.ModShift), c == 'U':
+			workingModel.SelPgUp()
+			workingModel.NavPgUp()
+			// TODO: Shift + PgDown doesn't work - 5 events (mod:4+ch:91,ch:53,ch:59,ch:50,ch:126)
+		case (k == tcell.KeyPgDn && m == tcell.ModShift), c == 'O':
+			workingModel.SelPgDown()
+			workingModel.NavPgDown()
+		case (k == tcell.KeyHome && m == tcell.ModNone), c == 'a':
+			workingModel.NavTop()
+		case (k == tcell.KeyEnd && m == tcell.ModNone), c == 'z':
+			workingModel.NavBottom()
+		case (k == tcell.KeyHome && m == tcell.ModShift), c == 'A':
+			workingModel.SelToTop()
+			workingModel.NavTop()
+		case (k == tcell.KeyEnd && m == tcell.ModShift), c == 'Z':
+			workingModel.SelToBottom()
+			workingModel.NavBottom()
 
-	case key.Chf:
-		cf := workingModel.CurrentFilter()
-		dialogResult := askUserInput("Filter by: ", cf, false)
-		workingModel.SetCurrentFilter(dialogResult.inputAnswer)
+		case c == 'f':
+			cf := workingModel.CurrentFilter()
+			dialogResult := askUserInput("Filter by: ", cf, false)
+			workingModel.SetCurrentFilter(dialogResult.inputAnswer)
 
-	case key.Slash:
-		workingModel.SearchBy = ""
-		dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
-		workingModel.SearchBy = dialogResult.inputAnswer
-		if workingModel.SearchBy != "" {
-			found := workingModel.SearchNext(workingModel.SearchBy)
-			if !found {
-				notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-				updateStatus(notFoundStatus)
-			}
-		}
-
-	case key.Chn, key.Chp:
-		if workingModel.SearchBy == "" {
+		case c == '/':
+			workingModel.SearchBy = ""
 			dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
 			workingModel.SearchBy = dialogResult.inputAnswer
-		}
-		if workingModel.SearchBy != "" {
-			found := false
-			switch keyCode {
-			case key.Chn:
-				found = workingModel.SearchNext(workingModel.SearchBy)
-			case key.Chp:
-				found = workingModel.SearchPrev(workingModel.SearchBy)
+			if workingModel.SearchBy != "" {
+				found := workingModel.SearchNext(workingModel.SearchBy)
+				if !found {
+					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
+					updateStatus(notFoundStatus)
+				}
 			}
-			if !found {
-				notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-				updateStatus(notFoundStatus)
+
+		case c == 'n', c == 'p':
+			if workingModel.SearchBy == "" {
+				dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
+				workingModel.SearchBy = dialogResult.inputAnswer
 			}
+			if workingModel.SearchBy != "" {
+				found := false
+				switch c {
+				case 'n':
+					found = workingModel.SearchNext(workingModel.SearchBy)
+				case 'p':
+					found = workingModel.SearchPrev(workingModel.SearchBy)
+				}
+				if !found {
+					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
+					updateStatus(notFoundStatus)
+				}
+			}
+
+		case k == tcell.KeyF2, c == '2':
+			err = refreshCurrentView(&workingModel)
+		case k == tcell.KeyF3, c == '3':
+			err = viewCurrent(&workingModel)
+		case k == tcell.KeyF4, c == '4':
+			err = editCurrent(&workingModel)
+		case k == tcell.KeyF5, c == '5':
+			err = copyCurrent(&workingModel)
+		case c == 'd':
+			err = diffCurrent(&workingModel)
+		case k == tcell.KeyF7, c == '7':
+			err = createDirectory(&workingModel)
+		case k == tcell.KeyF8, c == '8':
+			err = createEmptyFile(&workingModel)
+		case k == tcell.KeyDelete, c == 'x':
+			err = deleteCurrent(&workingModel)
+		case c == 's':
+			err = syncModeToggle(&workingModel)
+		case c == 'm':
+			err = showStatusMessages(workingModel.Statuses())
+
+		default:
+			help.Show()
+			updateStatusf("Key event value (before showing help): '%#v'", event)
 		}
-
-	case key.F2, key.Ch2:
-		err = refreshCurrentView(&workingModel)
-	case key.F3, key.Ch3:
-		err = viewCurrent(&workingModel)
-	case key.F4, key.Ch4:
-		err = editCurrent(&workingModel)
-	case key.F5, key.Ch5:
-		err = copyCurrent(&workingModel)
-	case key.Chd:
-		err = diffCurrent(&workingModel)
-	case key.F7, key.Ch7:
-		err = createDirectory(&workingModel)
-	case key.F8, key.Ch8:
-		err = createEmptyFile(&workingModel)
-	case key.Del, key.Chx:
-		err = deleteCurrent(&workingModel)
-	case key.Chs:
-		err = syncModeToggle(&workingModel)
-	case key.Chm:
-		err = showStatusMessages(workingModel.Statuses())
-
-	default:
-		help.Show()
-		updateStatusf("Key pressed hex value (before showing help): '%s'", keyCode)
+	case *tcell.EventResize:
+		// out.Re()
 	}
 
 	if err != nil {
