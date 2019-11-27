@@ -216,15 +216,24 @@ func scrollLineHoriz(line string, horizScroll int) string {
 	return line
 }
 
+var syncStatusBlink bool
+
 // showStatus shows status string at bottom of dpcmder console screen.
 func showStatus(m *model.Model, status string) {
+	syncStatusBlink = !syncStatusBlink
 	var filterMsg string
 	var syncMsg string
 	if m.CurrentFilter() != "" {
 		filterMsg = fmt.Sprintf("Filter: '%s' | ", m.CurrentFilter())
 	}
 	if m.SyncModeOn {
-		syncMsg = fmt.Sprintf("Sync (%s/'%s' <- '%s') | ", m.SyncDpDomain, m.SyncDirDp, m.SyncDirLocal)
+		var syncStatusSymbol string
+		if syncStatusBlink {
+			syncStatusSymbol = "*"
+		} else {
+			syncStatusSymbol = " "
+		}
+		syncMsg = fmt.Sprintf("%s Sync (%s/'%s' <- '%s') | ", syncStatusSymbol, m.SyncDpDomain, m.SyncDirDp, m.SyncDirLocal)
 	}
 
 	statusMsg := fmt.Sprintf("%s%s%s", syncMsg, filterMsg, status)

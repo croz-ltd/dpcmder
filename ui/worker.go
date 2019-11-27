@@ -932,6 +932,8 @@ func syncLocalToDp(m *model.Model) {
 		cnt++
 		if changesMade {
 			refreshView(m, model.Left)
+		} else {
+			refreshStatus()
 		}
 		time.Sleep(syncCheckTime)
 	}
@@ -1052,4 +1054,11 @@ func updateStatus(status string) {
 		Type: events.UpdateViewShowStatus, Status: status, Model: &workingModel}
 	out.DrawEvent(updateView)
 	workingModel.AddStatus(status)
+}
+
+func refreshStatus() {
+	logging.LogDebugf("worker/refreshStatus()")
+	updateView := events.UpdateViewEvent{
+		Type: events.UpdateViewShowStatus, Status: workingModel.LastStatus(), Model: &workingModel}
+	out.DrawEvent(updateView)
 }
