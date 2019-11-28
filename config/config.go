@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/croz-ltd/confident"
+	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
 	"github.com/howeyc/gopass"
@@ -47,7 +48,8 @@ var (
 	dpDomain     *string
 	proxy        *string
 	dpConfigName *string
-	help         *bool
+	helpUsage    *bool
+	helpFull     *bool
 )
 
 // DpTransientPasswordMap contains passwords entered through dpcmder usage,
@@ -176,7 +178,8 @@ func parseProgramArgs() {
 	dpConfigName = flag.String("c", "", "Name of DataPower connection configuration to save with given configuration params")
 	DebugLogFile = flag.Bool("debug", false, "Write debug dpcmder.log file in current dir")
 	TraceLogFile = flag.Bool("trace", false, "Write trace dpcmder.log file in current dir")
-	help = flag.Bool("h", false, "Show dpcmder usage with examples")
+	helpUsage = flag.Bool("h", false, "Show dpcmder usage with examples")
+	helpFull = flag.Bool("help", false, "Show dpcmder in-program help on console")
 
 	flag.Parse()
 	setDpPasswordPlain(*password)
@@ -196,8 +199,12 @@ func Init() {
 // validateProgramArgs validate parsed program arguments and/or shows usage
 // message in case some mandatory arguments are missing.
 func validateProgramArgs() {
-	if *help {
+	if *helpUsage {
 		usage(0)
+	}
+
+	if *helpFull {
+		showHelp(0)
 	}
 
 	if *LocalFolderPath == "" ||
@@ -308,7 +315,8 @@ func PrintConfig() {
 	fmt.Println("dpDomain: ", *dpDomain)
 	fmt.Println("proxy: ", *proxy)
 	fmt.Println("dpConfigName: ", *dpConfigName)
-	fmt.Println("help: ", *help)
+	fmt.Println("helpUsage: ", *helpUsage)
+	fmt.Println("helpFull: ", *helpFull)
 }
 
 // LogConfig logs configuration values to log file.
@@ -321,7 +329,8 @@ func LogConfig() {
 	logging.LogDebug("dpDomain: ", *dpDomain)
 	logging.LogDebug("proxy: ", *proxy)
 	logging.LogDebug("dpConfigName: ", *dpConfigName)
-	logging.LogDebug("help: ", *help)
+	logging.LogDebug("helpUsage: ", *helpUsage)
+	logging.LogDebug("helpFull: ", *helpFull)
 }
 
 // usage prints usage help information with examples to console.
@@ -339,6 +348,7 @@ func usage(exitStatus int) {
 	fmt.Println(" -c DP_CONFIG_NAME - save DataPower configuration under given name")
 	fmt.Println(" -debug - turns on creation of dpcmder.log file with debug log messages")
 	fmt.Println(" -h - shows this help")
+	fmt.Println(" -help - shows dpcmder in-program help on console")
 	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Example:")
@@ -347,6 +357,13 @@ func usage(exitStatus int) {
 	fmt.Printf(" %s -l . -r https://172.17.0.2:5554 -u admin\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -debug\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -c LocalDp\n", os.Args[0])
+
+	os.Exit(exitStatus)
+}
+
+// help prints in-program help information to console.
+func showHelp(exitStatus int) {
+	fmt.Println(help.Help)
 
 	os.Exit(exitStatus)
 }

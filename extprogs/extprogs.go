@@ -3,6 +3,7 @@ package extprogs
 import (
 	"errors"
 	"github.com/croz-ltd/dpcmder/config"
+	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
@@ -175,4 +176,8 @@ func Diff(leftPath string, rightPath string) error {
 	}
 
 	return err
+}
+
+func ShowHelp() error {
+	return View("Help", []byte(help.Help))
 }

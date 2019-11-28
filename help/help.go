@@ -1,10 +1,7 @@
 package help
 
-import (
-	"github.com/croz-ltd/dpcmder/extprogs"
-)
-
-var help = `dpcmder Help
+// Help contains dpcmder in-program help shown when 'h' or unrecognized key is pressed.
+const Help = `dpcmder Help
 
 ArrowUp / i         - move one item up
 ArrowDown / k       - move one item down
@@ -81,8 +78,6 @@ TODO:
 - handle border cases (open domain for which you don't have rights...)
 - tests
 - docs
-`
 
-func Show() {
-	extprogs.View("Help", []byte(help))
-}
+(to show dpcmder usage help use "-h" flag instead of "-help" flag)
+`

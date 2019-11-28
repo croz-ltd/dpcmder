@@ -6,7 +6,6 @@ import (
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/extprogs"
-	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/repo"
 	"github.com/croz-ltd/dpcmder/repo/dp"
@@ -250,7 +249,7 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = showStatusMessages(workingModel.Statuses())
 
 		default:
-			help.Show()
+			extprogs.ShowHelp()
 			updateStatusf("Key event value (before showing help): '%#v'", event)
 		}
 	case *tcell.EventResize:
