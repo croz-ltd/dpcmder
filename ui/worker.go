@@ -649,6 +649,9 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 		updateStatusf("Directory '%s' created.", toPath)
 	case model.ItemDirectory:
 		updateStatusf("Directory '%s' already exists.", toPath)
+	case model.ItemDpFilestore:
+		toPath = toPath + ":"
+		updateStatusf("DataPower filestore '%s' already exists.", toPath)
 	default:
 		errMsg := fmt.Sprintf("Non dir '%s' exists (%v), can't create dir.", toPath, toFileType)
 		logging.LogDebugf("ui/copyDirsOrFilestores() - %s", errMsg)
