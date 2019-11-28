@@ -2,6 +2,7 @@ package ui
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
@@ -610,7 +611,11 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		}
 	case model.ItemFile:
 		res, err = copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
-		logging.LogDebugf("ui/copyItem(), res from copyFile(): '%s'", res)
+		if err != nil {
+			return res, err
+		}
+	case model.ItemDpDomain:
+		err = exportDomain(fromViewConfig, toViewConfig, item.Name)
 		if err != nil {
 			return res, err
 		}
@@ -686,7 +691,7 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 }
 
 func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, fileName, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyFile(.., .., .., %v, %v, %v, '%s')", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	logging.LogDebugf("ui/copyFile(.., .., %v, %v, '%s', '%s')", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
 	res := confirmOverwrite
 	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, fileName)
 	if err != nil {
@@ -737,6 +742,26 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 
 	logging.LogDebugf("ui/copyFile(), res: '%s'", res)
 	return res, nil
+}
+
+func exportDomain(fromViewConfig, toViewConfig *model.ItemConfig, domainName string) error {
+	logging.LogDebugf("ui/exportDomain(%v, %v, '%s')", fromViewConfig, toViewConfig, domainName)
+	exportFileName := fromViewConfig.DpAppliance + "_" + domainName + "_" + time.Now().Format("20060102150405") + ".zip"
+	logging.LogDebugf("ui/exportDomain() exportFileName: '%s'", exportFileName)
+	b64ExportFile, err := dp.Repo.ExportDomain(domainName, exportFileName)
+	if err != nil {
+		return err
+	}
+	exportFileBytes, err := base64.StdEncoding.DecodeString(b64ExportFile)
+	if err != nil {
+		return err
+	}
+	_, err = localfs.Repo.UpdateFile(toViewConfig, exportFileName, exportFileBytes)
+	if err == nil {
+		updateStatusf("Domain '%s' exported to file '%s' on path '%s'.",
+			domainName, exportFileName, toViewConfig.Path)
+	}
+	return err
 }
 
 func createEmptyFile(m *model.Model) error {

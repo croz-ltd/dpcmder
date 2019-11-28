@@ -80,6 +80,13 @@ type Sync struct {
 	Seconds int
 }
 
+// List of DataPower management interfaces.
+const (
+	DpInterfaceSoma    = "SOMA"
+	DpInterfaceRest    = "REST"
+	DpInterfaceUnknown = "Unknown"
+)
+
 // DataPowerAppliance is a structure containing dpcmder DataPower appliance
 // configuration details required to connect to appliances.
 type DataPowerAppliance struct {
@@ -105,6 +112,18 @@ func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
 		logging.LogFatal("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: ", err)
 	}
 	return string(passBytes)
+}
+
+// DpManagmentInterface returns management interface used to manage DataPower.
+func (dpa *DataPowerAppliance) DpManagmentInterface() string {
+	switch {
+	case dpa.RestUrl != "":
+		return DpInterfaceRest
+	case dpa.SomaUrl != "":
+		return DpInterfaceSoma
+	default:
+		return DpInterfaceUnknown
+	}
 }
 
 // Conf variable contains all configuration parameters for dpcmder.

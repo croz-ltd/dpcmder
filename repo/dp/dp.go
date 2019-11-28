@@ -315,7 +315,6 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 			}
 			return model.ItemNone, err
 		}
-		// println("jsonString: " + jsonString)
 
 		if jsonString == "" {
 			return model.ItemNone, nil
@@ -579,6 +578,109 @@ func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath stri
 	}
 
 	return resultView, nil
+}
+
+// ExportDomain creates export of given domain and returns base64 encoded
+// exported zip file.
+func (r *dpRepo) ExportDomain(domainName, exportFileName string) (string, error) {
+	logging.LogDebugf("repo/dp/ExportDomain('%s', '%s')", domainName, exportFileName)
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		exportRequestJson := fmt.Sprintf(`{"Export":
+		  {
+		    "Format":"ZIP",
+		    "UserComment":"Created by dpcmder - %s.",
+		    "AllFiles":"on",
+		    "Persisted":"off",
+		    "IncludeInternalFiles":"off"
+		  }
+		}`, exportFileName)
+		exportResponseJson, err := r.rest("/mgmt/actionqueue/"+domainName, "POST", exportRequestJson)
+		if err != nil {
+			return "", err
+		}
+
+		doc, err := jsonquery.Parse(strings.NewReader(exportResponseJson))
+		if err != nil {
+			logging.LogDebug("Error parsing response JSON.", err)
+			return "", err
+		}
+
+		statusNode := jsonquery.FindOne(doc, "/Export/status")
+		if statusNode == nil {
+			logging.LogDebugf("Can't find /Export/status in response:\n'%s", exportResponseJson)
+			return "", errs.Error("Unexpected response from server.")
+		}
+
+		status := statusNode.InnerText()
+		if status != "Action request accepted." {
+			logging.LogDebugf("Unexpected /Export/status ('%s') in response:\n'%s", status, exportResponseJson)
+			return "", errs.Errorf("Unexpected response from server ('%s').", status)
+		}
+
+		for status != "completed" {
+			logging.LogDebugf("repo/dp/ExportDomain() status: '%s'", status)
+
+			exportResponseJson, err := r.restGet("/mgmt/actionqueue/" + domainName)
+			if err != nil {
+				return "", err
+			}
+
+			doc, err := jsonquery.Parse(strings.NewReader(exportResponseJson))
+			if err != nil {
+				logging.LogDebug("Error parsing response JSON.", err)
+				return "", err
+			}
+
+			statusNode := jsonquery.FindOne(doc, "/operations/status")
+			if statusNode == nil {
+				logging.LogDebugf("Can't find /operations/status in response:\n'%s", exportResponseJson)
+				return "", errs.Error("Unexpected response from server.")
+			}
+
+			status := statusNode.InnerText()
+			switch status {
+			case "started":
+				continue
+			case "completed":
+				locationNode := jsonquery.FindOne(doc, "/operations/location")
+				if statusNode == nil {
+					logging.LogDebugf("Can't find /operations/location in response:\n'%s", exportResponseJson)
+					return "", errs.Error("Unexpected response from server.")
+				}
+				locationURL := locationNode.InnerText()
+
+				exportResponseJson, err := r.restGet(locationURL)
+				if err != nil {
+					return "", err
+				}
+
+				doc, err := jsonquery.Parse(strings.NewReader(exportResponseJson))
+				if err != nil {
+					logging.LogDebug("Error parsing response JSON.", err)
+					return "", err
+				}
+
+				fileNode := jsonquery.FindOne(doc, "/result/file")
+				if fileNode == nil {
+					logging.LogDebugf("Can't find /result/file in response:\n'%s", exportResponseJson)
+					return "", errs.Error("Unexpected response from server.")
+				}
+
+				fileB64 := fileNode.InnerText()
+				return fileB64, nil
+			default:
+				logging.LogDebugf("Unexpected /Export/status ('%s') in response:\n'%s", status, exportResponseJson)
+				return "", errs.Errorf("Unexpected response from server ('%s').", status)
+			}
+		}
+
+		return "", errs.Errorf("Unexpected response from server ('%s').", status)
+	case config.DpInterfaceSoma:
+		return "", errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+	default:
+		return "", errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+	}
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.
@@ -1030,7 +1132,8 @@ func (r *dpRepo) httpRequest(urlFullPath, method, body string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted ||
+		resp.StatusCode == http.StatusCreated {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			logging.LogDebug("repo/dp/httpRequest() - Can't read response: ", err)
