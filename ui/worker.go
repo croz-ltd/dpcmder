@@ -579,18 +579,24 @@ func diffCurrent(m *model.Model) error {
 
 	if dpItem.Config.Type == localItem.Config.Type {
 		dpCopyDir := extprogs.CreateTempDir("dp")
+		updateStatusf("Created tmp dir on localfs '%s'", dpCopyDir)
 		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
 		// func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, item model.Item, confirmOverwrite string) (string, error) {
 		copyItem(&dp.Repo, localfs.Repo, dpView, &localViewTmp, *dpItem, "y")
-		dpCopyItemPath := dp.Repo.GetFilePath(dpCopyDir, dpItem.Name)
+		dpCopyItemPath := localfs.Repo.GetFilePath(dpCopyDir, dpItem.Name)
 		localItemPath := localfs.Repo.GetFilePath(localView.Path, localItem.Name)
 		err := extprogs.Diff(dpCopyItemPath, localItemPath)
 		if err != nil {
-			logging.LogDebugf("ui/diffCurrent(), err: %v", err)
+			logging.LogDebugf("ui/diffCurrent() - diff err: %v", err)
 			return err
 		}
-		extprogs.DeleteTempDir(dpCopyDir)
-		logging.LogDebug("view.diffCurrent() after DeleteTempDir")
+		err = extprogs.DeleteTempDir(dpCopyDir)
+		if err != nil {
+			logging.LogDebugf("ui/diffCurrent() - delete tmp dir err: %v", err)
+			return err
+		}
+		updateStatusf("Deleted tmp dir on localfs '%s'", dpCopyDir)
+		logging.LogDebug("ui/diffCurrent() end")
 		return nil
 	}
 	err := errs.Errorf("Can't compare different file types '%s' (%s) to '%s' (%s)",

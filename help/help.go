@@ -34,7 +34,8 @@ F8/8                - create empty file
 DEL/x               - delete selected (or current if none selected) directories and files
 d                   - diff current files/directories
                       ("blocking" diff command have to be used, for example
-                       script ldiff.sh containing "diff $1 $2 | less")
+                       script ldiff.sh containing "diff $1 $2 | less" or
+                       "diff -u -r --color=always "$1" "$2" | less -r")
 /                   - find string
 n                   - find next string
 m                   - show all status messages saved in history

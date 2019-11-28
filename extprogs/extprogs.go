@@ -2,9 +2,9 @@ package extprogs
 
 import (
 	"errors"
-	"fmt"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/ui/out"
+	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"io/ioutil"
 	"os"
@@ -135,25 +135,27 @@ func EditFile(filePath string) error {
 // CreateTempDir creates temporary directory required for Diff()
 func CreateTempDir(dirPrefix string) string {
 	dir, err := ioutil.TempDir(".", dirPrefix)
+	logging.LogDebugf("extprogs/CreateTempDir('%s') dir: '%s'", dirPrefix, dir)
 	if err != nil {
-		logging.LogDebug("extprogs/CreateTempDir() ", err)
+		logging.LogDebugf("extprogs/CreateTempDir('%s') - err: %v", dirPrefix, err)
 	}
 	return dir
 }
 
 // DeleteTempDir deletes temporary directory created for Diff()
-func DeleteTempDir(dirPath string) string {
+func DeleteTempDir(dirPath string) error {
+	logging.LogDebugf("extprogs/DeleteTempDir('%s') ", dirPath)
 	err := os.RemoveAll(dirPath)
 	if err != nil {
 		logging.LogDebug("extprogs/DeleteTempDir() ", err)
-		return fmt.Sprintf("Error deleting '%s' dir.", dirPath)
+		return errs.Errorf("Error deleting '%s' dir.", dirPath)
 	}
-	return ""
+	return nil
 }
 
 // Diff compares files/directories in external diff
 func Diff(leftPath string, rightPath string) error {
-	logging.LogDebug("extprogs/Diff() ", leftPath, " - ", rightPath)
+	logging.LogDebugf("extprogs/Diff('%s', '%s')", leftPath, rightPath)
 	if config.Conf.Cmd.Diff == "" {
 		return errors.New("Diff command not configured.")
 	}
