@@ -458,13 +458,20 @@ func viewCurrent(m *model.Model) error {
 	var err error
 	switch ci.Config.Type {
 	case model.ItemFile:
-		currView := workingModel.ViewConfig(workingModel.CurrSide())
-		fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
-		if err != nil {
-			return err
-		}
-		if fileContent != nil {
-			err = extprogs.View(ci.Name, fileContent)
+		if m.CurrSide() == model.Left {
+			currView := workingModel.ViewConfig(workingModel.CurrSide())
+			fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
+			if err != nil {
+				return err
+			}
+			if fileContent != nil {
+				err = extprogs.View(ci.Name, fileContent)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			err = extprogs.ViewFile(ci.Config.Path)
 			if err != nil {
 				return err
 			}
@@ -490,16 +497,24 @@ func editCurrent(m *model.Model) error {
 	switch ci.Config.Type {
 	case model.ItemFile:
 		currView := workingModel.ViewConfig(workingModel.CurrSide())
-		fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
-		if err != nil {
-			return err
-		}
-		err, changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
-		if err != nil {
-			return err
-		}
-		if changed {
-			_, err := repos[m.CurrSide()].UpdateFile(currView, ci.Name, newFileContent)
+		if m.CurrSide() == model.Left {
+			fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
+			if err != nil {
+				return err
+			}
+			changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name, fileContent)
+			if err != nil {
+				return err
+			}
+			if changed {
+				_, err := repos[m.CurrSide()].UpdateFile(currView, ci.Name, newFileContent)
+				if err != nil {
+					return err
+				}
+				showItem(workingModel.CurrSide(), currView, ".")
+			}
+		} else {
+			err := extprogs.EditFile(ci.Config.Path)
 			if err != nil {
 				return err
 			}
@@ -511,7 +526,7 @@ func editCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		err, changed, newFileContent := extprogs.Edit(m.CurrItem().Name, fileContent)
+		changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name, fileContent)
 		if err != nil {
 			return err
 		}
