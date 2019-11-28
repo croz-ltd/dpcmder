@@ -17,6 +17,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 )
 
 // dpRepo contains basic DataPower repo information and implements Repo interface.
@@ -121,31 +122,12 @@ func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 
 	if r.dataPowerAppliance.RestUrl != "" {
 		restPath := makeRestPath(dpDomain, filePath)
-		jsonString, err := r.restGet(restPath)
+
+		fileB64, _, err := r.restGetForResult(restPath, "/file")
 		if err != nil {
 			return nil, err
 		}
-		// println("jsonString: " + jsonString)
 
-		if jsonString == "" {
-			return nil, errs.Errorf("Can't fetch file '%s'.", filePath)
-		}
-		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
-		if err != nil {
-			logging.LogDebug("repo/dp/GetFile() - Error parsing response JSON.", err)
-			return nil, err
-		}
-
-		// .filestore.location.directory /name
-		// work-around - for one directory we get JSON object, for multiple directories we get JSON array
-		fileNode := jsonquery.FindOne(doc, "/file")
-		if fileNode == nil {
-			errMsg := fmt.Sprintf("Can't find file '%s' from JSON response.", filePath)
-			logging.LogDebug(errMsg)
-			return nil, errs.Error(errMsg)
-		}
-
-		fileB64 := fileNode.InnerText()
 		resultBytes, err := base64.StdEncoding.DecodeString(fileB64)
 		if err != nil {
 			logging.LogDebug("repo/dp/GetFile() - Error decoding base64 file.", err)
@@ -582,11 +564,11 @@ func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath stri
 
 // ExportDomain creates export of given domain and returns base64 encoded
 // exported zip file.
-func (r *dpRepo) ExportDomain(domainName, exportFileName string) (string, error) {
+func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error) {
 	logging.LogDebugf("repo/dp/ExportDomain('%s', '%s')", domainName, exportFileName)
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
-		exportRequestJson := fmt.Sprintf(`{"Export":
+		exportRequestJSON := fmt.Sprintf(`{"Export":
 		  {
 		    "Format":"ZIP",
 		    "UserComment":"Created by dpcmder - %s.",
@@ -595,91 +577,52 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) (string, error)
 		    "IncludeInternalFiles":"off"
 		  }
 		}`, exportFileName)
-		exportResponseJson, err := r.rest("/mgmt/actionqueue/"+domainName, "POST", exportRequestJson)
+		locationURL, _, err := r.restPostForResult(
+			"/mgmt/actionqueue/"+domainName,
+			exportRequestJSON,
+			"/Export/status",
+			"Action request accepted.",
+			"/_links/location/href")
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
-		doc, err := jsonquery.Parse(strings.NewReader(exportResponseJson))
-		if err != nil {
-			logging.LogDebug("Error parsing response JSON.", err)
-			return "", err
-		}
-
-		statusNode := jsonquery.FindOne(doc, "/Export/status")
-		if statusNode == nil {
-			logging.LogDebugf("Can't find /Export/status in response:\n'%s", exportResponseJson)
-			return "", errs.Error("Unexpected response from server.")
-		}
-
-		status := statusNode.InnerText()
-		if status != "Action request accepted." {
-			logging.LogDebugf("Unexpected /Export/status ('%s') in response:\n'%s", status, exportResponseJson)
-			return "", errs.Errorf("Unexpected response from server ('%s').", status)
-		}
-
+		var status string
+		var exportResponseJSON string
+		timeStart := time.Now()
 		for status != "completed" {
 			logging.LogDebugf("repo/dp/ExportDomain() status: '%s'", status)
-
-			exportResponseJson, err := r.restGet("/mgmt/actionqueue/" + domainName)
+			status, exportResponseJSON, err = r.restGetForResult("/mgmt/actionqueue/"+domainName, "/operations//*[location='"+locationURL+"']/status")
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 
-			doc, err := jsonquery.Parse(strings.NewReader(exportResponseJson))
-			if err != nil {
-				logging.LogDebug("Error parsing response JSON.", err)
-				return "", err
-			}
-
-			statusNode := jsonquery.FindOne(doc, "/operations/status")
-			if statusNode == nil {
-				logging.LogDebugf("Can't find /operations/status in response:\n'%s", exportResponseJson)
-				return "", errs.Error("Unexpected response from server.")
-			}
-
-			status := statusNode.InnerText()
 			switch status {
 			case "started":
+				if time.Since(timeStart) > 120*time.Second {
+					logging.LogDebugf("repo/dp/ExportDomain() waiting for export since %v, giving up.", timeStart)
+					return nil, errs.Errorf("Export didn't finish since %v, giving up.", timeStart)
+				}
+				time.Sleep(1 * time.Second)
 				continue
 			case "completed":
-				locationNode := jsonquery.FindOne(doc, "/operations/location")
-				if statusNode == nil {
-					logging.LogDebugf("Can't find /operations/location in response:\n'%s", exportResponseJson)
-					return "", errs.Error("Unexpected response from server.")
-				}
-				locationURL := locationNode.InnerText()
-
-				exportResponseJson, err := r.restGet(locationURL)
+				fileB64, _, err := r.restGetForResult(locationURL, "/result/file")
 				if err != nil {
-					return "", err
+					return nil, err
 				}
-
-				doc, err := jsonquery.Parse(strings.NewReader(exportResponseJson))
-				if err != nil {
-					logging.LogDebug("Error parsing response JSON.", err)
-					return "", err
-				}
-
-				fileNode := jsonquery.FindOne(doc, "/result/file")
-				if fileNode == nil {
-					logging.LogDebugf("Can't find /result/file in response:\n'%s", exportResponseJson)
-					return "", errs.Error("Unexpected response from server.")
-				}
-
-				fileB64 := fileNode.InnerText()
-				return fileB64, nil
+				fileBytes, err := base64.StdEncoding.DecodeString(fileB64)
+				return fileBytes, err
 			default:
-				logging.LogDebugf("Unexpected /Export/status ('%s') in response:\n'%s", status, exportResponseJson)
-				return "", errs.Errorf("Unexpected response from server ('%s').", status)
+				logging.LogDebugf("repo/dp/ExportDomain() - unexpected /Export/status ('%s') in response:\n'%s", status, exportResponseJSON)
+				return nil, errs.Errorf("Unexpected response from server ('%s').", status)
 			}
 		}
 
-		return "", errs.Errorf("Unexpected response from server ('%s').", status)
+		return nil, errs.Errorf("Unexpected response from server ('%s').", status)
 	case config.DpInterfaceSoma:
-		return "", errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
 	default:
-		return "", errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
 	}
 }
 
@@ -1035,6 +978,63 @@ func (r *dpRepo) fetchDpDomains() ([]string, error) {
 	}
 
 	return domains, nil
+}
+
+func (r *dpRepo) restPostForResult(urlPath, postBody, checkQuery, checkExpected, resultQuery string) (result, responseJSON string, err error) {
+	responseJSON, err = r.rest(urlPath, "POST", postBody)
+	if err != nil {
+		return "", "", err
+	}
+
+	doc, err := jsonquery.Parse(strings.NewReader(responseJSON))
+	if err != nil {
+		logging.LogDebug("Error parsing response JSON.", err)
+		return "", responseJSON, err
+	}
+
+	expectedNode := jsonquery.FindOne(doc, checkQuery)
+	if expectedNode == nil {
+		logging.LogDebugf("Can't find '%s' in response:\n'%s", checkQuery, responseJSON)
+		return "", responseJSON, errs.Error("Unexpected response from server.")
+	}
+
+	gotResult := expectedNode.InnerText()
+	if gotResult != checkExpected {
+		logging.LogDebugf("Unexpected result for '%s' ('%s') in response:\n'%s", checkQuery, gotResult, responseJSON)
+		return "", responseJSON, errs.Errorf("Unexpected response from server ('%s').", gotResult)
+	}
+
+	resultNode := jsonquery.FindOne(doc, resultQuery)
+	if resultNode == nil {
+		logging.LogDebugf("Can't find '%s' in response:\n'%s", resultQuery, responseJSON)
+		return "", responseJSON, errs.Error("Unexpected response from server.")
+	}
+	result = resultNode.InnerText()
+
+	return result, responseJSON, nil
+}
+
+func (r *dpRepo) restGetForResult(urlPath, resultQuery string) (result, responseJSON string, err error) {
+	responseJSON, err = r.restGet(urlPath)
+	if err != nil {
+		return "", "", err
+	}
+
+	doc, err := jsonquery.Parse(strings.NewReader(responseJSON))
+	if err != nil {
+		logging.LogDebug("Error parsing response JSON.", err)
+		return "", responseJSON, err
+	}
+
+	resultNode := jsonquery.FindOne(doc, resultQuery)
+	if resultNode == nil {
+		logging.LogDebugf("Can't find '%s' in response:\n'%s'", resultQuery, responseJSON)
+		return "", responseJSON, errs.Errorf("Unexpected response from server, can't find '%s' in JSON response.", resultQuery)
+	}
+
+	result = resultNode.InnerText()
+
+	return result, responseJSON, nil
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is
