@@ -591,6 +591,7 @@ func diffCurrent(m *model.Model) error {
 		}
 		extprogs.DeleteTempDir(dpCopyDir)
 		logging.LogDebug("view.diffCurrent() after DeleteTempDir")
+		return nil
 	}
 	err := errs.Errorf("Can't compare different file types '%s' (%s) to '%s' (%s)",
 		dpItem.Name, string(dpItem.Config.Type), localItem.Name, string(localItem.Config.Type))
