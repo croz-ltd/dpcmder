@@ -14,6 +14,11 @@ func TestGetDpPath(t *testing.T) {
 		{"local:/dir1", "..", "local:"},
 		{"local:", "..", "local:"},
 		{"local:", ".", "local:"},
+		{"local/dir1/dir2", ".", "local:/dir1/dir2"},
+		{"local/dir1", "dir2", "local:/dir1/dir2"},
+		{"local", "dir1", "local:/dir1"},
+		{"local", "", "local:"},
+		{"local", ".", "local:"},
 	}
 	for _, testCase := range testDataMatrix {
 		newPath := GetDpPath(testCase[0], testCase[1])
@@ -29,6 +34,7 @@ func TestGetFilePathUsingSeparator(t *testing.T) {
 		{"", "myfile", "/", "myfile"},
 		{"/usr/bin/share", "..", "/", "/usr/bin"},
 		{"/testdir", "..", "/", "/"},
+		{"/testdir", "", "/", "/testdir"},
 		{"", "..", "/", ""},
 		{"/", "..", "/", "/"},
 		{"/", "testfile", "/", "/testfile"},

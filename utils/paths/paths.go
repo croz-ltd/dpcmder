@@ -12,16 +12,26 @@ func GetFilePath(parentPath, fileName string) string {
 
 // GetDpPath generates local os correct path from parentPath and fileName.
 func GetDpPath(parentPath, fileName string) string {
-	if fileName == "." {
-		return parentPath
+	fullPath := GetFilePathUsingSeparator(parentPath, fileName, "/")
+	firstSeparatorIdx := strings.Index(fullPath, "/")
+	filestoreEndIdx := strings.Index(fullPath, ":")
+	switch {
+	case filestoreEndIdx == -1 && firstSeparatorIdx == -1:
+		return fullPath + ":"
+	case filestoreEndIdx == -1 && firstSeparatorIdx != -1:
+		return fullPath[0:firstSeparatorIdx] + ":" + fullPath[firstSeparatorIdx:]
+	default:
+		return fullPath
 	}
-	return GetFilePathUsingSeparator(parentPath, fileName, "/")
 }
 
 // GetFilePathUsingSeparator generates correct path from parentPath and fileName
 //  using given path sepearator.
 func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) string {
-	if fileName == ".." {
+	switch {
+	case fileName == ".", fileName == "":
+		return parentPath
+	case fileName == "..":
 		lastSeparatorIdx := strings.LastIndex(parentPath, pathSeparator)
 		if lastSeparatorIdx != -1 && len(parentPath) > 1 {
 			if lastSeparatorIdx == 0 {
@@ -30,13 +40,13 @@ func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) strin
 			return parentPath[:lastSeparatorIdx]
 		}
 		return parentPath
-	} else if parentPath == "" {
+	case parentPath == "":
 		return fileName
-	}
-	if strings.HasSuffix(parentPath, pathSeparator) {
+	case strings.HasSuffix(parentPath, pathSeparator):
 		return parentPath + fileName
+	default:
+		return parentPath + pathSeparator + fileName
 	}
-	return parentPath + pathSeparator + fileName
 }
 
 // SplitDpPath splits DataPower path into splice where first element is

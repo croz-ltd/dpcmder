@@ -194,8 +194,9 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 	return r.UpdateFileByPath(currentView.DpDomain, filePath, newFileContent)
 }
 func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []byte) (bool, error) {
-	logging.LogDebugf("repo/dp/UpdateFileByPath('%s', '%s', ...)\n", dpDomain, filePath)
+	logging.LogDebugf("repo/dp/UpdateFileByPath('%s', '%s', ...)", dpDomain, filePath)
 	fileType, err := r.GetFileTypeByPath(dpDomain, filePath, ".")
+	logging.LogDebugf("repo/dp/UpdateFileByPath() fileType: %s", fileType)
 	if err != nil {
 		return false, err
 	}
@@ -262,15 +263,22 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 			parentPath := paths.GetDpPath(filePath, "..")
 			err = r.refreshSomaFilesByPath(dpDomain, parentPath)
 			if err != nil {
+				logging.LogDebugf("repo/dp/UpdateFileByPath() - Error refresing soma files by path '%s': err: %v", parentPath, err)
 				return false, err
 			}
 			resultNode := xmlquery.FindOne(doc, "//*[local-name()='response']/*[local-name()='result']")
-			if resultNode != nil {
-				resultText := strings.Trim(resultNode.InnerText(), " \n\r\t")
-				if resultText == "OK" {
-					return true, nil
-				}
+			if resultNode == nil {
+				errMsg := fmt.Sprintf("Error refresing soma files by path '%s': err: %v", parentPath, err)
+				logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
+				return false, errs.Error(errMsg)
 			}
+			resultText := strings.Trim(resultNode.InnerText(), " \n\r\t")
+			if resultText != "OK" {
+				errMsg := fmt.Sprintf("Unexpected result of refresh soma files by path '%s': result: '%s'", parentPath, resultText)
+				logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
+				return false, errs.Error(errMsg)
+			}
+			return true, nil
 		case model.ItemDirectory:
 			errMsg := fmt.Sprintf("Can't upload file '%s', directory with same name exists.", filePath)
 			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
@@ -371,11 +379,12 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 				return model.ItemFile, nil
 			case len(dpFileNodes) == 0:
 				return model.ItemNone, nil
+			default:
+				errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXmls[dpFilestoreLocation])
+				logging.LogDebugf("repo/dp/GetFileTypeByPath() - %s", errMsg)
+				return model.ItemNone, errs.Error(errMsg)
 			}
 
-			errMsg := fmt.Sprintf("Wrong SOAP response: '%s'", r.dpFilestoreXmls[dpFilestoreLocation])
-			logging.LogDebugf("repo/dp/GetFileTypeByPath() - %s", errMsg)
-			return model.ItemNone, errs.Error(errMsg)
 		case dpDomain != "":
 			return model.ItemDpFilestore, nil
 		case dpDomain == "":
