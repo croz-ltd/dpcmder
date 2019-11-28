@@ -194,7 +194,7 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 	return r.UpdateFileByPath(currentView.DpDomain, filePath, newFileContent)
 }
 func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []byte) (bool, error) {
-	logging.LogDebugf("repo/dp/UpdateFile('%s', '%s', ...)\n", dpDomain, filePath)
+	logging.LogDebugf("repo/dp/UpdateFileByPath('%s', '%s', ...)\n", dpDomain, filePath)
 	fileType, err := r.GetFileTypeByPath(dpDomain, filePath, ".")
 	if err != nil {
 		return false, err
@@ -212,11 +212,11 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 			restMethod = "PUT"
 		case model.ItemDirectory:
 			errMsg := fmt.Sprintf("Can't upload file '%s', directory with same name exists.", filePath)
-			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
+			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		default:
 			errMsg := fmt.Sprintf("Can't upload file '%s', type '%s' with same name exists.", filePath, fileType)
-			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
+			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		}
 
@@ -231,14 +231,14 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 
 		doc, err := jsonquery.Parse(strings.NewReader(jsonString))
 		if err != nil {
-			logging.LogDebug("repo/dp/UpdateFile() - Error parsing response JSON.", err)
+			logging.LogDebug("repo/dp/UpdateFileByPath() - Error parsing response JSON.", err)
 			return false, err
 		}
 
 		jsonError := jsonquery.Find(doc, "/error")
 		if len(jsonError) != 0 {
 			errMsg := fmt.Sprintf("Uploading file '%s', returned '%s'.", filePath, jsonString)
-			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
+			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
 			return false, err
 		}
 
@@ -256,7 +256,7 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 			}
 			doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
 			if err != nil {
-				logging.LogDebug("repo/dp/UpdateFile() - Error parsing response SOAP.", err)
+				logging.LogDebug("repo/dp/UpdateFileByPath() - Error parsing response SOAP.", err)
 				return false, err
 			}
 			parentPath := paths.GetDpPath(filePath, "..")
@@ -273,16 +273,16 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 			}
 		case model.ItemDirectory:
 			errMsg := fmt.Sprintf("Can't upload file '%s', directory with same name exists.", filePath)
-			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
+			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		default:
 			errMsg := fmt.Sprintf("Can't upload file '%s', type '%s' with same name exists.", filePath, fileType)
-			logging.LogDebugf("repo/dp/UpdateFile() - %s", errMsg)
+			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		}
 	}
 
-	logging.LogDebug("repo/dp/UpdateFile(), using neither REST neither SOMA.")
+	logging.LogDebug("repo/dp/UpdateFileByPath(), using neither REST neither SOMA.")
 	return false, errs.Error("DataPower management interface not set.")
 }
 
@@ -340,6 +340,9 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 		switch {
 		case parentPath != "":
 			dpFilestoreLocation, _ := splitOnFirst(parentPath, "/")
+			if !strings.HasSuffix(dpFilestoreLocation, ":") {
+				dpFilestoreLocation = dpFilestoreLocation + ":"
+			}
 			dpFilestoreIsRoot := !strings.Contains(parentPath, "/")
 			var dpDirNodes []*xmlquery.Node
 			var dpFileNodes []*xmlquery.Node
@@ -351,7 +354,6 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 				}
 				dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/directory[@name='"+filePath+"']")
 				dpFileNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/file[@name='"+fileName+"']")
-				// println(dpFilestoreLocation)
 			} else {
 				doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 				if err != nil {
