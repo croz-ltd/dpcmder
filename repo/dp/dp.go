@@ -590,13 +590,11 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 			return nil, err
 		}
 
-		status := "- not fetched yet -"
-		var exportResponseJSON string
 		timeStart := time.Now()
-		for status != "completed" {
+		for {
 			// 2. Check for current status of export request
+			status, exportResponseJSON, err := r.restGetForResult(locationURL, "/status")
 			logging.LogDebugf("repo/dp/ExportDomain() status: '%s'", status)
-			status, exportResponseJSON, err = r.restGetForResult("/mgmt/actionqueue/"+domainName, "/operations//*[location='"+locationURL+"']/status")
 			if err != nil {
 				return nil, err
 			}
@@ -604,26 +602,23 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 			switch status {
 			case "started":
 				if time.Since(timeStart) > 120*time.Second {
-					logging.LogDebugf("repo/dp/ExportDomain() waiting for export since %v, giving up.", timeStart)
+					logging.LogDebugf("repo/dp/ExportDomain() waiting for export since %v, giving up.\n last exportResponseJSON: '%s'", timeStart, exportResponseJSON)
 					return nil, errs.Errorf("Export didn't finish since %v, giving up.", timeStart)
 				}
 				time.Sleep(1 * time.Second)
-				continue
 			case "completed":
-				// 3. Fetch export file
-				fileB64, _, err := r.restGetForResult(locationURL, "/result/file")
+				// 3. When export is completed get base64 result file from it
+				logging.LogDebugf("repo/dp/ExportDomain() export fetched after %d.", time.Since(timeStart))
+				fileB64, err := parseJsonFindOne(exportResponseJSON, "/result/file")
 				if err != nil {
 					return nil, err
 				}
 				fileBytes, err := base64.StdEncoding.DecodeString(fileB64)
 				return fileBytes, err
 			default:
-				logging.LogDebugf("repo/dp/ExportDomain() - unexpected /Export/status ('%s') in response:\n'%s", status, exportResponseJSON)
 				return nil, errs.Errorf("Unexpected response from server ('%s').", status)
 			}
 		}
-
-		return nil, errs.Errorf("Unexpected response from server ('%s').", status)
 	case config.DpInterfaceSoma:
 		// 1. Fetch export (backup) of domain
 		//    Backup contains domain export zip + export info and dp-aux files
@@ -1090,21 +1085,25 @@ func (r *dpRepo) restGetForResult(urlPath, resultQuery string) (result, response
 		return "", "", err
 	}
 
-	doc, err := jsonquery.Parse(strings.NewReader(responseJSON))
+	result, err = parseJsonFindOne(responseJSON, resultQuery)
+
+	return result, responseJSON, err
+}
+
+func parseJsonFindOne(json, query string) (string, error) {
+	doc, err := jsonquery.Parse(strings.NewReader(json))
 	if err != nil {
-		logging.LogDebug("Error parsing response JSON.", err)
-		return "", responseJSON, err
+		logging.LogDebug("Error parsing JSON.", err)
+		return "", err
 	}
 
-	resultNode := jsonquery.FindOne(doc, resultQuery)
+	resultNode := jsonquery.FindOne(doc, query)
 	if resultNode == nil {
-		logging.LogDebugf("Can't find '%s' in response:\n'%s'", resultQuery, responseJSON)
-		return "", responseJSON, errs.Errorf("Unexpected response from server, can't find '%s' in JSON response.", resultQuery)
+		logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, json)
+		return "", errs.Errorf("Unexpected JSON, can't find '%s'.", query)
 	}
 
-	result = resultNode.InnerText()
-
-	return result, responseJSON, nil
+	return resultNode.InnerText(), nil
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is
