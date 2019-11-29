@@ -26,7 +26,7 @@ F3/3                - view current file or DataPower configuration
 F4/4                - edit file
                       (see "Custom external commands" below)
 F5/5                - copy selected (or current if none selected) directories and files
-                    - if selected is DataPower domain create export of domain (TODO)
+                    - if selected is DataPower domain create export of domain
                     - if selected is DataPower configuration create export of whole appliance (TODO)
 F7/7                - create directory
 F8/8                - create empty file

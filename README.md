@@ -111,16 +111,17 @@ TAB                 - switch from left to right panel and vice versa
 Return              - enter directory
 F2/2                - refresh focused pane (reload files/dirs)
 F3/3                - view current file or DataPower configuration
+                      (see "Custom external commands" below)
 F4/4                - edit file
+                      (see "Custom external commands" below)
 F5/5                - copy selected (or current if none selected) directories and files
-                    - if selected is DataPower domain create export of domain (TODO)
+                    - if selected is DataPower domain create export of domain
                     - if selected is DataPower configuration create export of whole appliance (TODO)
 F7/7                - create directory
 F8/8                - create empty file
 DEL/x               - delete selected (or current if none selected) directories and files
 d                   - diff current files/directories
-                      ("blocking" diff command have to be used, for example
-                       script ldiff.sh containing "diff $1 $2 | less")
+                      (must be "blocking" - see "Custom external commands" below)
 /                   - find string
 n                   - find next string
 m                   - show all status messages saved in history
@@ -141,14 +142,18 @@ u i o
 j k l
 a   z
 
-Custom external (Viewer/Editor/Diff) commands:
+Custom external commands (Viewer/Editor/Diff):
 dpcmder configuration is saved to ~/.dpcmder/config.json where commands used for
 calling external commands are set. By default these are "less", "vi" and "ldiff"
 but could be any commands. All of those commands should be started in foreground
 and should wait for user's input to complete. For example for viewer "less" or
 "more" can be used while "cat" will not work. For file comparison normal "diff"
-command can't be used but "blocking" diff script must be prepared
-(something like: diff "$1" "$2" | less).
+command can't be used but "blocking" diff command must be used like vimdiff or
+custom ldiff script which combines diff and less commands can be prepared
+(something like:
+ 'diff "$1" "$2" | less'
+or for more fancy colored output you can use something like:
+ 'diff -u -r --color=always "$1" "$2" | less -r').
 
 SOMA (+ AMP) vs REST:
 SOMA and AMP interfaces have one shortcoming - you can't see domain list if you
