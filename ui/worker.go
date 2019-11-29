@@ -382,9 +382,8 @@ func enterCurrentDirectory() error {
 }
 
 func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) error {
-	logging.LogDebugf("ui/showItem(%d, .., '%s')", side, itemName)
+	logging.LogDebugf("ui/showItem(%d, %v, '%s')", side, itemConfig, itemName)
 	r := repos[side]
-	logging.LogDebug("ui/showItem(), itemConfig: ", itemConfig)
 	if itemConfig.Type == model.ItemDpConfiguration {
 		applianceName := itemName
 		if applianceName != ".." {
@@ -442,6 +441,7 @@ func refreshView(m *model.Model, side model.Side) error {
 	if err != nil {
 		return err
 	}
+	out.DrawEvent(events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: m})
 	updateStatusf("Directory (%s) refreshed.", m.ViewConfig(side).Path)
 	return nil
 }
@@ -1078,16 +1078,19 @@ func updateDpFile(m *model.Model, tree *localfs.Tree) bool {
 	}
 	dpPath := dp.SyncRepo.GetFilePath(m.SyncDirDp, tree.PathFromRoot)
 	dpBytes, err := dp.SyncRepo.GetFileByPath(m.SyncDpDomain, dpPath)
+
 	if err != nil {
-		logging.LogDebug("worker/updateDpFile(), couldn't get local file - err: ", err)
-		return false
+		if respErr, ok := err.(errs.UnexpectedHTTPResponse); !ok || respErr.StatusCode != 404 {
+			logging.LogDebug("worker/updateDpFile(), couldn't get dp file - err: ", err)
+			return false
+		}
 	}
 
 	if bytes.Compare(localBytes, dpBytes) != 0 {
 		changesMade = true
 		res, err := dp.SyncRepo.UpdateFileByPath(m.SyncDpDomain, dpPath, localBytes)
 		if err != nil {
-			logging.LogDebug("worker/updateDpFile(), couldn't get local file - err: ", err)
+			logging.LogDebug("worker/updateDpFile(), couldn't update dp file - err: ", err)
 		}
 		logging.LogDebugf("worker/updateDpFile(), file '%s' updated: %T", dpPath, res)
 		if res {
