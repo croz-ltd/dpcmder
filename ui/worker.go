@@ -172,43 +172,12 @@ func ProcessInputEvent(event tcell.Event) error {
 		case (k == tcell.KeyEnd && m == tcell.ModShift), c == 'Z':
 			workingModel.SelToBottom()
 			workingModel.NavBottom()
-
 		case c == 'f':
-			cf := workingModel.CurrentFilter()
-			dialogResult := askUserInput("Filter by: ", cf, false)
-			workingModel.SetCurrentFilter(dialogResult.inputAnswer)
-
+			filterItems(&workingModel)
 		case c == '/':
-			workingModel.SearchBy = ""
-			dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
-			workingModel.SearchBy = dialogResult.inputAnswer
-			if workingModel.SearchBy != "" {
-				found := workingModel.SearchNext(workingModel.SearchBy)
-				if !found {
-					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-					updateStatus(notFoundStatus)
-				}
-			}
-
+			searchItem(&workingModel)
 		case c == 'n', c == 'p':
-			if workingModel.SearchBy == "" {
-				dialogResult := askUserInput("Search by: ", workingModel.SearchBy, false)
-				workingModel.SearchBy = dialogResult.inputAnswer
-			}
-			if workingModel.SearchBy != "" {
-				found := false
-				switch c {
-				case 'n':
-					found = workingModel.SearchNext(workingModel.SearchBy)
-				case 'p':
-					found = workingModel.SearchPrev(workingModel.SearchBy)
-				}
-				if !found {
-					notFoundStatus := fmt.Sprintf("Item '%s' not found.", workingModel.SearchBy)
-					updateStatus(notFoundStatus)
-				}
-			}
-
+			searchNextItem(&workingModel, c == 'p')
 		case k == tcell.KeyF2, c == '2':
 			err = refreshCurrentView(&workingModel)
 		case k == tcell.KeyF3, c == '3':
@@ -901,6 +870,44 @@ func enterDirectoryPath(m *model.Model) error {
 		return showItem(side, newViewConfig, ".")
 	default:
 		return errs.Errorf("Can't show path '%s', not directory nor filestore nor domain.", path)
+	}
+}
+
+func filterItems(m *model.Model) {
+	cf := m.CurrentFilter()
+	dialogResult := askUserInput("Filter by: ", cf, false)
+	m.SetCurrentFilter(dialogResult.inputAnswer)
+}
+
+func searchItem(m *model.Model) {
+	m.SearchBy = ""
+	dialogResult := askUserInput("Search by: ", m.SearchBy, false)
+	m.SearchBy = dialogResult.inputAnswer
+	if m.SearchBy != "" {
+		found := m.SearchNext(m.SearchBy)
+		if !found {
+			notFoundStatus := fmt.Sprintf("Item '%s' not found.", m.SearchBy)
+			updateStatus(notFoundStatus)
+		}
+	}
+}
+
+func searchNextItem(m *model.Model, reverse bool) {
+	if m.SearchBy == "" {
+		dialogResult := askUserInput("Search by: ", m.SearchBy, false)
+		m.SearchBy = dialogResult.inputAnswer
+	}
+	if m.SearchBy != "" {
+		var found bool
+		if reverse {
+			found = m.SearchPrev(m.SearchBy)
+		} else {
+			found = m.SearchNext(m.SearchBy)
+		}
+		if !found {
+			notFoundStatus := fmt.Sprintf("Item '%s' not found.", m.SearchBy)
+			updateStatus(notFoundStatus)
+		}
 	}
 }
 
