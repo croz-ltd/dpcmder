@@ -131,22 +131,6 @@ func ProcessInputEvent(event tcell.Event) error {
 			workingModel.ToggleSide()
 		case k == tcell.KeyEnter:
 			err = enterCurrentDirectory()
-			logging.LogDebug("ui/processInputEvent(), err: ", err)
-			switch err {
-			case dpMissingPasswordError:
-				dialogResult := askUserInput("Please enter DataPower password: ", "", true)
-				if dialogResult.inputAnswer != "" {
-					setCurrentDpPlainPassword(dialogResult.inputAnswer)
-				}
-				err = nil
-			case nil:
-				// If no error occurs.
-			default:
-				switch err.(type) {
-				case errs.UnexpectedHTTPResponse:
-					setCurrentDpPlainPassword("")
-				}
-			}
 		case c == ' ':
 			workingModel.ToggleCurrItem()
 		case c == '.':
@@ -172,11 +156,9 @@ func ProcessInputEvent(event tcell.Event) error {
 			workingModel.NavPgUp()
 		case (k == tcell.KeyPgDn && m == tcell.ModNone), c == 'o':
 			workingModel.NavPgDown()
-			// TODO: Shift + PgUp doesn't work - 5 events (mod:4+ch:91,ch:54,ch:59,ch:50,ch:126)
 		case (k == tcell.KeyPgUp && m == tcell.ModShift), c == 'U':
 			workingModel.SelPgUp()
 			workingModel.NavPgUp()
-			// TODO: Shift + PgDown doesn't work - 5 events (mod:4+ch:91,ch:53,ch:59,ch:50,ch:126)
 		case (k == tcell.KeyPgDn && m == tcell.ModShift), c == 'O':
 			workingModel.SelPgDown()
 			workingModel.NavPgDown()
@@ -378,7 +360,25 @@ func enterCurrentDirectory() error {
 	if item == nil {
 		return errs.Error("Nothing found, can't enter current directory.")
 	}
-	return showItem(workingModel.CurrSide(), item.Config, item.Name)
+	err := showItem(workingModel.CurrSide(), item.Config, item.Name)
+
+	switch err {
+	case dpMissingPasswordError:
+		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+		if dialogResult.inputAnswer != "" {
+			setCurrentDpPlainPassword(dialogResult.inputAnswer)
+		}
+		return nil
+	case nil:
+		// If no error occurs.
+	default:
+		switch err.(type) {
+		case errs.UnexpectedHTTPResponse:
+			setCurrentDpPlainPassword("")
+		}
+	}
+
+	return err
 }
 
 func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) error {
