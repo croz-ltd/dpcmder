@@ -1,6 +1,8 @@
 package dp
 
 import (
+	"archive/zip"
+	"bytes"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
@@ -568,6 +570,7 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 	logging.LogDebugf("repo/dp/ExportDomain('%s', '%s')", domainName, exportFileName)
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
+		// 1. Start export (send export request)
 		exportRequestJSON := fmt.Sprintf(`{"Export":
 		  {
 		    "Format":"ZIP",
@@ -587,10 +590,11 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 			return nil, err
 		}
 
-		var status string
+		status := "- not fetched yet -"
 		var exportResponseJSON string
 		timeStart := time.Now()
 		for status != "completed" {
+			// 2. Check for current status of export request
 			logging.LogDebugf("repo/dp/ExportDomain() status: '%s'", status)
 			status, exportResponseJSON, err = r.restGetForResult("/mgmt/actionqueue/"+domainName, "/operations//*[location='"+locationURL+"']/status")
 			if err != nil {
@@ -606,6 +610,7 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 				time.Sleep(1 * time.Second)
 				continue
 			case "completed":
+				// 3. Fetch export file
 				fileB64, _, err := r.restGetForResult(locationURL, "/result/file")
 				if err != nil {
 					return nil, err
@@ -620,7 +625,72 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 
 		return nil, errs.Errorf("Unexpected response from server ('%s').", status)
 	case config.DpInterfaceSoma:
-		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+		// 1. Fetch export (backup) of domain
+		//    Backup contains domain export zip + export info and dp-aux files
+		backupRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <man:request>
+         <man:do-backup format="ZIP" persisted="false">
+            <man:user-comment>Created by dpcmder - %s</man:user-comment>
+            <man:domain name="%s"/>
+         </man:do-backup>
+      </man:request>
+   </soapenv:Body>
+</soapenv:Envelope>`, exportFileName, domainName)
+		backupResponseSoma, err := r.soma(backupRequestSoma)
+		if err != nil {
+			return nil, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(backupResponseSoma))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
+		}
+		backupFileNode := xmlquery.FindOne(doc, "//*[local-name()='file']")
+		backupFileB64 := backupFileNode.InnerText()
+
+		backupBytes, err := base64.StdEncoding.DecodeString(backupFileB64)
+		if err != nil {
+			logging.LogDebug("repo/dp/ExportDomain() - Error decoding base64 file.", err)
+			return nil, err
+		}
+
+		// 2. Extract just given domain backup archive
+		backupBytesReader := bytes.NewReader(backupBytes)
+		backupZipReader, err := zip.NewReader(backupBytesReader, int64(len(backupBytes)))
+		if err != nil {
+			logging.LogDebug("repo/dp/ExportDomain() - Error unzipping backup archive.", err)
+			return nil, err
+		}
+		for idx, file := range backupZipReader.File {
+			logging.LogDebugf("repo/dp/ExportDomain() - file[%d] : '%s'.", idx, file.Name)
+			if file.Name == domainName+".zip" {
+				domainBackupBytes := make([]byte, file.UncompressedSize64)
+				domainReader, err := file.Open()
+				if err != nil {
+					logging.LogDebug("repo/dp/ExportDomain() - Error opening domain from backup archive for reading.", err)
+					return nil, err
+				}
+				defer domainReader.Close()
+
+				bytesRead, err := domainReader.Read(domainBackupBytes)
+				if err != nil {
+					logging.LogDebug("repo/dp/ExportDomain() - Error reading domain from backup archive.", err)
+					return nil, err
+				}
+
+				if uint64(bytesRead) != file.UncompressedSize64 {
+					logging.LogDebug("repo/dp/ExportDomain() - Wrong number of bytes read for domain from backup archive.", err)
+					return nil, errs.Errorf("Error reading domain from DataPower backup archive.")
+				}
+
+				return domainBackupBytes, err
+			}
+		}
+
+		return nil, errs.Errorf("Export failed, domain '%s' not found in DataPower backup.", domainName)
 	default:
 		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
 	}
