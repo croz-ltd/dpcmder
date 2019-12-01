@@ -66,7 +66,7 @@ func GetScreenSize() (width, height int) {
 // DrawEvent crates appropriate changes to screen for given event. Usually either
 // refresh whole screen or just update status message.
 func DrawEvent(updateViewEvent events.UpdateViewEvent) {
-	logging.LogDebugf("ui/out/drawEvent(%v)", updateViewEvent)
+	logging.LogDebugf("ui/out/DrawEvent(%v)", updateViewEvent)
 
 	switch updateViewEvent.Type {
 	case events.UpdateViewShowStatus:
@@ -75,8 +75,10 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 		refreshScreen(*updateViewEvent.Model)
 	case events.UpdateViewShowDialog:
 		showQuestionDialog(updateViewEvent.DialogQuestion, updateViewEvent.DialogAnswer, updateViewEvent.DialogAnswerCursorIdx)
+	case events.UpdateViewShowProgress:
+		showProgressDialog(updateViewEvent.Message, updateViewEvent.Progress)
 	default:
-		logging.LogDebugf("ui/out/drawEvent() unknown event received: %v", updateViewEvent)
+		logging.LogDebugf("ui/out/DrawEvent() unknown event received: %v", updateViewEvent)
 	}
 
 	logging.LogDebug("ui/out/drawEvent() finished")
@@ -241,5 +243,26 @@ func showStatus(m *model.Model, status string) {
 	w, h := Screen.Size()
 	writeLine(0, h-1, strings.Repeat(" ", w), m.HorizScroll, stNormal)
 	writeLine(0, h-1, statusMsg, m.HorizScroll, stNormal)
+	Screen.Show()
+}
+
+// showProgressDialog shows progress dialog with current progress (0-99).
+func showProgressDialog(msg string, progress int) {
+	logging.LogDebugf("ui/out/showProgressDialog('%s', %d)", msg, progress)
+
+	width, height := Screen.Size()
+	x := 10
+	y := height/2 - 2
+	dialogWidth := width - 20
+
+	progressX := x + 2 + (dialogWidth-2)*progress/100
+	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), 0, stNormal)
+	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(progressX, y-1, "****", 0, stNormal)
+	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), 0, stNormal)
+	writeLine(x+2, y, msg, 0, stNormal)
+
 	Screen.Show()
 }

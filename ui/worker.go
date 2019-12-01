@@ -61,6 +61,12 @@ var workingModel model.Model = model.Model{} //{currSide: model.Left}
 // Dialog with user - question asked, user's answer and active state.
 var dialogSession = userDialogInputSessionInfo{}
 
+// Used for show progress dialog for long running actions.
+var (
+	progressDialogShown = false
+	progressValue       = 0
+)
+
 // InitialLoad initializes DataPower and local filesystem access and load initial views.
 func InitialLoad() {
 	logging.LogDebug("ui/InitialLoad()")
@@ -737,7 +743,9 @@ func exportDomain(fromViewConfig, toViewConfig *model.ItemConfig, domainName str
 	logging.LogDebugf("ui/exportDomain(%v, %v, '%s')", fromViewConfig, toViewConfig, domainName)
 	exportFileName := fromViewConfig.DpAppliance + "_" + domainName + "_" + time.Now().Format("20060102150405") + ".zip"
 	logging.LogDebugf("ui/exportDomain() exportFileName: '%s'", exportFileName)
+	showProgressDialog("Exporting domain " + domainName)
 	exportFileBytes, err := dp.Repo.ExportDomain(domainName, exportFileName)
+	progressDialogShown = false
 	if err != nil {
 		return err
 	}
@@ -1128,4 +1136,27 @@ func refreshStatus() {
 	updateView := events.UpdateViewEvent{
 		Type: events.UpdateViewShowStatus, Status: workingModel.LastStatus(), Model: &workingModel}
 	out.DrawEvent(updateView)
+}
+
+func showProgressDialog(msg string) {
+	progressDialogShown = true
+	go runProgressDialog(msg)
+}
+
+func runProgressDialog(msg string) {
+	for progressDialogShown {
+		updateProgress(msg)
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func updateProgress(msg string) {
+	progressEvent := events.UpdateViewEvent{Type: events.UpdateViewShowProgress,
+		Message:  msg,
+		Progress: progressValue}
+	out.DrawEvent(progressEvent)
+	progressValue = progressValue + 1
+	if progressValue > 99 {
+		progressValue = 0
+	}
 }

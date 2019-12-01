@@ -9,9 +9,10 @@ type UpdateViewEventType int
 
 // All available event types for updating screen.
 const (
-	UpdateViewRefresh    UpdateViewEventType = UpdateViewEventType(1)
-	UpdateViewShowDialog UpdateViewEventType = UpdateViewEventType(2)
-	UpdateViewShowStatus UpdateViewEventType = UpdateViewEventType(3)
+	UpdateViewRefresh      UpdateViewEventType = UpdateViewEventType(1)
+	UpdateViewShowDialog   UpdateViewEventType = UpdateViewEventType(2)
+	UpdateViewShowStatus   UpdateViewEventType = UpdateViewEventType(3)
+	UpdateViewShowProgress UpdateViewEventType = UpdateViewEventType(4)
 )
 
 // UpdateViewEvent contains information neccessary for all types of screen
@@ -23,4 +24,6 @@ type UpdateViewEvent struct {
 	DialogAnswer          string
 	DialogAnswerCursorIdx int
 	Status                string
+	Message               string
+	Progress              int
 }
