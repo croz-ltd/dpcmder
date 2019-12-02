@@ -61,11 +61,17 @@ var workingModel model.Model = model.Model{} //{currSide: model.Left}
 // Dialog with user - question asked, user's answer and active state.
 var dialogSession = userDialogInputSessionInfo{}
 
-// Used for show progress dialog for long running actions.
-var (
-	progressDialogShown = false
-	progressValue       = 0
-)
+// progressDialogInfo is structure containing all information needed to show
+// progress dialog for long running actions.
+type progressDialogInfo struct {
+	visible       bool
+	waitUserInput bool
+	value         int
+	msg           string
+}
+
+// progressDialogSession contains progress dialog info for long running actions.
+var progressDialogSession = progressDialogInfo{}
 
 // InitialLoad initializes DataPower and local filesystem access and load initial views.
 func InitialLoad() {
@@ -239,6 +245,9 @@ func prepareInputDialog(dialogSession *userDialogInputSessionInfo) events.Update
 // askUserInput asks user for input like confirmation of some action or name of
 // new file/directory.
 func askUserInput(question, answer string, answerMasked bool) userDialogResult {
+	// When progress dialog is shown we don't won't it to hid our input dialog.
+	progressDialogSession.waitUserInput = true
+
 	dialogSession := userDialogInputSessionInfo{inputQuestion: question,
 		inputAnswer:          answer,
 		inputAnswerCursorIdx: utf8.RuneCountInString(answer),
@@ -257,6 +266,10 @@ loop:
 			break loop
 		}
 	}
+	// When progress dialog was shown we show it after we don't need input dialog
+	// any more.
+	progressDialogSession.waitUserInput = false
+
 	return userDialogResult{inputAnswer: dialogSession.inputAnswer,
 		dialogCanceled:  dialogSession.dialogCanceled,
 		dialogSubmitted: dialogSession.dialogSubmitted}
@@ -433,7 +446,9 @@ func viewCurrent(m *model.Model) error {
 	case model.ItemFile:
 		if m.CurrSide() == model.Left {
 			currView := workingModel.ViewConfig(workingModel.CurrSide())
+			showProgressDialogf("Fetching '%s' file from DataPower...", ci.Name)
 			fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
+			hideProgressDialog()
 			if err != nil {
 				return err
 			}
@@ -471,7 +486,9 @@ func editCurrent(m *model.Model) error {
 	case model.ItemFile:
 		currView := workingModel.ViewConfig(workingModel.CurrSide())
 		if m.CurrSide() == model.Left {
+			showProgressDialogf("Fetching '%s' file from DataPower...", ci.Name)
 			fileContent, err := repos[m.CurrSide()].GetFile(currView, ci.Name)
+			hideProgressDialog()
 			if err != nil {
 				return err
 			}
@@ -528,17 +545,20 @@ func copyCurrent(m *model.Model) error {
 	}
 	updateStatusf("Copy from '%s' to '%s', items: %v", fromViewConfig.Path, toViewConfig.Path, itemsDisplayToCopy)
 
+	showProgressDialog("Copying files from DataPower...")
 	var confirmOverwrite = "n"
 	var err error
 	for _, item := range itemsToCopy {
 		confirmOverwrite, err = copyItem(repos[fromSide], repos[toSide], fromViewConfig, toViewConfig, item, confirmOverwrite)
 		if err != nil {
+			hideProgressDialog()
 			return err
 		}
 		if confirmOverwrite == "na" {
 			break
 		}
 	}
+	hideProgressDialog()
 
 	return showItem(toSide, m.ViewConfig(toSide), ".")
 }
@@ -687,6 +707,7 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 
 func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, fileName, confirmOverwrite string) (string, error) {
 	logging.LogDebugf("ui/copyFile(.., .., %v, %v, '%s', '%s')", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	updateProgressDialogMessagef("Preparing to copy file '%s' from %s to %s...", fileName, fromRepo, toRepo)
 	res := confirmOverwrite
 	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, fileName)
 	if err != nil {
@@ -743,9 +764,9 @@ func exportDomain(fromViewConfig, toViewConfig *model.ItemConfig, domainName str
 	logging.LogDebugf("ui/exportDomain(%v, %v, '%s')", fromViewConfig, toViewConfig, domainName)
 	exportFileName := fromViewConfig.DpAppliance + "_" + domainName + "_" + time.Now().Format("20060102150405") + ".zip"
 	logging.LogDebugf("ui/exportDomain() exportFileName: '%s'", exportFileName)
-	showProgressDialog("Exporting domain " + domainName)
+	showProgressDialogf("Exporting domain '%s'...", domainName)
 	exportFileBytes, err := dp.Repo.ExportDomain(domainName, exportFileName)
-	progressDialogShown = false
+	hideProgressDialog()
 	if err != nil {
 		return err
 	}
@@ -1139,24 +1160,40 @@ func refreshStatus() {
 }
 
 func showProgressDialog(msg string) {
-	progressDialogShown = true
-	go runProgressDialog(msg)
+	progressDialogSession.value = 0
+	progressDialogSession.visible = true
+	progressDialogSession.msg = msg
+	go runProgressDialog()
 }
 
-func runProgressDialog(msg string) {
-	for progressDialogShown {
-		updateProgress(msg)
+func showProgressDialogf(format string, v ...interface{}) {
+	showProgressDialog(fmt.Sprintf(format, v...))
+}
+
+func hideProgressDialog() {
+	progressDialogSession.visible = false
+}
+
+func runProgressDialog() {
+	for progressDialogSession.visible {
+		updateProgressDialog()
 		time.Sleep(1 * time.Second)
 	}
 }
 
-func updateProgress(msg string) {
-	progressEvent := events.UpdateViewEvent{Type: events.UpdateViewShowProgress,
-		Message:  msg,
-		Progress: progressValue}
-	out.DrawEvent(progressEvent)
-	progressValue = progressValue + 1
-	if progressValue > 99 {
-		progressValue = 0
+func updateProgressDialog() {
+	if !progressDialogSession.waitUserInput {
+		progressEvent := events.UpdateViewEvent{Type: events.UpdateViewShowProgress,
+			Message:  progressDialogSession.msg,
+			Progress: progressDialogSession.value}
+		out.DrawEvent(progressEvent)
+		progressDialogSession.value = progressDialogSession.value + 1
+		if progressDialogSession.value > 99 {
+			progressDialogSession.value = 0
+		}
 	}
+}
+
+func updateProgressDialogMessagef(format string, v ...interface{}) {
+	progressDialogSession.msg = fmt.Sprintf(format, v...)
 }

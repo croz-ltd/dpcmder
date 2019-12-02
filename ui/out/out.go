@@ -255,14 +255,22 @@ func showProgressDialog(msg string, progress int) {
 	y := height/2 - 2
 	dialogWidth := width - 20
 
-	progressX := x + 2 + (dialogWidth-2)*progress/100
+	var progressX int
+	var progressY int
+	if progress < 50 {
+		progressX = x + 2 + (dialogWidth-4)*progress/50
+		progressY = y - 1
+	} else {
+		progressX = x + 2 + (dialogWidth-4)*(99-progress)/50
+		progressY = y + 1
+	}
 	writeLine(x, y-2, buildLine("", "*", "", dialogWidth), 0, stNormal)
 	writeLine(x, y-1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
-	writeLine(progressX, y-1, "****", 0, stNormal)
 	writeLine(x, y, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
 	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
 	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), 0, stNormal)
-	writeLine(x+2, y, msg, 0, stNormal)
+	writeLine(progressX, progressY, "****", 0, stNormal)
+	writeLine(x+4, y, msg, 0, stNormal)
 
 	Screen.Show()
 }

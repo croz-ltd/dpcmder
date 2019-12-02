@@ -11,7 +11,7 @@ import (
 )
 
 func TestLocalRepoString(t *testing.T) {
-	assert.DeepEqual(t, "String()", Repo.String(), "LocalRepo")
+	assert.DeepEqual(t, "String()", Repo.String(), "local filesystem")
 }
 
 func TestLocalRepoGetInitialItem(t *testing.T) {

@@ -32,11 +32,11 @@ type dpRepo struct {
 
 // Repo is instance or DataPower repo/Repo interface implementation used for all
 // operations on DataPower except syncing local filesystem to DataPower.
-var Repo = dpRepo{name: "DpRepo", dpFilestoreXmls: make(map[string]string)}
+var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string)}
 
 // SyncRepo is instance or DataPower repo/Repo interface implementation used for
 // syncing local directory to DataPower directory.
-var SyncRepo = dpRepo{name: "SyncDpRepo", dpFilestoreXmls: make(map[string]string)}
+var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string)}
 
 func (r *dpRepo) String() string {
 	return r.name
