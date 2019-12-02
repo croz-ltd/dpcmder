@@ -204,6 +204,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = createDirectory(&workingModel)
 		case k == tcell.KeyF8, c == '8':
 			err = createEmptyFile(&workingModel)
+		case k == tcell.KeyF9, c == '9':
+			err = cloneCurrent(&workingModel)
 		case k == tcell.KeyDelete, c == 'x':
 			err = deleteCurrent(&workingModel)
 		case c == 's':
@@ -831,6 +833,53 @@ func createEmptyFile(m *model.Model) error {
 			updateStatus("Creation of new DataPower configuration canceled.")
 		}
 	}
+	return nil
+}
+
+func cloneCurrent(m *model.Model) error {
+	logging.LogDebug("ui/cloneCurrent()")
+	currentItem := m.CurrItem()
+
+	var newItemName string
+	dialogResult := askUserInput(
+		fmt.Sprintf("Enter name of cloned %s: ",
+			currentItem.Config.Type.UserFriendlyString()), currentItem.Name, false)
+	if dialogResult.dialogSubmitted {
+		newItemName = dialogResult.inputAnswer
+
+		side := m.CurrSide()
+		viewConfig := m.ViewConfig(side)
+
+		var err error
+		switch currentItem.Config.Type {
+		case model.ItemDpConfiguration:
+			var clonedConfigContent []byte
+			_, valueInMap := config.Conf.DataPowerAppliances[newItemName]
+			if valueInMap {
+				return errs.Errorf("DataPower configuration '%s' already exists.", newItemName)
+			}
+			clonedConfigContent, err = config.Conf.GetDpApplianceConfig(currentItem.Name)
+			if err != nil {
+				return err
+			}
+			err = config.Conf.SetDpApplianceConfig(newItemName, clonedConfigContent)
+		default:
+			return errs.Errorf("Can't clone item '%s' (%s).",
+				currentItem.Name, currentItem.Config.Type.UserFriendlyString())
+		}
+
+		if err != nil {
+			return err
+		}
+
+		updateStatusf("'%s' (%s) cloned to '%s'.",
+			currentItem.Name, currentItem.Config.Type.UserFriendlyString(), newItemName)
+		return showItem(side, viewConfig, ".")
+	} else {
+		updateStatusf("Clonning of '%s' (%s) canceled.",
+			currentItem.Name, currentItem.Config.Type.UserFriendlyString())
+	}
+
 	return nil
 }
 

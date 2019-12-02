@@ -116,9 +116,9 @@ func prepareItemList() ItemList {
 
 func prepareAllTypesItemList() ItemList {
 	return ItemList{
-		Item{Config: &ItemConfig{Type: ItemDpConfiguration}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemDpDomain}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
-		Item{Config: &ItemConfig{Type: ItemDpFilestore}, Name: "Ajan", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpConfiguration}, Name: "Ajan DpConfig", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpDomain}, Name: "Ajan DpDomain", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpFilestore}, Name: "Ajan DpFilestore", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
 		Item{Config: &ItemConfig{Type: ItemDirectory}, Name: "ali", Size: "200", Modified: "2019-02-06 14:06:10", Selected: false},
 		Item{Config: &ItemConfig{Type: ItemFile}, Name: "Micro", Size: "1000", Modified: "2019-02-06 12:06:10", Selected: false},
 	}
@@ -563,6 +563,22 @@ func TestModelSearch(t *testing.T) {
 
 	model.SearchPrev("ali")
 	checkCurrItem(t, model, items[0], "Prev 'ali'")
+}
+
+func TestModelIsSelectable(t *testing.T) {
+	model := Model{}
+	itemList := prepareAllTypesItemList()
+	model.SetItems(Left, itemList)
+
+	selectableExpected := []bool{true, false, false, true, true}
+
+	for idx := 0; idx < len(itemList); idx++ {
+		itemName := itemList[idx].Name
+		model.SetCurrItemForSide(Left, itemName)
+		got := model.IsSelectable()
+		want := selectableExpected[idx]
+		assert.DeepEqual(t, fmt.Sprintf("Model.IsSelectable(), item: '%s'", itemName), want, got)
+	}
 }
 
 func TestStatusHandling(t *testing.T) {

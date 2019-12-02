@@ -31,6 +31,7 @@ F5/5                - copy selected (or current if none selected) directories an
 F7/7                - create directory
 F8/8                - create empty file
                     - create new DataPower configuration
+F9/9                - clone current DataPower configuration under new name
 DEL/x               - delete selected (or current if none selected) directories and files
                     - delete DataPower configuration
 d                   - diff current files/directories

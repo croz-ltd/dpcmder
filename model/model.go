@@ -186,9 +186,15 @@ func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	return item
 }
 
-// IsSelectable returns true if we can select current item.
+// IsSelectable returns true if we can select current item
+// (can select directory, file or appliance config).
 func (m *Model) IsSelectable() bool {
-	return m.ViewConfig(m.currSide).Path != ""
+	switch m.CurrItem().Config.Type {
+	case ItemFile, ItemDirectory, ItemDpConfiguration:
+		return true
+	default:
+		return false
+	}
 }
 
 // CurrSide returns currently used Side.
