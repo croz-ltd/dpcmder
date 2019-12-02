@@ -780,28 +780,57 @@ func exportDomain(fromViewConfig, toViewConfig *model.ItemConfig, domainName str
 
 func createEmptyFile(m *model.Model) error {
 	logging.LogDebugf("ui/createEmptyFile()")
-	dialogResult := askUserInput("Enter file name for file to create: ", "", false)
-	if dialogResult.dialogSubmitted {
-		fileName := dialogResult.inputAnswer
-		side := m.CurrSide()
-		viewConfig := m.ViewConfig(side)
-		r := repos[side]
-		targetFileType, err := r.GetFileType(viewConfig, viewConfig.Path, fileName)
-		if err != nil {
-			return err
-		}
-		if targetFileType != model.ItemNone {
-			return errs.Errorf("File with name '%s' already exists at '%s'.", fileName, viewConfig.Path)
-		}
-		_, err = r.UpdateFile(viewConfig, fileName, make([]byte, 0))
-		if err != nil {
-			return errs.Errorf("Can't create file with name '%s' - '%v'.", fileName, err)
-		}
+	side := m.CurrSide()
+	viewConfig := m.ViewConfig(side)
+	switch viewConfig.Type {
+	case model.ItemDirectory, model.ItemDpFilestore:
+		dialogResult := askUserInput("Enter file name for file to create: ", "", false)
+		if dialogResult.dialogSubmitted {
+			fileName := dialogResult.inputAnswer
+			r := repos[side]
+			targetFileType, err := r.GetFileType(viewConfig, viewConfig.Path, fileName)
+			if err != nil {
+				return err
+			}
+			if targetFileType != model.ItemNone {
+				return errs.Errorf("File with name '%s' already exists at '%s'.", fileName, viewConfig.Path)
+			}
+			_, err = r.UpdateFile(viewConfig, fileName, make([]byte, 0))
+			if err != nil {
+				return errs.Errorf("Can't create file with name '%s' - '%v'.", fileName, err)
+			}
 
-		updateStatusf("File '%s' created.", fileName)
-		return showItem(side, viewConfig, ".")
+			updateStatusf("File '%s' created.", fileName)
+			return showItem(side, viewConfig, ".")
+		}
+		updateStatus("Creation of new file canceled.")
+	case model.ItemNone:
+		if side == model.Left {
+			dialogResult := askUserInput("Enter DataPower configuration name to create: ", "", false)
+			if dialogResult.dialogSubmitted {
+				confName := dialogResult.inputAnswer
+
+				fileContent, err := config.Conf.CreateDpApplianceConfig()
+				if err != nil {
+					return err
+				}
+				changed, newFileContent, err := extprogs.Edit(confName, fileContent)
+				if err != nil {
+					return err
+				}
+				if changed {
+					err := config.Conf.SetDpApplianceConfig(confName, newFileContent)
+					if err != nil {
+						return err
+					}
+				}
+
+				updateStatusf("DataPower configuration '%s' created.", confName)
+				return showItem(side, viewConfig, ".")
+			}
+			updateStatus("Creation of new DataPower configuration canceled.")
+		}
 	}
-	updateStatus("Creation of new file canceled.")
 	return nil
 }
 

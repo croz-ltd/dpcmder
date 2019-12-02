@@ -275,12 +275,23 @@ func setDpPasswordPlain(password string) {
 	dpPassword = &b32password
 }
 
+// CreateDpApplianceConfig creates empty DataPower appliance JSON configuration as byte array.
+func (c *Config) CreateDpApplianceConfig() ([]byte, error) {
+	dpAppliance := DataPowerAppliance{}
+	json, err := json.MarshalIndent(dpAppliance, "", "  ")
+	if err != nil {
+		logging.LogDebugf("config/CreateDpApplianceConfig('%s') - Can't marshal empty DataPower appliance configuration.")
+		return nil, err
+	}
+	return json, nil
+}
+
 // GetDpApplianceConfig fetches DataPower appliance JSON configuration as byte array.
 func (c *Config) GetDpApplianceConfig(name string) ([]byte, error) {
 	dpAppliance := c.DataPowerAppliances[name]
 	json, err := json.MarshalIndent(dpAppliance, "", "  ")
 	if err != nil {
-		logging.LogDebugf("config/GetDpApplianceConfig('%s') - Can't marshal DataPower appliance configuration: ", name)
+		logging.LogDebugf("config/GetDpApplianceConfig('%s') - Can't marshal DataPower appliance configuration.", name)
 		return nil, err
 	}
 	return json, nil
@@ -291,7 +302,7 @@ func (c *Config) SetDpApplianceConfig(name string, contents []byte) error {
 	dpAppliance := c.DataPowerAppliances[name]
 	err := json.Unmarshal(contents, &dpAppliance)
 	if err != nil {
-		logging.LogDebugf("config/SetDpApplianceConfig('%s', ...) - Can't unmarshal DataPower appliance configuration: ", name)
+		logging.LogDebugf("config/SetDpApplianceConfig('%s', ...) - Can't unmarshal DataPower appliance configuration,", name)
 		return err
 	}
 	c.DataPowerAppliances[name] = dpAppliance
