@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/antchfx/jsonquery"
 	"github.com/antchfx/xmlquery"
@@ -28,6 +29,7 @@ type dpRepo struct {
 	dpFilestoreXmls    map[string]string
 	invalidateCache    bool
 	dataPowerAppliance config.DataPowerAppliance
+	ObjectConfigMode   bool
 }
 
 // Repo is instance or DataPower repo/Repo interface implementation used for all
@@ -80,28 +82,43 @@ func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
-	switch itemToShow.Type {
-	case model.ItemNone:
-		r.dataPowerAppliance = config.DataPowerAppliance{}
-		return listAppliances()
-	case model.ItemDpConfiguration:
-		r.dataPowerAppliance = config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
-		if r.dataPowerAppliance.Password == "" {
-			r.dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
+	if r.ObjectConfigMode {
+		switch itemToShow.Type {
+		case model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory:
+			return r.listObjectClasses(itemToShow)
+		case model.ItemDpObjectClass:
+			return r.listObjects(itemToShow)
+		default:
+			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
+				itemToShow, r.ObjectConfigMode)
+			r.ObjectConfigMode = false
+			return nil, errs.Errorf("Can't show object view if DataPower domain is not selected.")
 		}
-		if itemToShow.DpDomain != "" {
+	} else {
+		switch itemToShow.Type {
+		case model.ItemNone:
+			r.dataPowerAppliance = config.DataPowerAppliance{}
+			return listAppliances()
+		case model.ItemDpConfiguration:
+			r.dataPowerAppliance = config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
+			if r.dataPowerAppliance.Password == "" {
+				r.dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
+			}
+			if itemToShow.DpDomain != "" {
+				return r.listFilestores(itemToShow)
+			}
+			return r.listDomains(itemToShow)
+		case model.ItemDpDomain:
 			return r.listFilestores(itemToShow)
+		case model.ItemDpFilestore:
+			return r.listDpDir(itemToShow)
+		case model.ItemDirectory:
+			return r.listDpDir(itemToShow)
+		default:
+			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
+				itemToShow, r.ObjectConfigMode)
+			return model.ItemList{}, nil
 		}
-		return r.listDomains(itemToShow)
-	case model.ItemDpDomain:
-		return r.listFilestores(itemToShow)
-	case model.ItemDpFilestore:
-		return r.listDpDir(itemToShow)
-	case model.ItemDirectory:
-		return r.listDpDir(itemToShow)
-	default:
-		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item.", itemToShow)
-		return model.ItemList{}, nil
 	}
 }
 
@@ -125,7 +142,7 @@ func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 	if r.dataPowerAppliance.RestUrl != "" {
 		restPath := makeRestPath(dpDomain, filePath)
 
-		fileB64, _, err := r.restGetForResult(restPath, "/file")
+		fileB64, _, err := r.restGetForOneResult(restPath, "/file")
 		if err != nil {
 			return nil, err
 		}
@@ -593,7 +610,7 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 		timeStart := time.Now()
 		for {
 			// 2. Check for current status of export request
-			status, exportResponseJSON, err := r.restGetForResult(locationURL, "/status")
+			status, exportResponseJSON, err := r.restGetForOneResult(locationURL, "/status")
 			logging.LogDebugf("repo/dp/ExportDomain() status: '%s'", status)
 			if err != nil {
 				return nil, err
@@ -688,6 +705,79 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 		return nil, errs.Errorf("Export failed, domain '%s' not found in DataPower backup.", domainName)
 	default:
 		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+	}
+}
+
+// GetObject fetches DataPower object configuration.
+func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetObject(%v, '%s')", itemConfig, objectName)
+	// https://localhost:5554/mgmt/status/tmp/ObjectStatus
+	// curl -k -u admin:admin https://localhost:5554/mgmt/ | jq .
+	// curl -k -u admin:admin https://localhost:5554/mgmt/config/ | jq . | less
+	// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService | jq . | less
+
+	switch itemConfig.Type {
+	case model.ItemDpObject:
+	default:
+		return nil, errs.Errorf("Can't get object when item is of type %s.",
+			itemConfig.Type.UserFriendlyString())
+	}
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		getObjectURL := fmt.Sprintf("/mgmt/config/%s/%s/%s",
+			itemConfig.DpDomain, itemConfig.Path, objectName)
+		objectJSON, err := r.restGet(getObjectURL)
+		if err != nil {
+			return nil, err
+		}
+
+		logging.LogDebugf("repo/dp/GetObject(), objectJSON: '%s'", objectJSON)
+		var prettyJSON bytes.Buffer
+		json.Indent(&prettyJSON, []byte(objectJSON), "", "  ")
+		return prettyJSON.Bytes(), nil
+	// case config.DpInterfaceSoma:
+	default:
+		return nil, errs.Error("Object mode is supported only for REST management interface.")
+	}
+}
+
+// SetObject updates DataPower object configuration.
+func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, objectContent []byte) error {
+	logging.LogDebugf("repo/dp/SetObject(%v, '%s', ...)", itemConfig, objectName)
+
+	switch itemConfig.Type {
+	case model.ItemDpObject:
+	default:
+		return errs.Errorf("Can't set object when item is of type %s.",
+			itemConfig.Type.UserFriendlyString())
+	}
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		getObjectURL := fmt.Sprintf("/mgmt/config/%s/%s/%s",
+			itemConfig.DpDomain, itemConfig.Path, objectName)
+		resultJson, err := r.rest(getObjectURL, "PUT", string(objectContent))
+		if err != nil {
+			return err
+		}
+		logging.LogDebugf("repo/dp/SetObject(), resultJson: '%s'", resultJson)
+		errorMessage, err := parseJsonFindOne(resultJson, "/error")
+		if err != nil && err.Error() != "Unexpected JSON, can't find '/error'." {
+			return err
+		}
+		logging.LogDebugf("repo/dp/SetObject(), errorMessage: '%s'", errorMessage)
+		successMessage, err := parseJsonFindOne(resultJson, fmt.Sprintf("/%s", objectName))
+		if err != nil {
+			return err
+		}
+		logging.LogDebugf("repo/dp/SetObject(), successMessage: '%s'", successMessage)
+		// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw/LocalPort -d '{"LocalPort":"10009"}' -X PUT | jq .
+		// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw -d '{"XMLFirewallService":{"name": "get_internal_js_xmlfw","LocalPort":"10001"}}' -X PUT | jq .
+		return err
+	// case config.DpInterfaceSoma:
+	default:
+		return errs.Error("Object mode is supported only for REST management interface.")
 	}
 }
 
@@ -972,6 +1062,101 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 	}
 }
 
+// listObjectClasses lists all object classes used in current DataPower domain.
+func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemList, error) {
+	logging.LogDebugf("repo/dp/GetObjectClassList(%v)", currentView)
+
+	if currentView.DpAppliance == "" {
+		return nil, errs.Error("Can't get object class list if DataPower appliance is not selected.")
+	}
+
+	if currentView.DpDomain == "" {
+		return nil, errs.Error("Can't get object class list if DataPower domain is not selected.")
+	}
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		listObjectStatusesURL := fmt.Sprintf("/mgmt/status/%s/ObjectStatus", currentView.DpDomain)
+		classNamesWithDuplicates, _, err := r.restGetForListResult(listObjectStatusesURL, "/ObjectStatus//Class")
+		if err != nil {
+			return nil, err
+		}
+		classNameMap := make(map[string]bool)
+		classNames := make([]string, 0)
+		for _, className := range classNamesWithDuplicates {
+			if _, oldName := classNameMap[className]; !oldName {
+				classNameMap[className] = true
+				classNames = append(classNames, className)
+			}
+		}
+
+		logging.LogDebugf("repo/dp/GetObjectClassList(), classNames: %v", classNames)
+
+		items := make(model.ItemList, len(classNames))
+		for idx, className := range classNames {
+			itemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
+				DpAppliance: currentView.DpAppliance,
+				DpDomain:    currentView.DpDomain,
+				Path:        className,
+				Parent:      currentView}
+			item := model.Item{Name: className, Config: &itemConfig}
+			items[idx] = item
+		}
+
+		sort.Sort(items)
+
+		logging.LogDebugf("repo/dp/GetObjectClassList(), items: %v", items)
+		return items, nil
+	// case config.DpInterfaceSoma:
+	default:
+		return nil, errs.Error("Object mode is supported only for REST management interface.")
+	}
+}
+
+// listObjects lists all objects of selected class in current DataPower domain.
+func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, error) {
+	logging.LogDebugf("repo/dp/listObjects(%v)", itemConfig)
+
+	switch itemConfig.Type {
+	case model.ItemDpObjectClass:
+	default:
+		return nil, errs.Error("Can't get object list if no object class is known.")
+	}
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		listObjectsURL := fmt.Sprintf("/mgmt/config/%s/%s", itemConfig.DpDomain, itemConfig.Path)
+		objectNameQuery := fmt.Sprintf("/%s//name", itemConfig.Path)
+		objectNames, _, err := r.restGetForListResult(listObjectsURL, objectNameQuery)
+		if err != nil {
+			return nil, err
+		}
+
+		logging.LogDebugf("repo/dp/listObjects(), objectNames: %v", objectNames)
+		parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
+
+		items := make(model.ItemList, len(objectNames))
+		items = append(items, parentDir)
+		for idx, objectName := range objectNames {
+			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
+				DpAppliance: itemConfig.DpAppliance,
+				DpDomain:    itemConfig.DpDomain,
+				Path:        itemConfig.Path,
+				Parent:      itemConfig}
+			item := model.Item{Name: objectName, Config: &itemConfig}
+			items[idx] = item
+		}
+
+		sort.Sort(items)
+
+		logging.LogDebugf("repo/dp/listObjects(), items: %v", items)
+		return items, nil
+	// case config.DpInterfaceSoma:
+	default:
+		return nil, errs.Error("Object mode is supported only for REST management interface.")
+	}
+}
+
 func (r *dpRepo) refreshSomaFiles(viewConfig *model.ItemConfig) error {
 	return r.refreshSomaFilesByPath(viewConfig.DpDomain, viewConfig.Path)
 }
@@ -1079,7 +1264,7 @@ func (r *dpRepo) restPostForResult(urlPath, postBody, checkQuery, checkExpected,
 	return result, responseJSON, nil
 }
 
-func (r *dpRepo) restGetForResult(urlPath, resultQuery string) (result, responseJSON string, err error) {
+func (r *dpRepo) restGetForOneResult(urlPath, resultQuery string) (result, responseJSON string, err error) {
 	responseJSON, err = r.restGet(urlPath)
 	if err != nil {
 		return "", "", err
@@ -1104,6 +1289,38 @@ func parseJsonFindOne(json, query string) (string, error) {
 	}
 
 	return resultNode.InnerText(), nil
+}
+
+func (r *dpRepo) restGetForListResult(urlPath, resultQuery string) (result []string, responseJSON string, err error) {
+	responseJSON, err = r.restGet(urlPath)
+	if err != nil {
+		return nil, "", err
+	}
+
+	result, err = parseJsonFindList(responseJSON, resultQuery)
+
+	return result, responseJSON, err
+}
+
+func parseJsonFindList(json, query string) ([]string, error) {
+	doc, err := jsonquery.Parse(strings.NewReader(json))
+	if err != nil {
+		logging.LogDebug("Error parsing JSON.", err)
+		return nil, err
+	}
+
+	resultNodes := jsonquery.Find(doc, query)
+	if resultNodes == nil {
+		logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, json)
+		return nil, errs.Errorf("Unexpected JSON, can't find '%s'.", query)
+	}
+
+	result := make([]string, len(resultNodes))
+	for idx, node := range resultNodes {
+		result[idx] = node.InnerText()
+	}
+
+	return result, nil
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is

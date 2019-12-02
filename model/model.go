@@ -39,6 +39,10 @@ func (it ItemType) UserFriendlyString() string {
 		return "domain"
 	case ItemDpFilestore:
 		return "filestore"
+	case ItemDpObjectClass:
+		return "object class"
+	case ItemDpObject:
+		return "object"
 	case ItemNone:
 		return "-"
 	default:
@@ -53,6 +57,8 @@ const (
 	ItemDpConfiguration = ItemType('A')
 	ItemDpDomain        = ItemType('D')
 	ItemDpFilestore     = ItemType('F')
+	ItemDpObjectClass   = ItemType('C')
+	ItemDpObject        = ItemType('O')
 	ItemNone            = ItemType('-')
 	ItemAny             = ItemType('*')
 )
@@ -147,9 +153,20 @@ func (items ItemList) Len() int {
 
 // Less returns true if item at first index should be before second one.
 func (items ItemList) Less(i, j int) bool {
-	return items[i].Config.Type < items[j].Config.Type ||
-		(items[i].Config.Type == items[j].Config.Type &&
-			strings.ToLower(items[i].Name) < strings.ToLower(items[j].Name))
+	switch {
+	case items[i].Name == ".." && items[j].Name != "..":
+		return true
+	case items[i].Name != ".." && items[j].Name == "..":
+		return false
+	case items[i].Config.Type == ItemDirectory && items[j].Config.Type == ItemFile:
+		return true
+	case items[i].Config.Type == ItemFile && items[j].Config.Type == ItemDirectory:
+		return false
+	case items[i].Config.Type == items[j].Config.Type:
+		return strings.ToLower(items[i].Name) < strings.ToLower(items[j].Name)
+	default:
+		return false
+	}
 }
 
 // Swap swaps items with given indices.
