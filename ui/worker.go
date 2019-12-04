@@ -573,13 +573,20 @@ func diffCurrent(m *model.Model) error {
 	dpView := m.ViewConfig(model.Left)
 	localView := m.ViewConfig(model.Right)
 
-	if dpItem.Config.Type == localItem.Config.Type {
+	if dpItem.Config.Type == localItem.Config.Type || (dpItem.Config.Type == model.ItemDpFilestore && localItem.Config.Type == model.ItemDirectory) {
 		dpCopyDir := extprogs.CreateTempDir("dp")
 		updateStatusf("Created tmp dir on localfs '%s'", dpCopyDir)
 		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
 		// func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, item model.Item, confirmOverwrite string) (string, error) {
 		copyItem(&dp.Repo, localfs.Repo, dpView, &localViewTmp, *dpItem, "y")
-		dpCopyItemPath := localfs.Repo.GetFilePath(dpCopyDir, dpItem.Name)
+		var dpDirName string
+		switch dpItem.Config.Type {
+		case model.ItemDpFilestore:
+			dpDirName = dpItem.Name[0 : len(dpItem.Name)-1]
+		default:
+			dpDirName = dpItem.Name
+		}
+		dpCopyItemPath := localfs.Repo.GetFilePath(dpCopyDir, dpDirName)
 		localItemPath := localfs.Repo.GetFilePath(localView.Path, localItem.Name)
 		err := extprogs.Diff(dpCopyItemPath, localItemPath)
 		if err != nil {
