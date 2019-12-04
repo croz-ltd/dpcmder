@@ -733,9 +733,11 @@ func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string) ([]b
 		}
 
 		logging.LogDebugf("repo/dp/GetObject(), objectJSON: '%s'", objectJSON)
-		var prettyJSON bytes.Buffer
-		json.Indent(&prettyJSON, []byte(objectJSON), "", "  ")
-		return prettyJSON.Bytes(), nil
+		cleanedJSON, err := cleanJSONObject(objectJSON)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(cleanedJSON), nil
 	// case config.DpInterfaceSoma:
 	default:
 		return nil, errs.Error("Object mode is supported only for REST management interface.")
@@ -1321,6 +1323,69 @@ func parseJsonFindList(json, query string) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func cleanJSONObject(objectJSON string) ([]byte, error) {
+	logging.LogDebug("repo/dp/cleanJSONObject('%s')", objectJSON)
+
+	cleanedJSON := removeJSONKey(objectJSON, "_links")
+	cleanedJSON = removeJSONKey(cleanedJSON, "href")
+
+	var prettyJSON bytes.Buffer
+	json.Indent(&prettyJSON, []byte(cleanedJSON), "", "  ")
+
+	return []byte(cleanedJSON), nil
+}
+
+func removeJSONKey(inputJSON, keyName string) string {
+	// fmt.Printf("removeJSONKey('%s', '%s')\n", inputJSON, keyName)
+	keyQuoted := fmt.Sprintf(`"%s"`, keyName)
+	keyStartIdx := strings.Index(inputJSON, keyQuoted)
+	if keyStartIdx != -1 {
+		// remove preceeding ',' char if found
+		idx := keyStartIdx - 1
+		for ; inputJSON[idx] == ' ' || inputJSON[idx] == '\t' || inputJSON[idx] == '\n' || inputJSON[idx] == '\r'; idx-- {
+		}
+		if inputJSON[idx] == ',' {
+			keyStartIdx = idx
+		}
+
+		cleanedJSON := inputJSON[:keyStartIdx]
+		rest := inputJSON[keyStartIdx:]
+		keyColonIdx := strings.Index(rest, ":")
+		idx = keyColonIdx + 1
+		for ; rest[idx] == ' ' || rest[idx] == '\t' || rest[idx] == '\n' || rest[idx] == '\r'; idx++ {
+		}
+		// fmt.Printf("removeJSONKey(), rest: '%s'\n", rest[idx:])
+		firstValueChar := rest[idx]
+		idx = idx + 1
+		valueCharLevel := 1
+		lastChar := " "[0]
+		for ; valueCharLevel > 0 && idx < len(rest); idx++ {
+			// fmt.Printf("removeJSONKey(), idx: %d, level: %d rest: '%s'\n", idx, valueCharLevel, rest[idx:])
+			if lastChar != '\\' {
+				switch firstValueChar {
+				case '"':
+					if rest[idx] == '"' {
+						valueCharLevel = 0
+					}
+				case '{', '[':
+					switch rest[idx] {
+					case '{', '[':
+						valueCharLevel = valueCharLevel + 1
+					case '}', ']':
+						valueCharLevel = valueCharLevel - 1
+					}
+				}
+			}
+			lastChar = rest[idx]
+		}
+
+		cleanedJSON = cleanedJSON + rest[idx+1:]
+
+		return removeJSONKey(cleanedJSON, keyName)
+	}
+	return inputJSON
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is
