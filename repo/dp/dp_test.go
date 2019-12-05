@@ -19,19 +19,12 @@ func TestRemoveJSONKey(t *testing.T) {
     "asdf": 111,
     "keyrem": "valrem"
   },
-  "keysome2": {
-    "keyrem": "valrem"
-  }
+  "keysome2": { "keyrem": "valrem" }
 }`
 	wantJSON := `{
   "keyok": "valok",
-
-  "keysome1": {
-    "asdf": 111
-  }
-  "keysome2": {
-
-  }
+  "keysome1": { "asdf": 111 },
+  "keysome2": {}
 }`
 	var prettyJSON bytes.Buffer
 	json.Indent(&prettyJSON, []byte(wantJSON), "", "  ")

@@ -1325,39 +1325,53 @@ func parseJsonFindList(json, query string) ([]string, error) {
 	return result, nil
 }
 
+// cleanJSONObject removes JSON parts which cause errors when we try to PUT updated
+// JSON definition to DataPower - it removes "_links" part and all "href" values.
 func cleanJSONObject(objectJSON string) ([]byte, error) {
-	logging.LogDebug("repo/dp/cleanJSONObject('%s')", objectJSON)
+	logging.LogTracef("repo/dp/cleanJSONObject('%s')", objectJSON)
 
 	cleanedJSON := removeJSONKey(objectJSON, "_links")
 	cleanedJSON = removeJSONKey(cleanedJSON, "href")
 
 	var prettyJSON bytes.Buffer
 	json.Indent(&prettyJSON, []byte(cleanedJSON), "", "  ")
+	cleanedJSON = prettyJSON.String()
 
+	logging.LogTracef("repo/dp/cleanJSONObject(), cleanedJSON: '%s'", cleanedJSON)
 	return []byte(cleanedJSON), nil
 }
 
 func removeJSONKey(inputJSON, keyName string) string {
-	// fmt.Printf("removeJSONKey('%s', '%s')\n", inputJSON, keyName)
+	// Find JSON key and use it as starting point for removal (if key is found)
 	keyQuoted := fmt.Sprintf(`"%s"`, keyName)
 	keyStartIdx := strings.Index(inputJSON, keyQuoted)
 	if keyStartIdx != -1 {
-		// remove preceeding ',' char if found
+		// remove preceeding ',' char if found (go back to first non-white character)
+		preceedingIdxRemoved := false
 		idx := keyStartIdx - 1
 		for ; inputJSON[idx] == ' ' || inputJSON[idx] == '\t' || inputJSON[idx] == '\n' || inputJSON[idx] == '\r'; idx-- {
 		}
 		if inputJSON[idx] == ',' {
 			keyStartIdx = idx
+			preceedingIdxRemoved = true
 		}
 
+		// Start to create result cleanedJSON with everything before key which we are removing
 		cleanedJSON := inputJSON[:keyStartIdx]
+
+		// Find first char where value for key is defined one of:
+		// string - '"', object - '{' or value - '['
 		rest := inputJSON[keyStartIdx:]
 		keyColonIdx := strings.Index(rest, ":")
 		idx = keyColonIdx + 1
 		for ; rest[idx] == ' ' || rest[idx] == '\t' || rest[idx] == '\n' || rest[idx] == '\r'; idx++ {
 		}
-		// fmt.Printf("removeJSONKey(), rest: '%s'\n", rest[idx:])
 		firstValueChar := rest[idx]
+
+		// Find end of value definition for string it is next quote '"', for arrays and
+		// object we have to count nesting level (here we don't check if arrays and
+		// objects are properly nested one within other - we just count begin/end number
+		// of array and object definitions).
 		idx = idx + 1
 		valueCharLevel := 1
 		lastChar := " "[0]
@@ -1380,11 +1394,26 @@ func removeJSONKey(inputJSON, keyName string) string {
 			}
 			lastChar = rest[idx]
 		}
+		lastValueIdx := idx
 
-		cleanedJSON = cleanedJSON + rest[idx+1:]
+		// Remove following ',' char if it is found and preeceeding ',' was not removed
+		if !preceedingIdxRemoved {
+			idx = lastValueIdx
+			for ; rest[idx] == ' ' || rest[idx] == '\t' || rest[idx] == '\n' || rest[idx] == '\r'; idx++ {
+			}
+			if rest[idx] == ',' {
+				lastValueIdx = idx + 1
+			}
+		}
+		cleanedJSON = cleanedJSON + rest[lastValueIdx:]
 
+		// Repeat process on result - more than one key could be found.
+		// Potential problem could be stack overflow if too many of keys are found
+		// - recursion could be too deep. If that becomes problem this can easily be
+		// refactored.
 		return removeJSONKey(cleanedJSON, keyName)
 	}
+
 	return inputJSON
 }
 
