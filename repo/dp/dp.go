@@ -1062,7 +1062,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 
 // listObjectClasses lists all object classes used in current DataPower domain.
 func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemList, error) {
-	logging.LogDebugf("repo/dp/GetObjectClassList(%v)", currentView)
+	logging.LogDebugf("repo/dp/listObjectClasses(%v)", currentView)
 
 	if currentView.DpAppliance == "" {
 		return nil, errs.Error("Can't get object class list if DataPower appliance is not selected.")
@@ -1088,7 +1088,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 			}
 		}
 
-		logging.LogDebugf("repo/dp/GetObjectClassList(), classNames: %v", classNames)
+		logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
 
 		items := make(model.ItemList, len(classNames))
 		for idx, className := range classNames {
@@ -1103,7 +1103,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 
 		sort.Sort(items)
 
-		logging.LogDebugf("repo/dp/GetObjectClassList(), items: %v", items)
+		logging.LogDebugf("repo/dp/listObjectClasses(), items: %v", items)
 		return items, nil
 	// case config.DpInterfaceSoma:
 	default:
