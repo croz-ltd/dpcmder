@@ -711,10 +711,6 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 // GetObject fetches DataPower object configuration.
 func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string) ([]byte, error) {
 	logging.LogDebugf("repo/dp/GetObject(%v, '%s')", itemConfig, objectName)
-	// https://localhost:5554/mgmt/status/tmp/ObjectStatus
-	// curl -k -u admin:admin https://localhost:5554/mgmt/ | jq .
-	// curl -k -u admin:admin https://localhost:5554/mgmt/config/ | jq . | less
-	// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService | jq . | less
 
 	switch itemConfig.Type {
 	case model.ItemDpObject:
