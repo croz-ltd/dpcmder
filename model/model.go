@@ -287,11 +287,12 @@ func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
 	itemIdx := 0
 	for idx, item := range m.items[m.currSide] {
-		if item.Config.Path == config.Path {
+		if item.Config.Path == config.Path && item.Config.DpDomain == config.DpDomain && item.Config.DpAppliance == config.DpAppliance {
 			itemIdx = idx
 			break
 		}
 	}
+
 	logging.LogDebugf("model/SetCurrItemForSideAndConfig(%v, %v), itemIdx: %v", side, config, itemIdx)
 	m.currItemIdx[m.currSide] = itemIdx
 }
