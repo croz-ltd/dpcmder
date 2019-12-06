@@ -1079,13 +1079,13 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 		if err != nil {
 			return nil, err
 		}
-		classNameMap := make(map[string]bool)
+		classNameMap := make(map[string]int)
 		classNames := make([]string, 0)
 		for _, className := range classNamesWithDuplicates {
 			if _, oldName := classNameMap[className]; !oldName {
-				classNameMap[className] = true
 				classNames = append(classNames, className)
 			}
+			classNameMap[className] = classNameMap[className] + 1
 		}
 
 		logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
@@ -1097,7 +1097,9 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 				DpDomain:    currentView.DpDomain,
 				Path:        className,
 				Parent:      currentView}
-			item := model.Item{Name: className, Config: &itemConfig}
+			item := model.Item{Name: className,
+				Size:   fmt.Sprintf("%d", classNameMap[className]),
+				Config: &itemConfig}
 			items[idx] = item
 		}
 
