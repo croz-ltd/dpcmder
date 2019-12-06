@@ -88,12 +88,15 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 			return r.listObjectClasses(itemToShow)
 		case model.ItemDpObjectClass:
 			return r.listObjects(itemToShow)
-		default:
-			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
-				itemToShow, r.ObjectConfigMode)
-			r.ObjectConfigMode = false
-			return nil, errs.Errorf("Can't show object view if DataPower domain is not selected.")
+		case model.ItemDpConfiguration:
+			if itemToShow.DpDomain != "" {
+				return r.listObjectClasses(itemToShow)
+			}
 		}
+		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
+			itemToShow, r.ObjectConfigMode)
+		r.ObjectConfigMode = false
+		return nil, errs.Errorf("Can't show object view if DataPower domain is not selected.")
 	} else {
 		switch itemToShow.Type {
 		case model.ItemNone:
