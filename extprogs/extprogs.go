@@ -1,7 +1,6 @@
 package extprogs
 
 import (
-	"errors"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/ui/out"
@@ -20,7 +19,7 @@ func View(name string, content []byte) error {
 	}
 	logging.LogDebugf("extprogs/View('%s', '%s...')", name, string(content[:debugContentLen]))
 	if config.Conf.Cmd.Viewer == "" {
-		return errors.New("Viewer command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
+		return errs.Error("Viewer command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
 	f, err := ioutil.TempFile(".", name)
@@ -54,9 +53,10 @@ func ViewFile(filePath string) error {
 	err := viewCmd.Run()
 	if err != nil {
 		logging.LogDebug("extprogs/ViewFile() ", err)
+		return errs.Errorf("Viewer command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
 	}
 
-	return err
+	return nil
 }
 
 // Edit shows given bytes in external text editor and returns changed contents
@@ -128,9 +128,10 @@ func EditFile(filePath string) error {
 	err := editCmd.Run()
 	if err != nil {
 		logging.LogDebug("extprogs/EditFile() ", err)
+		return errs.Errorf("Editor command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
 	}
 
-	return err
+	return nil
 }
 
 // CreateTempDir creates temporary directory required for Diff()
@@ -173,9 +174,10 @@ func Diff(leftPath string, rightPath string) error {
 	err := diffCmd.Run()
 	if err != nil {
 		logging.LogDebug("extprogs/Diff() err: ", err)
+		return errs.Errorf("Diff command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
 	}
 
-	return err
+	return nil
 }
 
 // ShowHelp shows help in configured external viewer.
