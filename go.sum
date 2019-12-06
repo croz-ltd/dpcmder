@@ -6,6 +6,8 @@ github.com/antchfx/xmlquery v1.0.0 h1:YuEPqexGG2opZKNc9JU3Zw6zFXwC47wNcy6/F8oKsr
 github.com/antchfx/xmlquery v1.0.0/go.mod h1:/+CnyD/DzHRnv2eRxrVbieRU/FIF6N0C+7oTtyUtCKk=
 github.com/antchfx/xpath v1.1.1 h1:mqGYmd5pioPu06+REIf8j3y6O3S1UpVNVoCameZHotg=
 github.com/antchfx/xpath v1.1.1/go.mod h1:Yee4kTMuNiPYJ7nSNorELQMr1J33uOpXDMByNYhvtNk=
+github.com/clbanning/mxj v1.8.4 h1:HuhwZtbyvyOw+3Z1AowPkU87JkJUSv751ELWaiTpj8I=
+github.com/clbanning/mxj v1.8.4/go.mod h1:BVjHeAH+rl9rs6f+QIpeRl0tfu10SXn1pUSa5PVGJng=
 github.com/croz-ltd/confident v0.0.2 h1:utqZJvn8MRoK4SI3ZOV5CWsKbxyfO3jFD/Hv6msGs80=
 github.com/croz-ltd/confident v0.0.2/go.mod h1:25U9yeNuVXYmCyA+AUZmNc8C3lqgY71HtQ1/wj0iIhg=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=

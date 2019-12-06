@@ -563,8 +563,10 @@ func editCurrent(m *model.Model) error {
 			if err != nil {
 				return err
 			}
+			updateStatusf("DataPower object '%s' of class '%s' updated.", ci.Name, ci.Config.Path)
+		} else {
+			updateStatusf("DataPower object '%s' of class '%s' not changed.", ci.Name, ci.Config.Path)
 		}
-		updateStatusf("DataPower object '%s' of class '%s' updated.", ci.Name, ci.Config.Path)
 
 	default:
 		return errs.Errorf("Can't edit item '%s' (%s)", ci.Name, ci.Config.Type.UserFriendlyString())

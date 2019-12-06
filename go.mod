@@ -8,6 +8,7 @@ require (
 	github.com/antchfx/jsonquery v0.0.0-20180821084212-a2896be8c82b
 	github.com/antchfx/xmlquery v1.0.0
 	github.com/antchfx/xpath v1.1.1 // indirect
+	github.com/clbanning/mxj v1.8.4
 	github.com/croz-ltd/confident v0.0.2
 	github.com/gdamore/tcell v1.3.0
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c

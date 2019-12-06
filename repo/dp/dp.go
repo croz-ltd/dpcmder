@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/antchfx/jsonquery"
 	"github.com/antchfx/xmlquery"
+	"github.com/clbanning/mxj"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/errs"
@@ -18,6 +19,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -629,7 +631,7 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 			case "completed":
 				// 3. When export is completed get base64 result file from it
 				logging.LogDebugf("repo/dp/ExportDomain() export fetched after %d.", time.Since(timeStart))
-				fileB64, err := parseJsonFindOne(exportResponseJSON, "/result/file")
+				fileB64, err := parseJSONFindOne(exportResponseJSON, "/result/file")
 				if err != nil {
 					return nil, err
 				}
@@ -658,13 +660,10 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 		if err != nil {
 			return nil, err
 		}
-		doc, err := xmlquery.Parse(strings.NewReader(backupResponseSoma))
+		backupFileB64, err := parseSOMAFindOne(backupResponseSoma, "//*[local-name()='file']")
 		if err != nil {
-			logging.LogDebug("Error parsing response SOAP.", err)
 			return nil, err
 		}
-		backupFileNode := xmlquery.FindOne(doc, "//*[local-name()='file']")
-		backupFileB64 := backupFileNode.InnerText()
 
 		backupBytes, err := base64.StdEncoding.DecodeString(backupFileB64)
 		if err != nil {
@@ -737,9 +736,42 @@ func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string) ([]b
 			return nil, err
 		}
 		return []byte(cleanedJSON), nil
-	// case config.DpInterfaceSoma:
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <man:request domain="%s">
+		         <man:get-config class="%s" name="%s"/>
+		      </man:request>
+		   </soapenv:Body>
+		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path, objectName)
+		somaResponse, err := r.soma(somaRequest)
+		if err != nil {
+			return nil, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
+		}
+
+		query := "//*[local-name()='response']/*[local-name()='config']/*"
+		resultNode := xmlquery.FindOne(doc, query)
+		if resultNode == nil {
+			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+		}
+
+		resultXML := resultNode.OutputXML(true)
+		cleanedXML, err := cleanXML(resultXML)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(cleanedXML), nil
 	default:
-		return nil, errs.Error("Object mode is supported only for REST management interface.")
+		logging.LogDebug("repo/dp/GetObject(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
 	}
 }
 
@@ -763,12 +795,12 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 			return err
 		}
 		logging.LogDebugf("repo/dp/SetObject(), resultJson: '%s'", resultJson)
-		errorMessage, err := parseJsonFindOne(resultJson, "/error")
+		errorMessage, err := parseJSONFindOne(resultJson, "/error")
 		if err != nil && err.Error() != "Unexpected JSON, can't find '/error'." {
 			return err
 		}
 		logging.LogDebugf("repo/dp/SetObject(), errorMessage: '%s'", errorMessage)
-		successMessage, err := parseJsonFindOne(resultJson, fmt.Sprintf("/%s", objectName))
+		successMessage, err := parseJSONFindOne(resultJson, fmt.Sprintf("/%s", objectName))
 		if err != nil {
 			return err
 		}
@@ -776,9 +808,35 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 		// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw/LocalPort -d '{"LocalPort":"10009"}' -X PUT | jq .
 		// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw -d '{"XMLFirewallService":{"name": "get_internal_js_xmlfw","LocalPort":"10001"}}' -X PUT | jq .
 		return err
-	// case config.DpInterfaceSoma:
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <man:request domain="%s">
+		         <man:set-config>
+%s
+						 </man:set-config>
+		      </man:request>
+		   </soapenv:Body>
+		</soapenv:Envelope>`, itemConfig.DpDomain, objectContent)
+		logging.LogDebugf("repo/dp/SetObject(), somaRequest: '%s'", somaRequest)
+		somaResponse, err := r.soma(somaRequest)
+		if err != nil {
+			return err
+		}
+		logging.LogDebugf("repo/dp/SetObject(), somaResponse: '%s'", somaResponse)
+
+		return nil
+		// objectNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name")
+		// if err != nil {
+		// 	return err
+		// }
+		// logging.LogDebugf("repo/dp/SetObject(), objectNames: %v", objectNames)
+		// parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
 	default:
-		return errs.Error("Object mode is supported only for REST management interface.")
+		logging.LogDebug("repo/dp/SetObject(), using neither REST neither SOMA.")
+		return errs.Error("DataPower management interface not set.")
 	}
 }
 
@@ -879,19 +937,16 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 		if err != nil {
 			return nil, err
 		}
-		doc, err := xmlquery.Parse(strings.NewReader(dpFilestoresXML))
+
+		filestoreNames, err := parseSOMAFindList(dpFilestoresXML, "//*[local-name()='location']/@name")
 		if err != nil {
-			logging.LogDebug("Error parsing response SOAP.", err)
 			return nil, err
 		}
-		filestoreNameNodes := xmlquery.Find(doc, "//*[local-name()='location']/@name")
 
-		items := make(model.ItemList, len(filestoreNameNodes)+1)
+		items := make(model.ItemList, len(filestoreNames)+1)
 		items[0] = model.Item{Name: "..", Config: selectedItemConfig.Parent}
 
-		for idx, node := range filestoreNameNodes {
-			// "local:"
-			filestoreName := node.InnerText()
+		for idx, filestoreName := range filestoreNames {
 			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
@@ -1110,10 +1165,56 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 
 		logging.LogDebugf("repo/dp/listObjectClasses(), items: %v", items)
 		return items, nil
-	// case config.DpInterfaceSoma:
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <man:request domain="%s">
+         <man:get-status class="ObjectStatus"/>
+      </man:request>
+   </soapenv:Body>
+</soapenv:Envelope>`, currentView.DpDomain)
+		somaResponse, err := r.soma(somaRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		classNamesWithDuplicates, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Class")
+		if err != nil {
+			return nil, err
+		}
+		classNameMap := make(map[string]int)
+		classNames := make([]string, 0)
+		for _, className := range classNamesWithDuplicates {
+			if _, oldName := classNameMap[className]; !oldName {
+				classNames = append(classNames, className)
+			}
+			classNameMap[className] = classNameMap[className] + 1
+		}
+
+		logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
+
+		items := make(model.ItemList, len(classNames))
+		for idx, className := range classNames {
+			itemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
+				DpAppliance: currentView.DpAppliance,
+				DpDomain:    currentView.DpDomain,
+				Path:        className,
+				Parent:      currentView}
+			item := model.Item{Name: className,
+				Size:   fmt.Sprintf("%d", classNameMap[className]),
+				Config: &itemConfig}
+			items[idx] = item
+		}
+
+		sort.Sort(items)
+
+		return items, nil
 	default:
 		r.ObjectConfigMode = false
-		return nil, errs.Error("Object mode is supported only for REST management interface.")
+		logging.LogDebug("repo/dp/listObjectClasses(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
 	}
 }
 
@@ -1155,9 +1256,47 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 
 		logging.LogDebugf("repo/dp/listObjects(), items: %v", items)
 		return items, nil
-	// case config.DpInterfaceSoma:
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <man:request domain="%s">
+		         <man:get-status class="ObjectStatus" object-class="%s"/>
+		      </man:request>
+		   </soapenv:Body>
+		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
+		somaResponse, err := r.soma(somaRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		objectNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name")
+		if err != nil {
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/listObjects(), objectNames: %v", objectNames)
+		parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
+
+		items := make(model.ItemList, len(objectNames))
+		items = append(items, parentDir)
+		for idx, objectName := range objectNames {
+			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
+				DpAppliance: itemConfig.DpAppliance,
+				DpDomain:    itemConfig.DpDomain,
+				Path:        itemConfig.Path,
+				Parent:      itemConfig}
+			item := model.Item{Name: objectName, Config: &itemConfig}
+			items[idx] = item
+		}
+
+		sort.Sort(items)
+
+		logging.LogDebugf("repo/dp/listObjects(), items: %v", items)
+		return items, nil
 	default:
-		return nil, errs.Error("Object mode is supported only for REST management interface.")
+		logging.LogDebug("repo/dp/listObjects(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
 	}
 }
 
@@ -1218,14 +1357,9 @@ func (r *dpRepo) fetchDpDomains() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		domains, err = parseSOMAFindList(somaResponse, "//*[local-name()='GetDomainListResponse']/*[local-name()='Domain']/text()")
 		if err != nil {
-			logging.LogDebug("Error parsing response SOAP.", err)
 			return nil, err
-		}
-		list := xmlquery.Find(doc, "//*[local-name()='GetDomainListResponse']/*[local-name()='Domain']/text()")
-		for _, n := range list {
-			domains = append(domains, n.InnerText())
 		}
 	} else {
 		logging.LogDebug("repo/dp/fetchDpDomains(), using neither REST neither SOMA.")
@@ -1274,12 +1408,13 @@ func (r *dpRepo) restGetForOneResult(urlPath, resultQuery string) (result, respo
 		return "", "", err
 	}
 
-	result, err = parseJsonFindOne(responseJSON, resultQuery)
+	result, err = parseJSONFindOne(responseJSON, resultQuery)
 
 	return result, responseJSON, err
 }
 
-func parseJsonFindOne(json, query string) (string, error) {
+// parseJSONFindOne query JSON and returns a string value.
+func parseJSONFindOne(json, query string) (string, error) {
 	doc, err := jsonquery.Parse(strings.NewReader(json))
 	if err != nil {
 		logging.LogDebug("Error parsing JSON.", err)
@@ -1301,12 +1436,13 @@ func (r *dpRepo) restGetForListResult(urlPath, resultQuery string) (result []str
 		return nil, "", err
 	}
 
-	result, err = parseJsonFindList(responseJSON, resultQuery)
+	result, err = parseJSONFindList(responseJSON, resultQuery)
 
 	return result, responseJSON, err
 }
 
-func parseJsonFindList(json, query string) ([]string, error) {
+// parseJSONFindList query JSON and returns array of strings.
+func parseJSONFindList(json, query string) ([]string, error) {
 	doc, err := jsonquery.Parse(strings.NewReader(json))
 	if err != nil {
 		logging.LogDebug("Error parsing JSON.", err)
@@ -1317,6 +1453,43 @@ func parseJsonFindList(json, query string) ([]string, error) {
 	if resultNodes == nil {
 		logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, json)
 		return nil, errs.Errorf("Unexpected JSON, can't find '%s'.", query)
+	}
+
+	result := make([]string, len(resultNodes))
+	for idx, node := range resultNodes {
+		result[idx] = node.InnerText()
+	}
+
+	return result, nil
+}
+
+// parseSOMAFindOne query soma response and returns strings value.
+func parseSOMAFindOne(somaResponse, query string) (string, error) {
+	doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+	if err != nil {
+		logging.LogDebug("Error parsing response SOAP.", err)
+		return "", err
+	}
+	resultNode := xmlquery.FindOne(doc, query)
+	if resultNode == nil {
+		logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+		return "", errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+	}
+
+	return resultNode.InnerText(), nil
+}
+
+// parseSOMAFindList query soma response and returns array of strings.
+func parseSOMAFindList(somaResponse, query string) ([]string, error) {
+	doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+	if err != nil {
+		logging.LogDebug("Error parsing response SOAP.", err)
+		return nil, err
+	}
+	resultNodes := xmlquery.Find(doc, query)
+	if resultNodes == nil {
+		logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+		return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
 	}
 
 	result := make([]string, len(resultNodes))
@@ -1343,6 +1516,7 @@ func cleanJSONObject(objectJSON string) ([]byte, error) {
 	return []byte(cleanedJSON), nil
 }
 
+// removeJSONKey removes key and it's value from inputJSON
 func removeJSONKey(inputJSON, keyName string) string {
 	// Find JSON key and use it as starting point for removal (if key is found)
 	keyQuoted := fmt.Sprintf(`"%s"`, keyName)
@@ -1417,6 +1591,31 @@ func removeJSONKey(inputJSON, keyName string) string {
 	}
 
 	return inputJSON
+}
+
+// cleanXML removes XML parts which cause errors when we try to send updated XML
+// definition to DataPower - it removes namespace attributes from root node &
+// removes "persisted" attribute from all nodes.
+func cleanXML(inputXML string) (string, error) {
+	logging.LogTracef("repo/dp/cleanXML('%s')", inputXML)
+
+	// Remove namespace declaration from root element
+	// <XMLFirewallService xmlns:_xmlns="xmlns" _xmlns:env="http://www.w3.org/2003/05/soap-envelope" name="parse-cert">
+	re := regexp.MustCompile(` [^:^ ]+:[^:^ ]+="[^"]+"`)
+	outputXML := re.ReplaceAllString(inputXML, "")
+
+	// Remove persisted attribute from all elements
+	// <DebugMode persisted="false">off</DebugMode>
+	re = regexp.MustCompile(` persisted="[a-z]+"`)
+	outputXML = re.ReplaceAllString(outputXML, "")
+
+	outputXMLBytes, err := mxj.BeautifyXml([]byte(outputXML), "", "  ")
+	if err != nil {
+		return "", err
+	}
+	outputXML = string(outputXMLBytes)
+	logging.LogTracef("repo/dp/cleanXML(), outputXML: '%s'", outputXML)
+	return outputXML, err
 }
 
 // splitOnFirst splits given string in two parts (prefix, suffix) where prefix is

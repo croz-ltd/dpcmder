@@ -3,6 +3,7 @@ package dp
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/clbanning/mxj"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"reflect"
@@ -107,6 +108,42 @@ func TestCleanJSONObject(t *testing.T) {
 	}
 	if string(gotJSON) != wantJSON {
 		t.Errorf("cleanJSONObject('%s'): got '%s', want '%s'", inputJSON, gotJSON, wantJSON)
+	}
+}
+
+func TestCleanXML(t *testing.T) {
+	inputXML := `<XMLFirewallService xmlns:_xmlns="xmlns" _xmlns:env="http://www.w3.org/2003/05/soap-envelope" name="parse-cert">
+  <mAdminState>enabled</mAdminState>
+  <LocalAddress>0.0.0.0</LocalAddress>
+  <HTTPVersion>
+    <Front>HTTP/1.1</Front>
+    <Back>HTTP/1.1</Back>
+  </HTTPVersion>
+  <DefaultParamNamespace>http://www.datapower.com/param/config</DefaultParamNamespace>
+  <DebugMode persisted="false">off</DebugMode>
+  <XMLManager class="XMLManager">default</XMLManager>
+</XMLFirewallService>`
+	wantXML := `<XMLFirewallService name="parse-cert">
+<mAdminState>enabled</mAdminState>
+<LocalAddress>0.0.0.0</LocalAddress>
+<HTTPVersion>
+  <Front>HTTP/1.1</Front>
+  <Back>HTTP/1.1</Back>
+</HTTPVersion>
+<DefaultParamNamespace>http://www.datapower.com/param/config</DefaultParamNamespace>
+<DebugMode>off</DebugMode>
+<XMLManager class="XMLManager">default</XMLManager>
+</XMLFirewallService>`
+
+	gotXML, _ := cleanXML(inputXML)
+
+	gotXMLBytes, _ := mxj.BeautifyXml([]byte(gotXML), "", "  ")
+	wantXMLBytes, _ := mxj.BeautifyXml([]byte(wantXML), "", "  ")
+	gotXML = string(gotXMLBytes)
+	wantXML = string(wantXMLBytes)
+
+	if gotXML != wantXML {
+		t.Errorf("for cleanXML('%s'): got '%s', want '%s'", inputXML, gotXML, wantXML)
 	}
 }
 
