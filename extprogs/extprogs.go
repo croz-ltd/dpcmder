@@ -20,7 +20,7 @@ func View(name string, content []byte) error {
 	}
 	logging.LogDebugf("extprogs/View('%s', '%s...')", name, string(content[:debugContentLen]))
 	if config.Conf.Cmd.Viewer == "" {
-		return errors.New("Viewer command not configured.")
+		return errors.New("Viewer command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
 	f, err := ioutil.TempFile(".", name)
@@ -39,7 +39,7 @@ func View(name string, content []byte) error {
 func ViewFile(filePath string) error {
 	logging.LogDebugf("extprogs/ViewFile('%s')", filePath)
 	if config.Conf.Cmd.Viewer == "" {
-		return errors.New("Viewer command not configured.")
+		return errs.Error("Viewer command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
 	out.Stop()
@@ -64,7 +64,7 @@ func ViewFile(filePath string) error {
 func Edit(name string, content []byte) (changed bool, newContent []byte, returnError error) {
 	logging.LogDebugf("extprogs/Edit('%s', ..) ", name)
 	if config.Conf.Cmd.Editor == "" {
-		return false, nil, errors.New("Editor command not configured.")
+		return false, nil, errs.Error("Editor command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
 	f, err := ioutil.TempFile(".", name)
@@ -113,7 +113,7 @@ func Edit(name string, content []byte) (changed bool, newContent []byte, returnE
 func EditFile(filePath string) error {
 	logging.LogDebugf("extprogs/EditFile('%s') ", filePath)
 	if config.Conf.Cmd.Editor == "" {
-		return errors.New("Editor command not configured.")
+		return errs.Error("Editor command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
 	out.Stop()
@@ -158,7 +158,7 @@ func DeleteTempDir(dirPath string) error {
 func Diff(leftPath string, rightPath string) error {
 	logging.LogDebugf("extprogs/Diff('%s', '%s')", leftPath, rightPath)
 	if config.Conf.Cmd.Diff == "" {
-		return errors.New("Diff command not configured.")
+		return errs.Error("Diff command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
 	out.Stop()
@@ -178,6 +178,7 @@ func Diff(leftPath string, rightPath string) error {
 	return err
 }
 
+// ShowHelp shows help in configured external viewer.
 func ShowHelp() error {
 	return View("Help", []byte(help.Help))
 }

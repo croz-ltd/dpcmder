@@ -347,7 +347,7 @@ func LogConfig() {
 // usage prints usage help information with examples to console.
 func usage(exitStatus int) {
 	fmt.Println("Usage:")
-	fmt.Printf(" %s [-l LOCAL_FOLDER_PATH] [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug] [-h]\n", os.Args[0])
+	fmt.Printf(" %s [-l LOCAL_FOLDER_PATH] [-r DATA_POWER_REST_URL | -s DATA_POWER_SOMA_AMP_URL] [-u USERNAME] [-p PASSWORD] [-d DP_DOMAIN] [-x PROXY_SERVER] [-c DP_CONFIG_NAME] [-debug] [-h] [-help]\n", os.Args[0])
 	fmt.Println("")
 	fmt.Println(" -l LOCAL_FOLDER_PATH - set path to local folder")
 	fmt.Println(" -r DATA_POWER_REST_URL - set REST management URL for DataPower")
@@ -365,6 +365,7 @@ func usage(exitStatus int) {
 	fmt.Println("Example:")
 	fmt.Printf(" %s\n", os.Args[0])
 	fmt.Println("   - will run local file browser (in current dir) with available DataPower connection configurations shown")
+	fmt.Printf(" %s -help\n", os.Args[0])
 	fmt.Printf(" %s -l . -r https://172.17.0.2:5554 -u admin\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -debug\n", os.Args[0])
 	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -c LocalDp\n", os.Args[0])

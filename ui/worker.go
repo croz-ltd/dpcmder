@@ -86,6 +86,7 @@ func InitialLoad() {
 
 	setScreenSize()
 	out.DrawEvent(events.UpdateViewEvent{Type: events.UpdateViewRefresh, Model: &workingModel})
+	updateStatusf("Press 'h' key to show help.")
 }
 
 // initialLoadRepo loads initial view for given repo on given side.
@@ -214,9 +215,11 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = showStatusMessages(workingModel.Statuses())
 		case c == '0':
 			err = toggleObjectMode(&workingModel)
+		case c == 'h':
+			err = extprogs.ShowHelp()
 
 		default:
-			extprogs.ShowHelp()
+			err = extprogs.ShowHelp()
 			updateStatusf("Key event value (before showing help): '%#v'", event)
 		}
 	case *tcell.EventResize:
