@@ -15,8 +15,8 @@ Home / a            - move to first item
 End / z             - move to last item
 Shift+Home / A      - move to first item and select all items from current one to the first one
 Shift+End / Z       - move to last item and select all items from current one to the last one
-ArrowLeft / j       - scroll items left (usefull for long names)
-ArrowRight / l      - scroll items right (usefull for long names)
+ArrowLeft / j       - scroll items left (useful for long names)
+ArrowRight / l      - scroll items right (useful for long names)
 Space               - select current item
 TAB                 - switch from left to right panel and vice versa
 Return              - enter directory
