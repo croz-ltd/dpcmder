@@ -119,7 +119,10 @@ F5/5                - copy selected (or current if none selected) directories an
                     - if selected is DataPower configuration create export of whole appliance (TODO)
 F7/7                - create directory
 F8/8                - create empty file
+                    - create new DataPower configuration
+F9/9                - clone current DataPower configuration under new name
 DEL/x               - delete selected (or current if none selected) directories and files
+                    - delete DataPower configuration
 d                   - diff current files/directories
                       (must be "blocking" - see "Custom external commands" below)
 /                   - find string
@@ -129,6 +132,7 @@ p                   - find previous string
 f                   - filter shown items by string
 .                   - enter location (full path) for local file system
 s                   - auto-synchronize selected directories (local to dp)
+0                   - toggle DataPower view from filestore view to object view
 q                   - quit
 any-other-char      - show help (+ hex value of key pressed visible in status bar)
 

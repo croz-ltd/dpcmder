@@ -43,9 +43,7 @@ p                   - find previous string
 f                   - filter shown items by string
 .                   - enter location (full path) for local file system
 s                   - auto-synchronize selected directories (local to dp)
-0                   - toggle DataPower view from filestore view to object view (TODO)
-+                   - when showing DataPower object view show only classes
-                      for which objects exists (TODO)
+0                   - toggle DataPower view from filestore view to object view
 q                   - quit
 any-other-char      - show help (+ hex value of key pressed visible in status bar)
 
