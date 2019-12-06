@@ -1,11 +1,151 @@
 package dp
 
 import (
+	"bytes"
+	"encoding/json"
+	"github.com/clbanning/mxj"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"reflect"
 	"testing"
 )
+
+func TestRemoveJSONKey(t *testing.T) {
+	inputJSON := `{
+  "keyok": "valok",
+  "keyrem": {
+     "bla": 11
+  },
+  "keysome1": {
+    "asdf": 111,
+    "keyrem": "valrem"
+  },
+  "keysome2": { "keyrem": "valrem" }
+}`
+	wantJSON := `{
+  "keyok": "valok",
+  "keysome1": { "asdf": 111 },
+  "keysome2": {}
+}`
+	var prettyJSON bytes.Buffer
+	json.Indent(&prettyJSON, []byte(wantJSON), "", "  ")
+	wantJSON = prettyJSON.String()
+
+	gotJSON := removeJSONKey(inputJSON, "keyrem")
+	prettyJSON.Truncate(0)
+	json.Indent(&prettyJSON, []byte(gotJSON), "", "  ")
+	gotJSON = prettyJSON.String()
+
+	if string(gotJSON) != wantJSON {
+		t.Errorf("cleanJSONObject('%s'): got '%s', want '%s'", inputJSON, gotJSON, wantJSON)
+	}
+}
+
+func TestCleanJSONObject(t *testing.T) {
+	inputJSON := `{
+  "_links": {
+    "self": {
+      "href": "/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw"
+    },
+    "doc": {
+      "href": "/mgmt/docs/config/XMLFirewallService"
+    }
+  },
+  "XMLFirewallService": {
+    "name": "get_internal_js_xmlfw",
+    "mAdminState": "enabled",
+    "HTTPVersion": {
+      "Front": "HTTP/1.1",
+      "Back": "HTTP/1.1"
+    },
+    "DoChunkedUpload": "off",
+    "DefaultParamNamespace": "http://www.datapower.com/param/config",
+    "QueryParamNamespace": "http://www.datapower.com/param/query",
+    "Type": "loopback-proxy",
+    "XMLManager": {
+      "value": "default",
+      "href": "/mgmt/config/tmp/XMLManager/default"
+    },
+    "StylePolicy": {
+      "value": "get_internal_js_xmlpolicy",
+      "href": "/mgmt/config/tmp/StylePolicy/get_internal_js_xmlpolicy"
+    },
+    "MaxMessageSize": 0
+	}
+}`
+	wantJSON := `{
+  "XMLFirewallService": {
+    "name": "get_internal_js_xmlfw",
+    "mAdminState": "enabled",
+    "HTTPVersion": {
+      "Front": "HTTP/1.1",
+      "Back": "HTTP/1.1"
+    },
+    "DoChunkedUpload": "off",
+    "DefaultParamNamespace": "http://www.datapower.com/param/config",
+    "QueryParamNamespace": "http://www.datapower.com/param/query",
+    "Type": "loopback-proxy",
+    "XMLManager": {
+      "value": "default"
+    },
+    "StylePolicy": {
+      "value": "get_internal_js_xmlpolicy"
+    },
+    "MaxMessageSize": 0
+	}
+}`
+	var prettyJSON bytes.Buffer
+	json.Indent(&prettyJSON, []byte(wantJSON), "", "  ")
+	wantJSON = prettyJSON.String()
+
+	gotJSON, err := cleanJSONObject(inputJSON)
+	prettyJSON.Truncate(0)
+	json.Indent(&prettyJSON, []byte(gotJSON), "", "  ")
+	gotJSON = prettyJSON.Bytes()
+	if err != nil {
+		t.Errorf("cleanJSONObject('%s'): got error %v", inputJSON, err)
+		return
+	}
+	if string(gotJSON) != wantJSON {
+		t.Errorf("cleanJSONObject('%s'): got '%s', want '%s'", inputJSON, gotJSON, wantJSON)
+	}
+}
+
+func TestCleanXML(t *testing.T) {
+	inputXML := `<XMLFirewallService xmlns:_xmlns="xmlns" _xmlns:env="http://www.w3.org/2003/05/soap-envelope" name="parse-cert">
+  <mAdminState>enabled</mAdminState>
+  <LocalAddress>0.0.0.0</LocalAddress>
+  <HTTPVersion>
+    <Front>HTTP/1.1</Front>
+    <Back>HTTP/1.1</Back>
+  </HTTPVersion>
+  <DefaultParamNamespace>http://www.datapower.com/param/config</DefaultParamNamespace>
+  <DebugMode persisted="false">off</DebugMode>
+  <XMLManager class="XMLManager">default</XMLManager>
+</XMLFirewallService>`
+	wantXML := `<XMLFirewallService name="parse-cert">
+<mAdminState>enabled</mAdminState>
+<LocalAddress>0.0.0.0</LocalAddress>
+<HTTPVersion>
+  <Front>HTTP/1.1</Front>
+  <Back>HTTP/1.1</Back>
+</HTTPVersion>
+<DefaultParamNamespace>http://www.datapower.com/param/config</DefaultParamNamespace>
+<DebugMode>off</DebugMode>
+<XMLManager class="XMLManager">default</XMLManager>
+</XMLFirewallService>`
+
+	gotXML, _ := cleanXML(inputXML)
+
+	gotXMLBytes, _ := mxj.BeautifyXml([]byte(gotXML), "", "  ")
+	wantXMLBytes, _ := mxj.BeautifyXml([]byte(wantXML), "", "  ")
+	gotXML = string(gotXMLBytes)
+	wantXML = string(wantXMLBytes)
+
+	if gotXML != wantXML {
+		t.Errorf("for cleanXML('%s'): got '%s', want '%s'", inputXML, gotXML, wantXML)
+	}
+}
 
 func TestSplitOnFirst(t *testing.T) {
 	testDataMatrix := [][]string{

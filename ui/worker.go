@@ -212,6 +212,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = syncModeToggle(&workingModel)
 		case c == 'm':
 			err = showStatusMessages(workingModel.Statuses())
+		case c == '0':
+			err = toggleObjectMode(&workingModel)
 
 		default:
 			extprogs.ShowHelp()
@@ -376,7 +378,7 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	r := repos[side]
 	if itemConfig.Type == model.ItemDpConfiguration {
 		applianceName := itemName
-		if applianceName != ".." {
+		if applianceName != ".." && applianceName != "." {
 			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
 			dpTransientPassword := config.DpTransientPasswordMap[applianceName]
 			logging.LogDebugf("ui/showItem(), applicanceConfig: '%s'", applicanceConfig)
@@ -386,26 +388,31 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 		}
 	}
 
-	switch itemConfig.Type {
-	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory, model.ItemNone:
-		itemList, err := r.GetList(itemConfig)
-		if err != nil {
-			return err
-		}
-		logging.LogDebug("ui/showItem(), itemList: ", itemList)
-		title := r.GetTitle(itemConfig)
-		logging.LogDebug("ui/showItem(), title: ", title)
+	var itemList model.ItemList
+	var err error
 
-		oldViewConfig := workingModel.ViewConfig(side)
-		workingModel.SetItems(side, itemList)
-		workingModel.SetCurrentView(side, itemConfig, title)
-		if itemName != ".." {
-			workingModel.NavTop()
-		} else {
-			workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
-		}
+	switch itemConfig.Type {
+	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
+		model.ItemDirectory, model.ItemNone, model.ItemDpObjectClass:
+		itemList, err = r.GetList(itemConfig)
 	default:
-		logging.LogDebug("ui/showItem(), unknown type: ", itemConfig.Type)
+		return errs.Errorf("ui/showItem(), unknown type: %s", itemConfig.Type)
+	}
+
+	if err != nil {
+		return err
+	}
+	logging.LogDebug("ui/showItem(), itemList: ", itemList)
+	title := r.GetTitle(itemConfig)
+	logging.LogDebug("ui/showItem(), title: ", title)
+
+	oldViewConfig := workingModel.ViewConfig(side)
+	workingModel.SetItems(side, itemList)
+	workingModel.SetCurrentView(side, itemConfig, title)
+	if itemName != ".." {
+		workingModel.NavTop()
+	} else {
+		workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
 	}
 
 	return nil
@@ -455,7 +462,7 @@ func viewCurrent(m *model.Model) error {
 				return err
 			}
 			if fileContent != nil {
-				err = extprogs.View(ci.Name, fileContent)
+				err = extprogs.View("*."+ci.Name, fileContent)
 				if err != nil {
 					return err
 				}
@@ -471,10 +478,21 @@ func viewCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		err = extprogs.View(ci.Name, fileContent)
+		err = extprogs.View("*."+ci.Name+".json", fileContent)
 		if err != nil {
 			return err
 		}
+	case model.ItemDpObject:
+		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name)
+		if err != nil {
+			return err
+		}
+		err = extprogs.View(getObjectTmpName(ci.Name), objectContent)
+		if err != nil {
+			return err
+		}
+	default:
+		return errs.Errorf("Can't view item '%s' (%s)", ci.Name, ci.Config.Type.UserFriendlyString())
 	}
 
 	return err
@@ -494,7 +512,7 @@ func editCurrent(m *model.Model) error {
 			if err != nil {
 				return err
 			}
-			changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name, fileContent)
+			changed, newFileContent, err := extprogs.Edit("*."+m.CurrItem().Name, fileContent)
 			if err != nil {
 				return err
 			}
@@ -512,13 +530,14 @@ func editCurrent(m *model.Model) error {
 			}
 			showItem(workingModel.CurrSide(), currView, ".")
 		}
+		updateStatusf("File '%s' on path '%s' updated.", ci.Name, ci.Config.Path)
 
 	case model.ItemDpConfiguration:
 		fileContent, err := config.Conf.GetDpApplianceConfig(ci.Name)
 		if err != nil {
 			return err
 		}
-		changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name, fileContent)
+		changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name+"*.json", fileContent)
 		if err != nil {
 			return err
 		}
@@ -528,6 +547,29 @@ func editCurrent(m *model.Model) error {
 				return err
 			}
 		}
+		updateStatusf("DataPower configuration '%s' updated.", ci.Name)
+
+	case model.ItemDpObject:
+		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name)
+		if err != nil {
+			return err
+		}
+		changed, newObjectContent, err := extprogs.Edit(getObjectTmpName(ci.Name), objectContent)
+		if err != nil {
+			return err
+		}
+		if changed {
+			err := dp.Repo.SetObject(ci.Config, ci.Name, newObjectContent)
+			if err != nil {
+				return err
+			}
+			updateStatusf("DataPower object '%s' of class '%s' updated.", ci.Name, ci.Config.Path)
+		} else {
+			updateStatusf("DataPower object '%s' of class '%s' not changed.", ci.Name, ci.Config.Path)
+		}
+
+	default:
+		return errs.Errorf("Can't edit item '%s' (%s)", ci.Name, ci.Config.Type.UserFriendlyString())
 	}
 
 	return err
@@ -1190,6 +1232,18 @@ func syncLocalToDpLater(tree, treeOld *localfs.Tree) bool {
 	return changesMade
 }
 
+func toggleObjectMode(m *model.Model) error {
+	logging.LogDebugf("worker/toggleObjectMode(), dp.Repo.ObjectConfigMode: %t", dp.Repo.ObjectConfigMode)
+
+	dp.Repo.ObjectConfigMode = !dp.Repo.ObjectConfigMode
+	currentView := m.ViewConfig(m.CurrSide())
+	if !dp.Repo.ObjectConfigMode && currentView.Type == model.ItemDpObjectClass {
+		currentView = currentView.Parent
+	}
+	logging.LogDebugf("worker/toggleObjectMode(), currentView: %v", currentView)
+	return showItem(model.Left, currentView, ".")
+}
+
 func updateDpFile(m *model.Model, tree *localfs.Tree) bool {
 	changesMade := false
 	localBytes, err := localfs.GetFileByPath(tree.Path)
@@ -1281,4 +1335,18 @@ func updateProgressDialog() {
 
 func updateProgressDialogMessagef(format string, v ...interface{}) {
 	progressDialogSession.msg = fmt.Sprintf(format, v...)
+}
+
+// getFileTypedName converts name without suffix to name with suffix - used for tmp
+// file naming. Proper tmp file name can enable viewer / editor (vim) to highlight syntax.
+func getObjectTmpName(objectName string) string {
+	switch dp.Repo.GetManagementInterface() {
+	case config.DpInterfaceRest:
+		return "*." + objectName + ".json"
+	case config.DpInterfaceSoma:
+		return "*." + objectName + ".xml"
+	default:
+		return objectName
+	}
+
 }
