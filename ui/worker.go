@@ -462,7 +462,7 @@ func viewCurrent(m *model.Model) error {
 				return err
 			}
 			if fileContent != nil {
-				err = extprogs.View(ci.Name, fileContent)
+				err = extprogs.View("*."+ci.Name, fileContent)
 				if err != nil {
 					return err
 				}
@@ -478,7 +478,7 @@ func viewCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		err = extprogs.View(ci.Name+"*.json", fileContent)
+		err = extprogs.View("*."+ci.Name+".json", fileContent)
 		if err != nil {
 			return err
 		}
@@ -487,7 +487,7 @@ func viewCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		err = extprogs.View(ci.Name, objectContent)
+		err = extprogs.View(getObjectTmpName(ci.Name), objectContent)
 		if err != nil {
 			return err
 		}
@@ -512,7 +512,7 @@ func editCurrent(m *model.Model) error {
 			if err != nil {
 				return err
 			}
-			changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name, fileContent)
+			changed, newFileContent, err := extprogs.Edit("*."+m.CurrItem().Name, fileContent)
 			if err != nil {
 				return err
 			}
@@ -554,17 +554,7 @@ func editCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		// Proper tmp file name can enable viewer / editor (vim) to highlight syntax.
-		var editName string
-		switch dp.Repo.GetManagementInterface() {
-		case config.DpInterfaceRest:
-			editName = ci.Name + "*.json"
-		case config.DpInterfaceSoma:
-			editName = ci.Name + "*.xml"
-		default:
-			return errs.Error("Unknown DP management interface used.")
-		}
-		changed, newObjectContent, err := extprogs.Edit(editName, objectContent)
+		changed, newObjectContent, err := extprogs.Edit(getObjectTmpName(ci.Name), objectContent)
 		if err != nil {
 			return err
 		}
@@ -1345,4 +1335,18 @@ func updateProgressDialog() {
 
 func updateProgressDialogMessagef(format string, v ...interface{}) {
 	progressDialogSession.msg = fmt.Sprintf(format, v...)
+}
+
+// getFileTypedName converts name without suffix to name with suffix - used for tmp
+// file naming. Proper tmp file name can enable viewer / editor (vim) to highlight syntax.
+func getObjectTmpName(objectName string) string {
+	switch dp.Repo.GetManagementInterface() {
+	case config.DpInterfaceRest:
+		return "*." + objectName + ".json"
+	case config.DpInterfaceSoma:
+		return "*." + objectName + ".xml"
+	default:
+		return objectName
+	}
+
 }
