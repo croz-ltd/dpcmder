@@ -303,15 +303,18 @@ func (m *Model) SetCurrItemForSide(side Side, itemName string) {
 // SetCurrItemForSideAndConfig sets current item under cursor for Side to ItemConfig.
 func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
 	itemIdx := 0
-	for idx, item := range m.items[m.currSide] {
-		if item.Config.Path == config.Path && item.Config.DpDomain == config.DpDomain && item.Config.DpAppliance == config.DpAppliance {
+	for idx, item := range m.items[side] {
+		if item.Config.Path == config.Path &&
+			item.Config.DpDomain == config.DpDomain &&
+			item.Config.DpAppliance == config.DpAppliance {
 			itemIdx = idx
 			break
 		}
 	}
 
 	logging.LogDebugf("model/SetCurrItemForSideAndConfig(%v, %v), itemIdx: %v", side, config, itemIdx)
-	m.currItemIdx[m.currSide] = itemIdx
+	m.currItemIdx[side] = itemIdx
+	m.navUpDown(side, 0)
 }
 
 // CurrItem returns current item under cursor for used side.
