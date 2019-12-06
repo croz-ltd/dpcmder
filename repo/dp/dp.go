@@ -145,7 +145,8 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 	logging.LogDebugf("repo/dp/GetFile('%s', '%s')", dpDomain, filePath)
 
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		restPath := makeRestPath(dpDomain, filePath)
 
 		fileB64, _, err := r.restGetForOneResult(restPath, "/file")
@@ -160,7 +161,7 @@ func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 		}
 
 		return resultBytes, nil
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
 			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
 			"<dp:get-file name=\"" + filePath + "\"/></dp:request></soapenv:Body></soapenv:Envelope>"
@@ -188,10 +189,10 @@ func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 		}
 
 		return resultBytes, nil
+	default:
+		logging.LogDebug("repo/dp/GetFile(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
 	}
-
-	logging.LogDebug("repo/dp/GetFile(), using neither REST neither SOMA.")
-	return nil, errs.Error("DataPower management interface not set.")
 }
 
 func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newFileContent []byte) (bool, error) {
@@ -208,7 +209,8 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 		return false, err
 	}
 
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		updateFilePath := ""
 		restMethod := ""
 		switch fileType {
@@ -251,7 +253,7 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 		}
 
 		return true, nil
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		switch fileType {
 		case model.ItemNone, model.ItemFile:
 			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
@@ -295,10 +297,10 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 			logging.LogDebugf("repo/dp/UpdateFileByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		}
+	default:
+		logging.LogDebug("repo/dp/UpdateFileByPath(), using neither REST neither SOMA.")
+		return false, errs.Error("DataPower management interface not set.")
 	}
-
-	logging.LogDebug("repo/dp/UpdateFileByPath(), using neither REST neither SOMA.")
-	return false, errs.Error("DataPower management interface not set.")
 }
 
 func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
@@ -312,7 +314,8 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 	logging.LogDebug(fmt.Sprintf("repo/dp/GetFileTypeByPath('%s', '%s', '%s')\n", dpDomain, parentPath, fileName))
 	filePath := paths.GetDpPath(parentPath, fileName)
 
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		restPath := makeRestPath(dpDomain, filePath)
 		jsonString, err := r.restGet(restPath)
 		if err != nil {
@@ -350,7 +353,7 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 		errMsg := fmt.Sprintf("Wrong JSON response: '%s'", jsonString)
 		logging.LogDebugf("repo/dp/GetFileTypeByPath() - %s", errMsg)
 		return model.ItemNone, errs.Error(errMsg)
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		switch {
 		case parentPath != "":
 			dpFilestoreLocation, _ := splitOnFirst(parentPath, "/")
@@ -393,13 +396,13 @@ func (r *dpRepo) GetFileTypeByPath(dpDomain, parentPath, fileName string) (model
 
 		case dpDomain != "":
 			return model.ItemDpFilestore, nil
-		case dpDomain == "":
+		default:
 			return model.ItemDpDomain, nil
 		}
+	default:
+		logging.LogDebug("repo/dp/GetFileTypeByPath(), using neither REST neither SOMA.")
+		return model.ItemNone, errs.Error("DataPower management interface not set.")
 	}
-
-	logging.LogDebug("repo/dp/GetFileTypeByPath(), using neither REST neither SOMA.")
-	return model.ItemNone, errs.Error("DataPower management interface not set.")
 }
 
 func (r *dpRepo) GetFilePath(parentPath, fileName string) string {
@@ -420,7 +423,8 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 
 	switch fileType {
 	case model.ItemNone:
-		if r.dataPowerAppliance.RestUrl != "" {
+		switch r.dataPowerAppliance.DpManagmentInterface() {
+		case config.DpInterfaceRest:
 			requestBody := "{\"directory\":{\"name\":\"" + dirName + "\"}}"
 			restPath := makeRestPath(dpDomain, parentPath)
 			jsonString, err := r.rest(restPath, "POST", requestBody)
@@ -442,7 +446,7 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 			errMsg := fmt.Sprintf("Can't create dir '%s' at '%s', json returned : '%s'.", dirName, parentPath, jsonString)
 			logging.LogDebugf("repo/dp/CreateDirByPath() - %v", errMsg)
 			return false, errs.Error(errMsg)
-		} else if r.dataPowerAppliance.SomaUrl != "" {
+		case config.DpInterfaceSoma:
 			dirPath := r.GetFilePath(parentPath, dirName)
 			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
 				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
@@ -467,9 +471,10 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 			errMsg := fmt.Sprintf("Error creating '%s' dir in path '%s'", dirName, parentPath)
 			logging.LogDebug("repo/dp/CreateDirByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
+		default:
+			logging.LogDebug("repo/dp/CreateDirByPath(), using neither REST neither SOMA.")
+			return false, errs.Error("DataPower management interface not set.")
 		}
-		logging.LogDebug("repo/dp/CreateDirByPath(), using neither REST neither SOMA.")
-		return false, errs.Error("DataPower management interface not set.")
 	case model.ItemDirectory:
 		return true, nil
 	default:
@@ -489,8 +494,8 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, 
 		config.Conf.DeleteDpApplianceConfig(fileName)
 		return true, nil
 	case model.ItemDirectory, model.ItemFile:
-		switch {
-		case r.dataPowerAppliance.RestUrl != "":
+		switch r.dataPowerAppliance.DpManagmentInterface() {
+		case config.DpInterfaceRest:
 			restPath := makeRestPath(currentView.DpDomain, filePath)
 			jsonString, err := r.rest(restPath, "DELETE", "")
 			if err != nil {
@@ -508,7 +513,7 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, 
 			if len(error) == 0 {
 				return true, nil
 			}
-		case r.dataPowerAppliance.SomaUrl != "":
+		case config.DpInterfaceSoma:
 			fileType, err := r.GetFileType(currentView, parentPath, fileName)
 			if err != nil {
 				return false, err
@@ -902,7 +907,8 @@ func (r *dpRepo) listDomains(selectedItemConfig *model.ItemConfig) (model.ItemLi
 // listFilestores loads DataPower filestores in current domain (cert:, local:,..).
 func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listFilestores('%s')", selectedItemConfig)
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		jsonString, err := r.restGet("/mgmt/filestore/" + selectedItemConfig.DpDomain)
 		if err != nil {
 			return nil, err
@@ -934,7 +940,7 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 		sort.Sort(items)
 
 		return items, nil
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
 			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
 			"<dp:get-filestore layout-only=\"true\" no-subdirectories=\"true\"/></dp:request>" +
@@ -964,10 +970,10 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 		sort.Sort(items)
 
 		return items, nil
+	default:
+		logging.LogDebug("repo/dp/listFilestores(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
 	}
-
-	logging.LogDebug("repo/dp/listFilestores(), using neither REST neither SOMA.")
-	return nil, errs.Error("DataPower management interface not set.")
 }
 
 // listDpDir loads DataPower directory (local:, local:///test,..).
@@ -1008,7 +1014,8 @@ func (r *dpRepo) fetchFilestoreIfNeeded(dpDomain, dpFilestoreLocation string, fo
 func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, error) {
 	logging.LogDebugf("repo/dp/listFiles('%s')", selectedItemConfig)
 
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		items := make(model.ItemList, 0)
 		currRestDirPath := strings.Replace(selectedItemConfig.Path, ":", "", 1)
 		jsonString, err := r.restGet("/mgmt/filestore/" + selectedItemConfig.DpDomain + "/" + currRestDirPath)
@@ -1054,7 +1061,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 
 		sort.Sort(items)
 		return items, nil
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		dpFilestoreLocation, _ := splitOnFirst(selectedItemConfig.Path, "/")
 		dpFilestoreIsRoot := !strings.Contains(selectedItemConfig.Path, "/")
 		var dpDirNodes []*xmlquery.Node
@@ -1118,7 +1125,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 
 		sort.Sort(items)
 		return items, nil
-	} else {
+	default:
 		logging.LogDebug("repo/dp/listFiles(), using neither REST neither SOMA.")
 		return model.ItemList{}, errs.Error("DataPower management interface not set.")
 	}
@@ -1339,7 +1346,8 @@ func (r *dpRepo) fetchDpDomains() ([]string, error) {
 	logging.LogDebug("repo/dp/fetchDpDomains()")
 	domains := make([]string, 0)
 
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		bodyString, err := r.restGet("/mgmt/domains/config/")
 		if err != nil {
 			return nil, err
@@ -1355,7 +1363,7 @@ func (r *dpRepo) fetchDpDomains() ([]string, error) {
 		for _, n := range list {
 			domains = append(domains, n.InnerText())
 		}
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
 			"<soapenv:Body><dp:GetDomainListRequest xmlns:dp=\"http://www.datapower.com/schemas/appliance/management/1.0\"/></soapenv:Body>" +
 			"</soapenv:Envelope>"
@@ -1367,7 +1375,7 @@ func (r *dpRepo) fetchDpDomains() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-	} else {
+	default:
 		logging.LogDebug("repo/dp/fetchDpDomains(), using neither REST neither SOMA.")
 	}
 
