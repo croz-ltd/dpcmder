@@ -71,11 +71,12 @@ func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 	currPath := itemToShow.Path
 
 	var url string
-	if r.dataPowerAppliance.RestUrl != "" {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
 		url = r.dataPowerAppliance.RestUrl
-	} else if r.dataPowerAppliance.SomaUrl != "" {
+	case config.DpInterfaceSoma:
 		url = r.dataPowerAppliance.SomaUrl
-	} else {
+	default:
 		logging.LogDebug("repo/dp/GetTitle(), using neither REST neither SOMA.")
 	}
 
@@ -805,8 +806,6 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 			return err
 		}
 		logging.LogDebugf("repo/dp/SetObject(), successMessage: '%s'", successMessage)
-		// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw/LocalPort -d '{"LocalPort":"10009"}' -X PUT | jq .
-		// curl -k -u admin:admin https://localhost:5554/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw -d '{"XMLFirewallService":{"name": "get_internal_js_xmlfw","LocalPort":"10001"}}' -X PUT | jq .
 		return err
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -825,19 +824,26 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 		if err != nil {
 			return err
 		}
+
 		logging.LogDebugf("repo/dp/SetObject(), somaResponse: '%s'", somaResponse)
+		resultMsg, err := parseSOMAFindOne(somaResponse, "//*[local-name()='response']/*[local-name()='result']")
+		if err != nil {
+			return err
+		}
+		if resultMsg != "OK" {
+			return errs.Errorf("Unexpected result of SOMA update: '%s'.", resultMsg)
+		}
 
 		return nil
-		// objectNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name")
-		// if err != nil {
-		// 	return err
-		// }
-		// logging.LogDebugf("repo/dp/SetObject(), objectNames: %v", objectNames)
-		// parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
 	default:
 		logging.LogDebug("repo/dp/SetObject(), using neither REST neither SOMA.")
 		return errs.Error("DataPower management interface not set.")
 	}
+}
+
+// GetManagementInterface returns current DataPower management interface used.
+func (r *dpRepo) GetManagementInterface() string {
+	return r.dataPowerAppliance.DpManagmentInterface()
 }
 
 // listAppliances returns ItemList of DataPower appliance Items from configuration.

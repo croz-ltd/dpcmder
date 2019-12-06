@@ -478,7 +478,7 @@ func viewCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		err = extprogs.View(ci.Name, fileContent)
+		err = extprogs.View(ci.Name+"*.json", fileContent)
 		if err != nil {
 			return err
 		}
@@ -537,7 +537,7 @@ func editCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name, fileContent)
+		changed, newFileContent, err := extprogs.Edit(m.CurrItem().Name+"*.json", fileContent)
 		if err != nil {
 			return err
 		}
@@ -554,7 +554,17 @@ func editCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
-		changed, newObjectContent, err := extprogs.Edit(ci.Name, objectContent)
+		// Proper tmp file name can enable viewer / editor (vim) to highlight syntax.
+		var editName string
+		switch dp.Repo.GetManagementInterface() {
+		case config.DpInterfaceRest:
+			editName = ci.Name + "*.json"
+		case config.DpInterfaceSoma:
+			editName = ci.Name + "*.xml"
+		default:
+			return errs.Error("Unknown DP management interface used.")
+		}
+		changed, newObjectContent, err := extprogs.Edit(editName, objectContent)
 		if err != nil {
 			return err
 		}

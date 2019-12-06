@@ -62,7 +62,7 @@ func ViewFile(filePath string) error {
 // Edit shows given bytes in external text editor and returns changed contents
 // of file if file is changed
 func Edit(name string, content []byte) (changed bool, newContent []byte, returnError error) {
-	logging.LogDebug("extprogs/Edit() ", name)
+	logging.LogDebugf("extprogs/Edit('%s', ..) ", name)
 	if config.Conf.Cmd.Editor == "" {
 		return false, nil, errors.New("Editor command not configured.")
 	}
