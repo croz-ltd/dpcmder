@@ -84,14 +84,14 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 
 	if r.ObjectConfigMode {
 		switch itemToShow.Type {
-		case model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory:
-			return r.listObjectClasses(itemToShow)
-		case model.ItemDpObjectClass:
-			return r.listObjects(itemToShow)
-		case model.ItemDpConfiguration:
+		case model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory,
+			model.ItemDpConfiguration:
+			// For DP configuration we doesn't need to have domain name (but can have it).
 			if itemToShow.DpDomain != "" {
 				return r.listObjectClasses(itemToShow)
 			}
+		case model.ItemDpObjectClass:
+			return r.listObjects(itemToShow)
 		}
 		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
 			itemToShow, r.ObjectConfigMode)
@@ -1112,6 +1112,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 		return items, nil
 	// case config.DpInterfaceSoma:
 	default:
+		r.ObjectConfigMode = false
 		return nil, errs.Error("Object mode is supported only for REST management interface.")
 	}
 }
