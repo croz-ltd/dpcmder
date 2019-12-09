@@ -134,7 +134,7 @@ func (dpa *DataPowerAppliance) DpManagmentInterface() string {
 // Conf variable contains all configuration parameters for dpcmder.
 var Conf = Config{
 	Cmd: Command{
-		Viewer: "less", Editor: "vi", Diff: "ldiff"},
+		Viewer: "less", Editor: "vi", Diff: "diff"},
 	Log:                 Log{MaxEntrySize: logging.MaxEntrySize},
 	Sync:                Sync{Seconds: 4},
 	DataPowerAppliances: make(map[string]DataPowerAppliance)}
