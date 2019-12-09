@@ -4,6 +4,7 @@
 package extprogs
 
 import (
+	"bytes"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/ui/out"
@@ -12,10 +13,17 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"time"
 )
 
-// View shows given bytes in external text editor
+// View shows given bytes in external text editor.
 func View(name string, content []byte) error {
+	return viewBytes(name, content, true)
+}
+
+// viewBytes shows given bytes in external text editor - with optional
+// terminal exit/init.
+func viewBytes(name string, content []byte, consoleActive bool) error {
 	debugContentLen := len(content)
 	if debugContentLen > 20 {
 		debugContentLen = 20
@@ -34,18 +42,26 @@ func View(name string, content []byte) error {
 	f.Close()
 	defer os.Remove(f.Name())
 
-	return ViewFile(f.Name())
+	return viewFile(f.Name(), consoleActive)
 }
 
-// ViewFile shows file from given path in external viewer
+// ViewFile shows file from given path in external viewer.
 func ViewFile(filePath string) error {
+	return viewFile(filePath, true)
+}
+
+// viewFile shows file from given path in external viewer - with optional
+// terminal exit/init.
+func viewFile(filePath string, consoleActive bool) error {
 	logging.LogDebugf("extprogs/ViewFile('%s')", filePath)
 	if config.Conf.Cmd.Viewer == "" {
 		return errs.Error("Viewer command not configured - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.")
 	}
 
-	out.Stop()
-	defer out.Init()
+	if consoleActive {
+		out.Stop()
+		defer out.Init()
+	}
 
 	viewCmd := exec.Command(config.Conf.Cmd.Viewer, filePath)
 
@@ -63,7 +79,7 @@ func ViewFile(filePath string) error {
 }
 
 // Edit shows given bytes in external text editor and returns changed contents
-// of file if file is changed
+// of file if file is changed.
 func Edit(name string, content []byte) (changed bool, newContent []byte, returnError error) {
 	logging.LogDebugf("extprogs/Edit('%s', ..) ", name)
 	if config.Conf.Cmd.Editor == "" {
@@ -112,7 +128,7 @@ func Edit(name string, content []byte) (changed bool, newContent []byte, returnE
 }
 
 // EditFile shows given file external text editor and returns changed contents
-// of file if file is changed
+// of file if file is changed.
 func EditFile(filePath string) error {
 	logging.LogDebugf("extprogs/EditFile('%s') ", filePath)
 	if config.Conf.Cmd.Editor == "" {
@@ -137,7 +153,7 @@ func EditFile(filePath string) error {
 	return nil
 }
 
-// CreateTempDir creates temporary directory required for Diff()
+// CreateTempDir creates temporary directory required for Diff().
 func CreateTempDir(dirPrefix string) string {
 	dir, err := ioutil.TempDir(".", dirPrefix)
 	logging.LogDebugf("extprogs/CreateTempDir('%s') dir: '%s'", dirPrefix, dir)
@@ -147,7 +163,7 @@ func CreateTempDir(dirPrefix string) string {
 	return dir
 }
 
-// DeleteTempDir deletes temporary directory created for Diff()
+// DeleteTempDir deletes temporary directory created for Diff().
 func DeleteTempDir(dirPath string) error {
 	logging.LogDebugf("extprogs/DeleteTempDir('%s') ", dirPath)
 	err := os.RemoveAll(dirPath)
@@ -158,7 +174,7 @@ func DeleteTempDir(dirPath string) error {
 	return nil
 }
 
-// Diff compares files/directories in external diff
+// Diff compares files/directories in external diff.
 func Diff(leftPath string, rightPath string) error {
 	logging.LogDebugf("extprogs/Diff('%s', '%s')", leftPath, rightPath)
 	if config.Conf.Cmd.Diff == "" {
@@ -174,10 +190,32 @@ func Diff(leftPath string, rightPath string) error {
 	diffCmd.Stderr = os.Stderr
 	diffCmd.Stdin = os.Stdin
 
+	timeStart := time.Now().UnixNano()
 	err := diffCmd.Run()
-	if err != nil {
-		logging.LogDebug("extprogs/Diff() err: ", err)
-		return errs.Errorf("Diff command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
+	dt := time.Duration(time.Now().UnixNano() - timeStart)
+
+	// If error is quickly returned it could be non-blocking diff was used for
+	// Diff command - in that case repeat command but show it's output in viewer
+	if err != nil && err.Error() == "exit status 1" && dt < 100*time.Millisecond {
+		logging.LogDebugf(
+			"extprogs/Diff() '%s' command returns error '%s' in %d, will try to re-execute Diff comand and send result to View command.",
+			config.Conf.Cmd.Diff, err, dt)
+
+		diffCmd = exec.Command(config.Conf.Cmd.Diff, leftPath, rightPath)
+		var buf bytes.Buffer
+		diffCmd.Stdout = &buf
+		diffCmd.Stderr = &buf
+		err = diffCmd.Run()
+		logging.LogDebugf("extprogs/Diff() err: %v", err)
+		err = viewBytes("Diff result", buf.Bytes(), false)
+
+		if err != nil {
+			logging.LogDebug("extprogs/Diff() err: ", err)
+			return errs.Errorf("Diff command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
+		}
+
+		return errs.Errorf("Diff command misconfigured, to use non-blocking diff: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.",
+			config.Conf.Cmd.Diff)
 	}
 
 	return nil

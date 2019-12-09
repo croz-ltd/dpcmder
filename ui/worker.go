@@ -635,6 +635,10 @@ func diffCurrent(m *model.Model) error {
 		localItemPath := localfs.Repo.GetFilePath(localView.Path, localItem.Name)
 		err := extprogs.Diff(dpCopyItemPath, localItemPath)
 		if err != nil {
+			errdel := extprogs.DeleteTempDir(dpCopyDir)
+			if errdel == nil {
+				updateStatusf("Deleted tmp dir on localfs '%s'", dpCopyDir)
+			}
 			logging.LogDebugf("ui/diffCurrent() - diff err: %v", err)
 			return err
 		}
