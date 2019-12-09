@@ -7,9 +7,17 @@ Current functions:
 - basic file maintenance
   - view, edit, copy and delete file hierarchies (DataPower and local file system)
   - filter and search files in current directory
+  - export DataPower domain ("copy" domain to local filesystem)
+  - view and edit DataPower object (as JSON or XML configurations)
 - sync mode
   - turn on to automaticaly upload new and changed files from local filesystem to DataPower
   - useful for development to automaticaly propagate your changes from any IDE/editor you are using to DataPower
+
+## Download
+
+If you don't want to build applications yourself (or run it using "go run"),
+32 bit and 64 bit binaries are available for 3 platforms (Linux, Mac, Windows)
+under [releases](./releases).
 
 ## Install
 
@@ -45,6 +53,59 @@ GOOS=darwin GOARCH=amd64 go build -o dpcmder-mac-amd64 dpcmder.go
 GOOS=linux GOARCH=386 go build -o dpcmder-linux-386 dpcmder.go
 GOOS=linux GOARCH=amd64 go build -o dpcmder-linux-amd64 dpcmder.go
 ```
+
+## Diff command ('d' key)
+
+Diff command in dpcmder is in latest code by default mapped to diff command.
+Before it was mapped to ldiff command which is not an existing Linux command but
+one simple script which should be created by dpcmder user which combines "diff"
+and "less" commands because dpcmder relies on all external commands to
+"take over" controll from dpcmder and not give controll back until user quits
+those external commands.
+If "diff" command is used it is executed twice and is not using all diff flags
+which ensures best possible output (for example "-r" - recursive) - for that
+reason warning is produced in dpcmder status bar.
+
+For best results create executable ldiff script in $PATH (for example
+/usr/local/bin/ldiff) with something like:
+
+``` bash
+#!/bin/bash
+diff -u -r --color=always "$1" "$2" | less -R
+```
+
+Or if "--color" flag is not available:
+
+``` bash
+#!/bin/bash
+diff -u -r "$1" "$2" | cdiff | less -R
+```
+
+## Helpful notes for Windows users
+
+DataPower Commander uses [tcell](https://github.com/gdamore/tcell) Go package
+for cross platform interactions with text terminals. This package provides great
+cross platform terminal support however there are few limitations:
+
+> Windows console mode applications are supported.
+> Unfortunately mintty and other cygwin style applications are not supported.
+
+> Modern console applications like ConEmu, as well as the Windows 10 console
+> itself, support all the good features (resize, mouse tracking, etc.)
+
+DataPower commander is tested under [cmder](https://cmder.net/) environment
+which uses [ConEmu](https://conemu.github.io/). In this environment default
+dpcmder view & edit commands (less & vi) are available so you should be able
+to quickly start using dpcmder there.
+
+DataPower Commander need to have proper view, edit and diff commands
+configured if you want to use it's full potential. Unfortunately all Windows OS
+versions doesn't come with default editor so I didn't try to match default
+values for Windows OS but I would suggest you to install Windows version of vi
+and less (which are default ones for View and Edit commands) if you are running
+dpcmder under Windows cmd. Alternative is to map both of those to some existing
+"blocking" editor (for example notepad) in ~/.dpcmder/config.json. For more
+details please check help.
 
 ## A bit of history of dpcmder
 
