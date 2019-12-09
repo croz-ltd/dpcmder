@@ -1,3 +1,6 @@
+// Package ui implements terminal interactions for DataPower Commander. This
+// package contains most of business logic of application and is used to read
+// user input actions and model application responses to those actions.
 package ui
 
 import (

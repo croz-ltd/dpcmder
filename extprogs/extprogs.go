@@ -1,3 +1,6 @@
+// Package extprogs contains code for calling external application used for
+// file viewing, edditing and comparing. File viewer is also used to display
+// help inside dpcmder application.
 package extprogs
 
 import (

@@ -1,3 +1,5 @@
+// Package errs simplifies creation of errors and contains errors produced
+// caused by unexpected DataPower responses.
 package errs
 
 import "fmt"

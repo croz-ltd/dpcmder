@@ -1,3 +1,6 @@
+// Package config contains logic for reading dpcmder configuration from
+// commandline parameters, reading and writting configuration to dpcmder
+// JSON configuration file and showing command line usage / help.
 package config
 
 import (

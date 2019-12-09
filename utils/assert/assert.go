@@ -1,3 +1,4 @@
+// Package assert implements helper methods used in tests.
 package assert
 
 import (

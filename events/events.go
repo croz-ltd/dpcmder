@@ -1,3 +1,4 @@
+// Package events is a model for events causing screen update.
 package events
 
 import (

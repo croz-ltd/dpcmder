@@ -1,3 +1,4 @@
+// Package model contains data required to show and use terminal user interface.
 package model
 
 import (

@@ -1,3 +1,5 @@
+// Package paths implements DataPower and local filesystem path operations used
+// to create proper paths recognized by DataPower and local filesystem.
 package paths
 
 import (

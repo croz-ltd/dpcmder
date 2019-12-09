@@ -1,3 +1,5 @@
+// Package repo contains interface used to model access to both DataPower
+// and local filesystem.
 package repo
 
 import (

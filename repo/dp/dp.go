@@ -1,3 +1,4 @@
+// Package dp implements access to DataPower appliances.
 package dp
 
 import (

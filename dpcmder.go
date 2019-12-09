@@ -1,3 +1,4 @@
+// Package main is entrypoint to DataPower commander (dpcmder) application.
 package main
 
 import (

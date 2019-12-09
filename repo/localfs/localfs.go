@@ -1,3 +1,4 @@
+// Package localfs implements access to local filesystem.
 package localfs
 
 import (

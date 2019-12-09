@@ -1,3 +1,5 @@
+// Package logging implements methods used for logging to dpcmder.log file and
+// adds timestamp to each log line.
 package logging
 
 import (

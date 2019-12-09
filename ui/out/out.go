@@ -1,3 +1,4 @@
+// Package out implements producing output to terminal user interface.
 package out
 
 import (

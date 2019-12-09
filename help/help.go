@@ -1,3 +1,7 @@
+// Package help contains help message listing all commands available in
+// dpcmder and how to setup external commands. Help message can be shown from
+// command line (if flag "-help" is given) or inside dpcmder application when
+// key "h" or any unrecognized key is pressed.
 package help
 
 // Help contains dpcmder in-program help shown when 'h' or unrecognized key is pressed.
@@ -78,10 +82,7 @@ TODO:
 
 - add domain/appliance export[/import?]
 - add creation of files/directories/domains/objects
-- add object editing
 - handle border cases (open domain for which you don't have rights...)
-- tests
-- docs
 
 (to show dpcmder usage help use "-h" flag instead of "-help" flag)
 `
