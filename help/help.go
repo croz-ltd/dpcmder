@@ -38,6 +38,7 @@ F8/8                - create empty file
 F9/9                - clone current DataPower configuration under new name
 DEL/x               - delete selected (or current if none selected) directories and files
                     - delete DataPower configuration
+                    - delete DataPower object
 d                   - diff current files/directories
                       (must be "blocking" - see "Custom external commands" below)
 /                   - find string

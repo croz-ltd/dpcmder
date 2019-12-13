@@ -487,7 +487,6 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 
 func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, parentPath, fileName string) (bool, error) {
 	logging.LogDebugf("repo/dp/Delete(%v, '%s', '%s' (%s))", currentView, parentPath, fileName, itemType)
-	filePath := r.GetFilePath(parentPath, fileName)
 
 	switch itemType {
 	case model.ItemDpConfiguration:
@@ -495,6 +494,8 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, 
 		config.Conf.DeleteDpApplianceConfig(fileName)
 		return true, nil
 	case model.ItemDirectory, model.ItemFile:
+		filePath := r.GetFilePath(parentPath, fileName)
+
 		switch r.dataPowerAppliance.DpManagmentInterface() {
 		case config.DpInterfaceRest:
 			restPath := makeRestPath(currentView.DpDomain, filePath)
@@ -547,6 +548,45 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, 
 					return true, nil
 				}
 			}
+		default:
+			logging.LogDebug("repo/dp/Delete(), using neither REST neither SOMA.")
+			return false, errs.Error("DataPower management interface not set.")
+		}
+	case model.ItemDpObject:
+		switch r.dataPowerAppliance.DpManagmentInterface() {
+		case config.DpInterfaceRest:
+			restPath := fmt.Sprintf("/mgmt/config/%s/%s/%s", currentView.DpDomain, parentPath, fileName)
+			logging.LogDebugf("repo/dp/Delete(), restPath: '%s'", restPath)
+			jsonString, err := r.rest(restPath, "DELETE", "")
+			if err != nil {
+				return false, err
+			}
+			logging.LogDebugf("jsonString: '%s'", jsonString)
+			resultMsg, err := parseJSONFindOne(jsonString, fmt.Sprintf("/%s", fileName))
+			if err != nil {
+				return false, err
+			}
+			if resultMsg == "Configuration was deleted." {
+				return true, nil
+			}
+		case config.DpInterfaceSoma:
+			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body>`+
+				`<dp:request xmlns:dp="http://www.datapower.com/schemas/management" domain="%s">`+
+				`<dp:del-config><%s name="%s"/></dp:del-config></dp:request></soapenv:Body></soapenv:Envelope>`,
+				currentView.DpDomain, parentPath, fileName)
+			somaResponse, err := r.soma(somaRequest)
+			if err != nil {
+				return false, err
+			}
+			result, err := parseSOMAFindOne(somaResponse, "//*[local-name()='response']/*[local-name()='result']")
+			if err != nil {
+				logging.LogDebug("Error parsing response SOAP.", err)
+				return false, err
+			}
+			if result == "OK" {
+				return true, nil
+			}
+			return false, errs.Error(result)
 		default:
 			logging.LogDebug("repo/dp/Delete(), using neither REST neither SOMA.")
 			return false, errs.Error("DataPower management interface not set.")
@@ -1285,7 +1325,7 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 			return nil, err
 		}
 
-		objectNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name")
+		objectNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState[text()!='deleted']/../Name")
 		if err != nil {
 			return nil, err
 		}
