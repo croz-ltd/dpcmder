@@ -157,6 +157,7 @@ func initConfiguration() {
 	logging.LogDebug("config/initConfiguration() - Conf after read: ", Conf)
 	if *dpRestURL != "" || *dpSomaURL != "" {
 		if *dpConfigName != "" {
+			validateDpConfigName()
 			Conf.DataPowerAppliances[*dpConfigName] = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
 			CurrentApplianceName = *dpConfigName
 		} else {
@@ -213,6 +214,16 @@ func validateProgramArgs() {
 	if *LocalFolderPath == "" ||
 		(*dpUsername != "" && *dpRestURL == "" && *dpSomaURL == "") {
 		usage(1)
+	}
+
+}
+
+// validateDpConfigName validate DataPower appliance configuration name passed
+// as command line param to avoid overwritting of existing configuration.
+func validateDpConfigName() {
+	if _, ok := Conf.DataPowerAppliances[*dpConfigName]; ok {
+		fmt.Printf("DataPower appliance configuration with name '%s' already exists.\n\n", *dpConfigName)
+		usage(2)
 	}
 }
 
