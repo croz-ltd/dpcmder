@@ -40,7 +40,7 @@ DEL/x               - delete selected (or current if none selected) directories 
                     - delete DataPower configuration
                     - delete DataPower object
 d                   - diff current files/directories
-                      (must be "blocking" - see "Custom external commands" below)
+                      (should be "blocking" - see "Custom external commands" below)
 /                   - find string
 n                   - find next string
 m                   - show all status messages saved in history
@@ -68,9 +68,9 @@ calling external commands are set. By default these are "less", "vi" and "ldiff"
 but could be any commands. All of those commands should be started in foreground
 and should wait for user's input to complete. For example for viewer "less" or
 "more" can be used while "cat" will not work. For file comparison normal "diff"
-command can't be used but "blocking" diff command must be used like vimdiff or
-custom ldiff script which combines diff and less commands can be prepared
-(something like:
+command can be used as work around but "blocking" diff command should be used
+like vimdiff. Custom ldiff script which combines diff and less commands can be
+easily prepared (something like:
  'diff "$1" "$2" | less'
 or for more fancy colored output you can use something like:
  'diff -u -r --color=always "$1" "$2" | less -r').
