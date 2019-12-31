@@ -81,10 +81,12 @@ or for more fancy colored output you can use something like:
 SOMA (+ AMP) vs REST:
 SOMA and AMP interfaces have one shortcoming - you can't see domain list if you
 don't have proper rights. With REST you can get domain list without any credentials.
+Some new features added are SOMA-only. For example with REST you can't see
+changed objects or compare persisted DataPower object configuration to saved
+configuration.
 
 TODO:
 
-- view changes
 - save changes
 - add domain/appliance export[/import?]
 - add creation of files/directories/domains/objects
