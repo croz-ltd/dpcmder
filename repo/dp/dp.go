@@ -1234,15 +1234,21 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 			return nil, err
 		}
 
-		classNamesWithDuplicates, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Class")
+		classNamesAndStatusesWithDuplicates, err := parseSOMAFindLists(somaResponse,
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Class",
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
 		if err != nil {
 			return nil, err
 		}
 		classNameMap := make(map[string]int)
+		classNameModifiedMap := make(map[string]bool)
 		classNames := make([]string, 0)
-		for _, className := range classNamesWithDuplicates {
+		for idx, className := range classNamesAndStatusesWithDuplicates[0] {
 			if _, oldName := classNameMap[className]; !oldName {
 				classNames = append(classNames, className)
+			}
+			if classNamesAndStatusesWithDuplicates[1][idx] != "saved" {
+				classNameModifiedMap[className] = true
 			}
 			classNameMap[className] = classNameMap[className] + 1
 		}
@@ -1256,9 +1262,14 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 				DpDomain:    currentView.DpDomain,
 				Path:        className,
 				Parent:      currentView}
+			modified := ""
+			if classNameModifiedMap[className] {
+				modified = "*"
+			}
 			item := model.Item{Name: className,
-				Size:   fmt.Sprintf("%d", classNameMap[className]),
-				Config: &itemConfig}
+				Size:     fmt.Sprintf("%d", classNameMap[className]),
+				Modified: modified,
+				Config:   &itemConfig}
 			items[idx] = item
 		}
 
@@ -1325,22 +1336,28 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 			return nil, err
 		}
 
-		objectNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState[text()!='deleted']/../Name")
+		objectNamesAndStatuses, err := parseSOMAFindLists(somaResponse,
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name",
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
 		if err != nil {
 			return nil, err
 		}
-		logging.LogDebugf("repo/dp/listObjects(), objectNames: %v", objectNames)
+		logging.LogDebugf("repo/dp/listObjects(), objectNamesAndStatuses: %v", objectNamesAndStatuses)
 		parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
 
-		items := make(model.ItemList, len(objectNames))
+		items := make(model.ItemList, len(objectNamesAndStatuses[0]))
 		items = append(items, parentDir)
-		for idx, objectName := range objectNames {
+		for idx, objectName := range objectNamesAndStatuses[0] {
+			modified := ""
+			if objectNamesAndStatuses[1][idx] != "saved" {
+				modified = objectNamesAndStatuses[1][idx]
+			}
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        itemConfig.Path,
 				Parent:      itemConfig}
-			item := model.Item{Name: objectName, Config: &itemConfig}
+			item := model.Item{Name: objectName, Modified: modified, Config: &itemConfig}
 			items[idx] = item
 		}
 
@@ -1536,23 +1553,40 @@ func parseSOMAFindOne(somaResponse, query string) (string, error) {
 
 // parseSOMAFindList query soma response and returns array of strings.
 func parseSOMAFindList(somaResponse, query string) ([]string, error) {
+	results, err := parseSOMAFindLists(somaResponse, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results[0], nil
+}
+
+// parseSOMAFindLists perform multiple querys on soma response and returns
+// array of array of strings (for each query one response).
+func parseSOMAFindLists(somaResponse string, querys ...string) ([][]string, error) {
 	doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
 	if err != nil {
 		logging.LogDebug("Error parsing response SOAP.", err)
 		return nil, err
 	}
-	resultNodes := xmlquery.Find(doc, query)
-	if resultNodes == nil {
-		logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
-		return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+	results := make([][]string, len(querys))
+	for idx, query := range querys {
+		resultNodes := xmlquery.Find(doc, query)
+		if resultNodes == nil {
+			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+		}
+
+		result := make([]string, len(resultNodes))
+		for idx, node := range resultNodes {
+			result[idx] = node.InnerText()
+		}
+
+		results[idx] = result
 	}
 
-	result := make([]string, len(resultNodes))
-	for idx, node := range resultNodes {
-		result[idx] = node.InnerText()
-	}
-
-	return result, nil
+	return results, nil
 }
 
 // cleanJSONObject removes JSON parts which cause errors when we try to PUT updated
