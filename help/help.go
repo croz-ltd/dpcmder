@@ -88,9 +88,8 @@ configuration.
 
 TODO:
 
-- save changes
 - add domain/appliance export[/import?]
-- add creation of files/directories/domains/objects
+- add creation of domains/objects
 - handle border cases (open domain for which you don't have rights...)
 
 (to show dpcmder usage help use "-h" flag instead of "-help" flag)
