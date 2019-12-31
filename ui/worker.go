@@ -211,6 +211,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = deleteCurrent(&workingModel)
 		case c == 's':
 			err = syncModeToggle(&workingModel)
+		case c == 'S':
+			err = saveDataPowerConfig(&workingModel)
 		case c == 'm':
 			err = showStatusMessages(workingModel.Statuses())
 		case c == '0':
@@ -1130,6 +1132,24 @@ func searchNextItem(m *model.Model, reverse bool) {
 	}
 }
 
+// saveDataPowerConfig saves current's DataPower domain configuration.
+func saveDataPowerConfig(m *model.Model) error {
+	logging.LogDebug("ui/saveDataPowerConfig()")
+	side := m.CurrSide()
+	viewConfig := m.ViewConfig(side)
+
+	if side == model.Left && viewConfig.DpDomain != "" {
+		err := dp.Repo.SaveConfiguration(viewConfig)
+		if err != nil {
+			return err
+		}
+		updateStatusf("Domain '%s' saved.", viewConfig.DpDomain)
+		return nil
+	}
+
+	return errs.Error("To save DataPower configuration select DataPower domain first.")
+}
+
 // showStatusMessages shows history of status messages in viewer program.
 func showStatusMessages(statuses []string) error {
 	statusesText := ""
@@ -1139,6 +1159,8 @@ func showStatusMessages(statuses []string) error {
 	return extprogs.View("Status_Messages", []byte(statusesText))
 }
 
+// syncModeToggle toggles sync mode (off <-> on). Sync mode is used to copy
+// local changes to DataPower.
 func syncModeToggle(m *model.Model) error {
 	logging.LogDebug("ui/syncModeToggle()")
 	var syncModeToggleConfirm userDialogResult

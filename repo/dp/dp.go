@@ -839,17 +839,17 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 	case config.DpInterfaceRest:
 		getObjectURL := fmt.Sprintf("/mgmt/config/%s/%s/%s",
 			itemConfig.DpDomain, itemConfig.Path, objectName)
-		resultJson, err := r.rest(getObjectURL, "PUT", string(objectContent))
+		resultJSON, err := r.rest(getObjectURL, "PUT", string(objectContent))
 		if err != nil {
 			return err
 		}
-		logging.LogDebugf("repo/dp/SetObject(), resultJson: '%s'", resultJson)
-		errorMessage, err := parseJSONFindOne(resultJson, "/error")
+		logging.LogDebugf("repo/dp/SetObject(), resultJSON: '%s'", resultJSON)
+		errorMessage, err := parseJSONFindOne(resultJSON, "/error")
 		if err != nil && err.Error() != "Unexpected JSON, can't find '/error'." {
 			return err
 		}
 		logging.LogDebugf("repo/dp/SetObject(), errorMessage: '%s'", errorMessage)
-		successMessage, err := parseJSONFindOne(resultJson, fmt.Sprintf("/%s", objectName))
+		successMessage, err := parseJSONFindOne(resultJSON, fmt.Sprintf("/%s", objectName))
 		if err != nil {
 			return err
 		}
@@ -885,6 +885,47 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 		return nil
 	default:
 		logging.LogDebug("repo/dp/SetObject(), using neither REST neither SOMA.")
+		return errs.Error("DataPower management interface not set.")
+	}
+}
+
+// SaveConfiguration saves current DataPower configuration.
+func (r *dpRepo) SaveConfiguration(itemConfig *model.ItemConfig) error {
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		logging.LogDebug("repo/dp/SaveConfiguration(), not available using REST.")
+		return errs.Error("DataPower REST management interface used - save configuration not available.")
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <man:request domain="%s">
+		         <man:do-action>
+                <SaveConfig/>
+						 </man:do-action>
+		      </man:request>
+		   </soapenv:Body>
+		</soapenv:Envelope>`, itemConfig.DpDomain)
+		logging.LogDebugf("repo/dp/SaveConfiguration(), somaRequest: '%s'", somaRequest)
+		somaResponse, err := r.soma(somaRequest)
+		if err != nil {
+			return err
+		}
+
+		logging.LogDebugf("repo/dp/SaveConfiguration(), somaResponse: '%s'", somaResponse)
+		resultMsg, err := parseSOMAFindOne(somaResponse, "//*[local-name()='response']/*[local-name()='result']")
+		if err != nil {
+			return err
+		}
+		resultMsg = strings.TrimSpace(resultMsg)
+		if resultMsg != "OK" {
+			return errs.Errorf("Unexpected result of SOMA update: '%s'.", resultMsg)
+		}
+
+		return nil
+	default:
+		logging.LogDebug("repo/dp/SaveConfiguration(), using neither REST neither SOMA.")
 		return errs.Error("DataPower management interface not set.")
 	}
 }
