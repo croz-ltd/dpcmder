@@ -81,6 +81,8 @@ don't have proper rights. With REST you can get domain list without any credenti
 
 TODO:
 
+- view changes
+- save changes
 - add domain/appliance export[/import?]
 - add creation of files/directories/domains/objects
 - handle border cases (open domain for which you don't have rights...)
