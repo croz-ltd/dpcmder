@@ -486,7 +486,7 @@ func viewCurrent(m *model.Model) error {
 			return err
 		}
 	case model.ItemDpObject:
-		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name)
+		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name, false)
 		if err != nil {
 			return err
 		}
@@ -553,7 +553,7 @@ func editCurrent(m *model.Model) error {
 		updateStatusf("DataPower configuration '%s' updated.", ci.Name)
 
 	case model.ItemDpObject:
-		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name)
+		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name, false)
 		if err != nil {
 			return err
 		}
@@ -610,6 +610,29 @@ func copyCurrent(m *model.Model) error {
 	return showItem(toSide, m.ViewConfig(toSide), ".")
 }
 
+func diffFilesWithCleanup(tmpDir, oldPath, newPath string) error {
+	logging.LogDebug("ui/diffFiles()")
+	err := extprogs.Diff(oldPath, newPath)
+	if err != nil {
+		errdel := extprogs.DeleteTempDir(tmpDir)
+		if errdel == nil {
+			updateStatusf("Deleted tmp dir on localfs '%s'", tmpDir)
+		} else {
+			logging.LogDebugf("ui/diffFiles() - Error deleting tmp dir on localfs '%s': %v", tmpDir, errdel)
+		}
+		logging.LogDebugf("ui/diffFiles() - diff err: %v", err)
+		return err
+	}
+	err = extprogs.DeleteTempDir(tmpDir)
+	if err != nil {
+		logging.LogDebugf("ui/diffFiles() - delete tmp dir err: %v", err)
+		return err
+	}
+	updateStatusf("Deleted tmp dir on localfs '%s'", tmpDir)
+	logging.LogDebug("ui/diffFiles() end")
+	return nil
+}
+
 func diffCurrent(m *model.Model) error {
 	logging.LogDebug("ui/diffCurrent()")
 	dpItem := m.CurrItemForSide(model.Left)
@@ -618,7 +641,14 @@ func diffCurrent(m *model.Model) error {
 	dpView := m.ViewConfig(model.Left)
 	localView := m.ViewConfig(model.Right)
 
-	if dpItem.Config.Type == localItem.Config.Type || (dpItem.Config.Type == model.ItemDpFilestore && localItem.Config.Type == model.ItemDirectory) {
+	if dpItem.Config.Type == localItem.Config.Type ||
+		(dpItem.Config.Type == model.ItemDpFilestore && localItem.Config.Type == model.ItemDirectory) ||
+		(dpItem.Config.Type == model.ItemDpObject && dpItem.Modified == "modified") {
+
+	}
+	switch {
+	case dpItem.Config.Type == localItem.Config.Type ||
+		(dpItem.Config.Type == model.ItemDpFilestore && localItem.Config.Type == model.ItemDirectory):
 		dpCopyDir := extprogs.CreateTempDir("dp")
 		updateStatusf("Created tmp dir on localfs '%s'", dpCopyDir)
 		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
@@ -633,28 +663,54 @@ func diffCurrent(m *model.Model) error {
 		}
 		dpCopyItemPath := localfs.Repo.GetFilePath(dpCopyDir, dpDirName)
 		localItemPath := localfs.Repo.GetFilePath(localView.Path, localItem.Name)
-		err := extprogs.Diff(dpCopyItemPath, localItemPath)
+
+		err := diffFilesWithCleanup(dpCopyDir, dpCopyItemPath, localItemPath)
+
+		return err
+	case dpItem.Config.Type == model.ItemDpObject && dpItem.Modified == "modified":
+		dpCopyDir := extprogs.CreateTempDir("dp")
+		updateStatusf("Created tmp dir on localfs '%s'", dpCopyDir)
+
+		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
+
+		objectContentMemory, err := dp.Repo.GetObject(dpItem.Config, dpItem.Name, false)
 		if err != nil {
-			errdel := extprogs.DeleteTempDir(dpCopyDir)
-			if errdel == nil {
-				updateStatusf("Deleted tmp dir on localfs '%s'", dpCopyDir)
-			}
-			logging.LogDebugf("ui/diffCurrent() - diff err: %v", err)
 			return err
 		}
-		err = extprogs.DeleteTempDir(dpCopyDir)
+		objectContentSaved, err := dp.Repo.GetObject(dpItem.Config, dpItem.Name, true)
 		if err != nil {
-			logging.LogDebugf("ui/diffCurrent() - delete tmp dir err: %v", err)
 			return err
 		}
-		updateStatusf("Deleted tmp dir on localfs '%s'", dpCopyDir)
-		logging.LogDebug("ui/diffCurrent() end")
-		return nil
+
+		objectNameMemory := dpItem.Name + "_memory.xml"
+		objectNameSaved := dpItem.Name + "_saved.xml"
+
+		_, err = localfs.Repo.UpdateFile(&localViewTmp, objectNameMemory, objectContentMemory)
+		if err != nil {
+			return err
+		}
+		_, err = localfs.Repo.UpdateFile(&localViewTmp, objectNameSaved, objectContentSaved)
+		if err != nil {
+			return err
+		}
+
+		dpObjectMemoryPath := localfs.Repo.GetFilePath(dpCopyDir, objectNameMemory)
+		dpObjectSavedPath := localfs.Repo.GetFilePath(dpCopyDir, objectNameSaved)
+
+		err = diffFilesWithCleanup(dpCopyDir, dpObjectSavedPath, dpObjectMemoryPath)
+
+		return err
+	case dpItem.Config.Type == model.ItemDpObject:
+		err := errs.Errorf("Can't view changes on DataPower object '%s' if not modified (%s)",
+			dpItem.Name, dpItem.Modified)
+		logging.LogDebug(err)
+		return err
+	default:
+		err := errs.Errorf("Can't compare different file types '%s' (%s) to '%s' (%s)",
+			dpItem.Name, string(dpItem.Config.Type), localItem.Name, string(localItem.Config.Type))
+		logging.LogDebug(err)
+		return err
 	}
-	err := errs.Errorf("Can't compare different file types '%s' (%s) to '%s' (%s)",
-		dpItem.Name, string(dpItem.Config.Type), localItem.Name, string(localItem.Config.Type))
-	logging.LogDebug(err)
-	return err
 }
 
 func getSelectedOrCurrent(m *model.Model) []model.Item {

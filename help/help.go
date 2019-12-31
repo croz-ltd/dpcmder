@@ -41,6 +41,7 @@ DEL/x               - delete selected (or current if none selected) directories 
                     - delete DataPower object
 d                   - diff current files/directories
                       (should be "blocking" - see "Custom external commands" below)
+                    - diff changes on modified DataPower object (SOMA access only)
 /                   - find string
 n                   - find next string
 m                   - show all status messages saved in history
@@ -49,6 +50,8 @@ f                   - filter shown items by string
 .                   - enter location (full path) for local file system
 s                   - auto-synchronize selected directories (local to dp)
 0                   - toggle DataPower view from filestore view to object view
+                    - when using SOMA access changed objects are marked and object
+                      changes can be shown using diff (d key)
 q                   - quit
 any-other-char      - show help (+ hex value of key pressed visible in status bar)
 

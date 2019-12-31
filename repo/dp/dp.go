@@ -757,9 +757,10 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 	}
 }
 
-// GetObject fetches DataPower object configuration.
-func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string) ([]byte, error) {
-	logging.LogDebugf("repo/dp/GetObject(%v, '%s')", itemConfig, objectName)
+// GetObject fetches DataPower object configuration. If persisted flag is true
+// fetch persisted object, otherwise fetch current object from memory.
+func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string, persisted bool) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetObject(%v, '%s', %t)", itemConfig, objectName, persisted)
 
 	switch itemConfig.Type {
 	case model.ItemDpObject:
@@ -789,10 +790,11 @@ func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string) ([]b
 		   <soapenv:Header/>
 		   <soapenv:Body>
 		      <man:request domain="%s">
-		         <man:get-config class="%s" name="%s"/>
+		         <man:get-config class="%s" name="%s" persisted="%t"/>
 		      </man:request>
 		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path, objectName)
+		</soapenv:Envelope>`,
+			itemConfig.DpDomain, itemConfig.Path, objectName, persisted)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
 			return nil, err
