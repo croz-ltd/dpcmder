@@ -1346,7 +1346,21 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		logging.LogDebugf("repo/dp/listObjects(), items: %v", items)
 		return items, nil
 	case config.DpInterfaceSoma:
-		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+		// Sometimes, response for ObjectStatus has invalid Name element - different
+		// from name attribute in response for configuration of same object.
+		// It seems it is wrong for "singleton" objects in default domain, for
+		// example: WebGUI (Name (status): "web-mgmt", name (config): "WebGUI-Settings").
+		// Maybe these are cases where SOMA response has attribute intrinsic="true".
+		somaConfigRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <man:request domain="%s">
+		         <man:get-config class="%s"/>
+		      </man:request>
+		   </soapenv:Body>
+		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
+		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 			xmlns:man="http://www.datapower.com/schemas/management">
 		   <soapenv:Header/>
 		   <soapenv:Body>
@@ -1355,12 +1369,23 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		      </man:request>
 		   </soapenv:Body>
 		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
-		somaResponse, err := r.soma(somaRequest)
+		somaConfigResponse, err := r.soma(somaConfigRequest)
+		if err != nil {
+			return nil, err
+		}
+		somaStatusResponse, err := r.soma(somaStatusRequest)
 		if err != nil {
 			return nil, err
 		}
 
-		objectNamesAndStatuses, err := parseSOMAFindLists(somaResponse,
+		objectNames, err := parseSOMAFindList(somaConfigResponse,
+			"//*[local-name()='response']/*[local-name()='config']/*/@name")
+		if err != nil {
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/listObjects(), objectNames: %v", objectNames)
+
+		objectNamesAndStatuses, err := parseSOMAFindLists(somaStatusResponse,
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name",
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
 		if err != nil {
@@ -1371,7 +1396,11 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 
 		items := make(model.ItemList, len(objectNamesAndStatuses[0]))
 		items = append(items, parentDir)
-		for idx, objectName := range objectNamesAndStatuses[0] {
+		for idx, objectNameFromStatus := range objectNamesAndStatuses[0] {
+			objectName := objectNameFromStatus
+			if len(objectNames) == 1 {
+				objectName = objectNames[0]
+			}
 			modified := ""
 			if objectNamesAndStatuses[1][idx] != "saved" {
 				modified = objectNamesAndStatuses[1][idx]
