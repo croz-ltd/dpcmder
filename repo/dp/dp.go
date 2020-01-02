@@ -1290,7 +1290,8 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 			if _, oldName := classNameMap[className]; !oldName {
 				classNames = append(classNames, className)
 			}
-			if classNamesAndStatusesWithDuplicates[1][idx] != "saved" {
+			if classNamesAndStatusesWithDuplicates[1][idx] != "saved" &&
+				classNamesAndStatusesWithDuplicates[1][idx] != "external" {
 				classNameModifiedMap[className] = true
 			}
 			classNameMap[className] = classNameMap[className] + 1
