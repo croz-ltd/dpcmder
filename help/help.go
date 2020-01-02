@@ -90,7 +90,7 @@ persisted DataPower object configuration to saved configuration.
 TODO:
 
 - add domain/appliance import?
-- add the creation of domains/objects
+- add the creation of objects
 - add deletion of a domain
 
 (to show dpcmder usage help use "-h" flag instead of "-help" flag)
