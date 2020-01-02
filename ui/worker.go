@@ -1051,8 +1051,6 @@ func createDirectoryOrDomain(m *model.Model) error {
 		return errs.Errorf("Can't create directory, parent type '%s' doesn't support directory creation.",
 			viewConfig.Type.UserFriendlyString())
 	}
-
-	return nil
 }
 
 func createDirectory(m *model.Model) error {
@@ -1096,8 +1094,8 @@ func createDomain(m *model.Model) error {
 
 		updateStatusf("Domain '%s' created.", domainName)
 		return showItem(side, viewConfig, ".")
-		// return errs.Errorf("Can't create domain, not yet implemented.")
 	}
+
 	updateStatus("Creation of new directory canceled.")
 	return nil
 }
