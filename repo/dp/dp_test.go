@@ -147,6 +147,41 @@ func TestCleanXML(t *testing.T) {
 	}
 }
 
+func TestCleanXMLMgmtInterface(t *testing.T) {
+	inputXML := `<WebGUI name="WebGUI-Settings" intrinsic="true">
+<mAdminState>enabled</mAdminState>
+<LocalAddress>0.0.0.0</LocalAddress>
+<LocalPort>9090</LocalPort>
+<SaveConfigOverwrites>on</SaveConfigOverwrites>
+<IdleTimeout>60000</IdleTimeout>
+<ACL class="AccessControlList">web-mgmt</ACL>
+<SSLServerConfigType>server</SSLServerConfigType>
+<EnableSTS>on</EnableSTS>
+<XMLFirewall class="XMLFirewallService">web-mgmt</XMLFirewall>
+</WebGUI>`
+	wantXML := `<WebGUI name="WebGUI-Settings" intrinsic="true">
+<mAdminState>enabled</mAdminState>
+<LocalAddress>0.0.0.0</LocalAddress>
+<LocalPort>9090</LocalPort>
+<SaveConfigOverwrites>on</SaveConfigOverwrites>
+<IdleTimeout>60000</IdleTimeout>
+<ACL class="AccessControlList">web-mgmt</ACL>
+<SSLServerConfigType>server</SSLServerConfigType>
+<EnableSTS>on</EnableSTS>
+</WebGUI>`
+
+	gotXML, _ := cleanXML(inputXML)
+
+	gotXMLBytes, _ := mxj.BeautifyXml([]byte(gotXML), "", "  ")
+	wantXMLBytes, _ := mxj.BeautifyXml([]byte(wantXML), "", "  ")
+	gotXML = string(gotXMLBytes)
+	wantXML = string(wantXMLBytes)
+
+	if gotXML != wantXML {
+		t.Errorf("for cleanXML('%s'): got '%s', want '%s'", inputXML, gotXML, wantXML)
+	}
+}
+
 func TestSplitOnFirst(t *testing.T) {
 	testDataMatrix := [][]string{
 		{"/usr/bin/share", "/", "", "usr/bin/share"},

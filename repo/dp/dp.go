@@ -1397,6 +1397,8 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		items := make(model.ItemList, len(objectNamesAndStatuses[0]))
 		items = append(items, parentDir)
 		for idx, objectNameFromStatus := range objectNamesAndStatuses[0] {
+			// For "singleton" intrinsic objects in default domain we can't use name
+			// from ObjectStatus.
 			objectName := objectNameFromStatus
 			if len(objectNames) == 1 {
 				objectName = objectNames[0]
@@ -1788,6 +1790,13 @@ func cleanXML(inputXML string) (string, error) {
 	// <DebugMode persisted="false">off</DebugMode>
 	re = regexp.MustCompile(` persisted="[a-z]+"`)
 	outputXML = re.ReplaceAllString(outputXML, "")
+
+	// Remove XMLFirewall from: MgmtInterface, WebB2BViewer & WebGUI
+	// Otherwise update doesn't work. (?s) - match newlines.
+	re = regexp.MustCompile(`(?s)(<(MgmtInterface|WebB2BViewer|WebGUI) .+?)(<XMLFirewall .+?</XMLFirewall>)(.*?</(MgmtInterface|WebB2BViewer|WebGUI)>)`)
+	// group 1 is all before XMLFirewall, group 2 is management start element
+	// group 3 is XMLFirewall, group 4 is all after XMLFirewall.
+	outputXML = re.ReplaceAllString(outputXML, "$1$4")
 
 	outputXMLBytes, err := mxj.BeautifyXml([]byte(outputXML), "", "  ")
 	if err != nil {
