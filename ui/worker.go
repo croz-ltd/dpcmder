@@ -594,20 +594,17 @@ func copyCurrent(m *model.Model) error {
 	}
 	updateStatusf("Copy from '%s' to '%s', items: %v", fromViewConfig.Path, toViewConfig.Path, itemsDisplayToCopy)
 
-	showProgressDialog("Copying files from DataPower...")
 	var confirmOverwrite = "n"
 	var err error
 	for _, item := range itemsToCopy {
 		confirmOverwrite, err = copyItem(repos[fromSide], repos[toSide], fromViewConfig, toViewConfig, item, confirmOverwrite)
 		if err != nil {
-			hideProgressDialog()
 			return err
 		}
 		if confirmOverwrite == "na" {
 			break
 		}
 	}
-	hideProgressDialog()
 
 	return showItem(toSide, m.ViewConfig(toSide), ".")
 }
@@ -750,8 +747,13 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		if err != nil {
 			return res, err
 		}
+	case model.ItemDpConfiguration:
+		err = exportAppliance(item.Config, toViewConfig, item.Name)
+		if err != nil {
+			return res, err
+		}
 	default:
-		updateStatusf("Only files and directories can be copied.")
+		updateStatusf("Only files and directories can be copied or appliances/domains exported.")
 	}
 
 	logging.LogDebugf("ui/copyItem(), res: '%s'", res)
@@ -804,6 +806,9 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 	if err != nil {
 		return confirmOverwrite, err
 	}
+
+	showProgressDialog("Copying files from DataPower...")
+	defer hideProgressDialog()
 	for _, item := range items {
 		if item.Name != ".." {
 			toViewConfigDir := model.ItemConfig{Parent: toViewConfig,
@@ -823,6 +828,8 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 
 func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, fileName, confirmOverwrite string) (string, error) {
 	logging.LogDebugf("ui/copyFile(.., .., %v, %v, '%s', '%s')", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	showProgressDialog("Copying file(s) from DataPower...")
+	defer hideProgressDialog()
 	updateProgressDialogMessagef("Preparing to copy file '%s' from %s to %s...", fileName, fromRepo, toRepo)
 	res := confirmOverwrite
 	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, fileName)
@@ -890,6 +897,42 @@ func exportDomain(fromViewConfig, toViewConfig *model.ItemConfig, domainName str
 	if err == nil {
 		updateStatusf("Domain '%s' exported to file '%s' on path '%s'.",
 			domainName, exportFileName, toViewConfig.Path)
+	}
+	return err
+}
+
+func exportAppliance(dpApplianceConfig, toViewConfig *model.ItemConfig, applianceConfigName string) error {
+	logging.LogDebugf("ui/exportAppliance(%v, %v)", dpApplianceConfig, toViewConfig)
+	applianceName := dpApplianceConfig.DpAppliance
+	exportFileName := applianceName + "_" + time.Now().Format("20060102150405") + ".zip"
+	logging.LogDebugf("ui/exportAppliance() exportFileName: '%s'", exportFileName)
+
+	applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
+	dpTransientPassword := config.DpTransientPasswordMap[applianceName]
+	logging.LogDebugf("ui/exportAppliance(), applicanceConfig: '%s'", applicanceConfig)
+	// if applicanceConfig.Password == "" && dpTransientPassword == "" {
+	// 	return dpMissingPasswordError
+	// }
+	if applicanceConfig.Password == "" && dpTransientPassword == "" {
+		logging.LogDebugf("ui/exportAppliance(), before asking password.")
+		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+		logging.LogDebugf("ui/exportAppliance(), after asking password (%s).", dialogResult)
+		if dialogResult.dialogCanceled || dialogResult.inputAnswer == "" {
+			return nil
+		}
+		setCurrentDpPlainPassword(dialogResult.inputAnswer)
+	}
+
+	showProgressDialogf("Exporting DataPower appliance '%s'...", applianceName)
+	exportFileBytes, err := dp.Repo.ExportAppliance(applianceConfigName, exportFileName)
+	hideProgressDialog()
+	if err != nil {
+		return err
+	}
+	_, err = localfs.Repo.UpdateFile(toViewConfig, exportFileName, exportFileBytes)
+	if err == nil {
+		updateStatusf("Appliance '%s' exported to file '%s' on path '%s'.",
+			applianceName, exportFileName, toViewConfig.Path)
 	}
 	return err
 }

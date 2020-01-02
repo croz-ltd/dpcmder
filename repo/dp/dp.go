@@ -633,6 +633,74 @@ func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath stri
 	return resultView, nil
 }
 
+// ExportAppliance creates export of whole DataPower appliance and returns
+// base64 encoded exported zip file.
+func (r *dpRepo) ExportAppliance(applianceConfigName, exportFileName string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/ExportAppliance('%s', '%s')", applianceConfigName, exportFileName)
+
+	// 0. Prepare DataPower connection configuration.
+	oldDataPowerAppliance := r.dataPowerAppliance
+	r.dataPowerAppliance = config.Conf.DataPowerAppliances[applianceConfigName]
+	clearCurrentConfig := func() {
+		r.dataPowerAppliance = oldDataPowerAppliance
+	}
+	defer clearCurrentConfig()
+	if r.dataPowerAppliance.Password == "" {
+		r.dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[applianceConfigName])
+	}
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		// Don't know how to export multiple domains using REST.
+		return nil,
+			errs.Errorf("DataPower management interface %s not supported for appliance export.",
+				r.dataPowerAppliance.DpManagmentInterface())
+	case config.DpInterfaceSoma:
+		// 1. Fetch export (backup) of all domains
+		//    Backup contains all domains export zip + export info and dp-aux files
+		domainNames, err := r.fetchDpDomains()
+		if err != nil {
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/ExportAppliance(), domainNames: %v", domainNames)
+
+		backupRequestSomaDomains := ""
+		for _, domainName := range domainNames {
+			backupRequestSomaDomains = backupRequestSomaDomains + fmt.Sprintf(`<man:domain name="%s"/>`, domainName)
+		}
+		backupRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <man:request>
+         <man:do-backup format="ZIP" persisted="false">
+            <man:user-comment>Created by dpcmder - %s</man:user-comment>
+            %s
+         </man:do-backup>
+      </man:request>
+   </soapenv:Body>
+</soapenv:Envelope>`, exportFileName, backupRequestSomaDomains)
+		backupResponseSoma, err := r.soma(backupRequestSoma)
+		if err != nil {
+			return nil, err
+		}
+		backupFileB64, err := parseSOMAFindOne(backupResponseSoma, "//*[local-name()='file']")
+		if err != nil {
+			return nil, err
+		}
+
+		backupBytes, err := base64.StdEncoding.DecodeString(backupFileB64)
+		if err != nil {
+			logging.LogDebug("repo/dp/ExportDomain() - Error decoding base64 file.", err)
+			return nil, err
+		}
+
+		return backupBytes, nil
+	default:
+		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+	}
+}
+
 // ExportDomain creates export of given domain and returns base64 encoded
 // exported zip file.
 func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error) {
@@ -1319,6 +1387,8 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
+		// TODO: add status? Problem is that it is not possible to get status of
+		// only 1 class of objects so we would need to fetch all objects.
 		listObjectsURL := fmt.Sprintf("/mgmt/config/%s/%s", itemConfig.DpDomain, itemConfig.Path)
 		objectNameQuery := fmt.Sprintf("/%s//name", itemConfig.Path)
 		objectNames, _, err := r.restGetForListResult(listObjectsURL, objectNameQuery)
@@ -1792,7 +1862,7 @@ func cleanXML(inputXML string) (string, error) {
 	outputXML = re.ReplaceAllString(outputXML, "")
 
 	// Remove XMLFirewall from: MgmtInterface, WebB2BViewer & WebGUI
-	// Otherwise update doesn't work. (?s) - match newlines.
+	// otherwise update doesn't work. (?s) - match newlines.
 	re = regexp.MustCompile(`(?s)(<(MgmtInterface|WebB2BViewer|WebGUI) .+?)(<XMLFirewall .+?</XMLFirewall>)(.*?</(MgmtInterface|WebB2BViewer|WebGUI)>)`)
 	// group 1 is all before XMLFirewall, group 2 is management start element
 	// group 3 is XMLFirewall, group 4 is all after XMLFirewall.
