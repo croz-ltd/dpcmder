@@ -910,9 +910,6 @@ func exportAppliance(dpApplianceConfig, toViewConfig *model.ItemConfig, applianc
 	applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
 	dpTransientPassword := config.DpTransientPasswordMap[applianceName]
 	logging.LogDebugf("ui/exportAppliance(), applicanceConfig: '%s'", applicanceConfig)
-	// if applicanceConfig.Password == "" && dpTransientPassword == "" {
-	// 	return dpMissingPasswordError
-	// }
 	if applicanceConfig.Password == "" && dpTransientPassword == "" {
 		logging.LogDebugf("ui/exportAppliance(), before asking password.")
 		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
