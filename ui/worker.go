@@ -202,7 +202,7 @@ func ProcessInputEvent(event tcell.Event) error {
 		case c == 'd':
 			err = diffCurrent(&workingModel)
 		case k == tcell.KeyF7, c == '7':
-			err = createDirectory(&workingModel)
+			err = createDirectoryOrDomain(&workingModel)
 		case k == tcell.KeyF8, c == '8':
 			err = createEmptyFile(&workingModel)
 		case k == tcell.KeyF9, c == '9':
@@ -1037,9 +1037,27 @@ func cloneCurrent(m *model.Model) error {
 	return nil
 }
 
+func createDirectoryOrDomain(m *model.Model) error {
+	logging.LogDebug("ui/createDirectoryOrDomain()")
+
+	side := m.CurrSide()
+	viewConfig := m.ViewConfig(side)
+	switch viewConfig.Type {
+	case model.ItemDirectory, model.ItemDpFilestore:
+		return createDirectory(m)
+	case model.ItemDpConfiguration:
+		return createDomain(m)
+	default:
+		return errs.Errorf("Can't create directory, parent type '%s' doesn't support directory creation.",
+			viewConfig.Type.UserFriendlyString())
+	}
+
+	return nil
+}
+
 func createDirectory(m *model.Model) error {
 	logging.LogDebug("ui/createDirectory()")
-	dialogResult := askUserInput("Enter directory name for file to create: ", "", false)
+	dialogResult := askUserInput("Enter directory name to create: ", "", false)
 	if dialogResult.dialogSubmitted {
 		dirName := dialogResult.inputAnswer
 		side := m.CurrSide()
@@ -1059,6 +1077,26 @@ func createDirectory(m *model.Model) error {
 
 		updateStatusf("Directory '%s' created.", dirName)
 		return showItem(side, viewConfig, ".")
+	}
+	updateStatus("Creation of new directory canceled.")
+	return nil
+}
+
+func createDomain(m *model.Model) error {
+	logging.LogDebug("ui/createDomain()")
+	dialogResult := askUserInput("Enter domain name to create: ", "", false)
+	if dialogResult.dialogSubmitted {
+		domainName := dialogResult.inputAnswer
+		side := m.CurrSide()
+		viewConfig := m.ViewConfig(side)
+		err := dp.Repo.CreateDomain(domainName)
+		if err != nil {
+			return err
+		}
+
+		updateStatusf("Domain '%s' created.", domainName)
+		return showItem(side, viewConfig, ".")
+		// return errs.Errorf("Can't create domain, not yet implemented.")
 	}
 	updateStatus("Creation of new directory canceled.")
 	return nil

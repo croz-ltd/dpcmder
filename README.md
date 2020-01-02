@@ -180,8 +180,9 @@ F5/5                - copy the selected (or current if none selected) directorie
                     - if DataPower configuration is selected create an export of
                       the whole appliance (SOMA only)
 F7/7                - create directory
+                    - create a new DataPower domain
 F8/8                - create an empty file
-                    - create new DataPower configuration
+                    - create a new DataPower configuration
 F9/9                - clone current DataPower configuration under a new name
 DEL/x               - delete selected (or current if none selected) directories and files
                     - delete DataPower configuration

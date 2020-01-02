@@ -998,6 +998,47 @@ func (r *dpRepo) SaveConfiguration(itemConfig *model.ItemConfig) error {
 	}
 }
 
+// CreateDomain creates new domain on DataPower appliance.
+func (r *dpRepo) CreateDomain(domainName string) error {
+	logging.LogDebugf("repo/dp/CreateDomain('%s')", domainName)
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		return errs.Errorf("Can't create domain using REST management interface.")
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <man:request>
+		         <man:set-config>
+                <Domain name="%s"/>
+						 </man:set-config>
+		      </man:request>
+		   </soapenv:Body>
+		</soapenv:Envelope>`, domainName)
+		logging.LogDebugf("repo/dp/CreateDomain(), somaRequest: '%s'", somaRequest)
+		somaResponse, err := r.soma(somaRequest)
+		if err != nil {
+			return err
+		}
+
+		logging.LogDebugf("repo/dp/CreateDomain(), somaResponse: '%s'", somaResponse)
+		resultMsg, err := parseSOMAFindOne(somaResponse, "//*[local-name()='response']/*[local-name()='result']")
+		if err != nil {
+			return err
+		}
+		if resultMsg != "OK" {
+			return errs.Errorf("Unexpected result of SOMA update: '%s'.", resultMsg)
+		}
+
+		return nil
+	default:
+		logging.LogDebug("repo/dp/CreateDomain(), using neither REST neither SOMA.")
+		return errs.Error("DataPower management interface not set.")
+	}
+}
+
 // GetManagementInterface returns current DataPower management interface used.
 func (r *dpRepo) GetManagementInterface() string {
 	return r.dataPowerAppliance.DpManagmentInterface()
