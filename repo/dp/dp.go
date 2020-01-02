@@ -1012,7 +1012,9 @@ func (r *dpRepo) CreateDomain(domainName string) error {
 		   <soapenv:Body>
 		      <man:request>
 		         <man:set-config>
-                <Domain name="%s"/>
+                <Domain name="%s">
+                   <NeighborDomain class="Domain">default</NeighborDomain>
+                </Domain>
 						 </man:set-config>
 		      </man:request>
 		   </soapenv:Body>
