@@ -1227,41 +1227,19 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 		return nil, errs.Error("Can't get object class list if DataPower domain is not selected.")
 	}
 
+	var err error
+	var classNamesAndStatusesWithDuplicates [][]string
+	classNameMap := make(map[string]int)
+	classNameModifiedMap := make(map[string]bool)
+	classNames := make([]string, 0)
+
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
 		listObjectStatusesURL := fmt.Sprintf("/mgmt/status/%s/ObjectStatus", currentView.DpDomain)
-		classNamesWithDuplicates, _, err := r.restGetForListResult(listObjectStatusesURL, "/ObjectStatus//Class")
-		if err != nil {
-			return nil, err
-		}
-		classNameMap := make(map[string]int)
-		classNames := make([]string, 0)
-		for _, className := range classNamesWithDuplicates {
-			if _, oldName := classNameMap[className]; !oldName {
-				classNames = append(classNames, className)
-			}
-			classNameMap[className] = classNameMap[className] + 1
-		}
+		classNamesAndStatusesWithDuplicates, _, err =
+			r.restGetForListsResult(listObjectStatusesURL,
+				"/ObjectStatus//Class", "/ObjectStatus//ConfigState")
 
-		logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
-
-		items := make(model.ItemList, len(classNames))
-		for idx, className := range classNames {
-			itemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
-				DpAppliance: currentView.DpAppliance,
-				DpDomain:    currentView.DpDomain,
-				Path:        className,
-				Parent:      currentView}
-			item := model.Item{Name: className,
-				Size:   fmt.Sprintf("%d", classNameMap[className]),
-				Config: &itemConfig}
-			items[idx] = item
-		}
-
-		sort.Sort(items)
-
-		logging.LogDebugf("repo/dp/listObjectClasses(), items: %v", items)
-		return items, nil
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">
@@ -1272,59 +1250,61 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
       </man:request>
    </soapenv:Body>
 </soapenv:Envelope>`, currentView.DpDomain)
-		somaResponse, err := r.soma(somaRequest)
+		var somaResponse string
+		somaResponse, err = r.soma(somaRequest)
 		if err != nil {
 			return nil, err
 		}
 
-		classNamesAndStatusesWithDuplicates, err := parseSOMAFindLists(somaResponse,
+		classNamesAndStatusesWithDuplicates, err = parseSOMAFindLists(somaResponse,
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Class",
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
-		if err != nil {
-			return nil, err
-		}
-		classNameMap := make(map[string]int)
-		classNameModifiedMap := make(map[string]bool)
-		classNames := make([]string, 0)
-		for idx, className := range classNamesAndStatusesWithDuplicates[0] {
-			if _, oldName := classNameMap[className]; !oldName {
-				classNames = append(classNames, className)
-			}
-			if classNamesAndStatusesWithDuplicates[1][idx] != "saved" &&
-				classNamesAndStatusesWithDuplicates[1][idx] != "external" {
-				classNameModifiedMap[className] = true
-			}
-			classNameMap[className] = classNameMap[className] + 1
-		}
 
-		logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
-
-		items := make(model.ItemList, len(classNames))
-		for idx, className := range classNames {
-			itemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
-				DpAppliance: currentView.DpAppliance,
-				DpDomain:    currentView.DpDomain,
-				Path:        className,
-				Parent:      currentView}
-			modified := ""
-			if classNameModifiedMap[className] {
-				modified = "*"
-			}
-			item := model.Item{Name: className,
-				Size:     fmt.Sprintf("%d", classNameMap[className]),
-				Modified: modified,
-				Config:   &itemConfig}
-			items[idx] = item
-		}
-
-		sort.Sort(items)
-
-		return items, nil
 	default:
 		r.ObjectConfigMode = false
 		logging.LogDebug("repo/dp/listObjectClasses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	for idx, className := range classNamesAndStatusesWithDuplicates[0] {
+		if _, oldName := classNameMap[className]; !oldName {
+			classNames = append(classNames, className)
+		}
+		if classNamesAndStatusesWithDuplicates[1][idx] != "saved" &&
+			classNamesAndStatusesWithDuplicates[1][idx] != "external" {
+			classNameModifiedMap[className] = true
+		}
+		classNameMap[className] = classNameMap[className] + 1
+	}
+
+	logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
+
+	items := make(model.ItemList, len(classNames))
+	for idx, className := range classNames {
+		itemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
+			DpAppliance: currentView.DpAppliance,
+			DpDomain:    currentView.DpDomain,
+			Path:        className,
+			Parent:      currentView}
+		modified := ""
+		if classNameModifiedMap[className] {
+			modified = "*"
+		}
+		item := model.Item{Name: className,
+			Size:     fmt.Sprintf("%d", classNameMap[className]),
+			Modified: modified,
+			Config:   &itemConfig}
+		items[idx] = item
+	}
+
+	sort.Sort(items)
+
+	logging.LogDebugf("repo/dp/listObjectClasses(), items: %v", items)
+	return items, nil
 }
 
 // listObjects lists all objects of selected class in current DataPower domain.
@@ -1546,6 +1526,7 @@ func parseJSONFindOne(json, query string) (string, error) {
 	return resultNode.InnerText(), nil
 }
 
+// restGetForListResult makes REST call and parses JSON response.
 func (r *dpRepo) restGetForListResult(urlPath, resultQuery string) (result []string, responseJSON string, err error) {
 	responseJSON, err = r.restGet(urlPath)
 	if err != nil {
@@ -1557,26 +1538,63 @@ func (r *dpRepo) restGetForListResult(urlPath, resultQuery string) (result []str
 	return result, responseJSON, err
 }
 
+// restGetForListsResult makes REST call and parses JSON response multiple times.
+func (r *dpRepo) restGetForListsResult(urlPath string, resultQueries ...string) (results [][]string, responseJSON string, err error) {
+	responseJSON, err = r.restGet(urlPath)
+	if err != nil {
+		return nil, "", err
+	}
+
+	results = make([][]string, len(resultQueries))
+	for queryIdx, resultQuery := range resultQueries {
+		result, err := parseJSONFindList(responseJSON, resultQuery)
+		if err != nil {
+			return nil, "", err
+		}
+
+		results[queryIdx] = result
+	}
+
+	return results, responseJSON, err
+}
+
 // parseJSONFindList query JSON and returns array of strings.
 func parseJSONFindList(json, query string) ([]string, error) {
+	results, err := parseJSONFindLists(json, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results[0], nil
+}
+
+// parseJSONFindLists performs multiple queries on JSON and returns
+// array of array of strings (for each query one result array).
+func parseJSONFindLists(json string, queries ...string) ([][]string, error) {
 	doc, err := jsonquery.Parse(strings.NewReader(json))
 	if err != nil {
 		logging.LogDebug("Error parsing JSON.", err)
 		return nil, err
 	}
 
-	resultNodes := jsonquery.Find(doc, query)
-	if resultNodes == nil {
-		logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, json)
-		return nil, errs.Errorf("Unexpected JSON, can't find '%s'.", query)
+	results := make([][]string, len(queries))
+	for queryIdx, query := range queries {
+		resultNodes := jsonquery.Find(doc, query)
+		if resultNodes == nil {
+			logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, json)
+			return nil, errs.Errorf("Unexpected JSON, can't find '%s'.", query)
+		}
+
+		result := make([]string, len(resultNodes))
+		for nodeIdx, node := range resultNodes {
+			result[nodeIdx] = node.InnerText()
+		}
+
+		results[queryIdx] = result
 	}
 
-	result := make([]string, len(resultNodes))
-	for idx, node := range resultNodes {
-		result[idx] = node.InnerText()
-	}
-
-	return result, nil
+	return results, nil
 }
 
 // parseSOMAFindOne query soma response and returns strings value.
@@ -1615,7 +1633,7 @@ func parseSOMAFindLists(somaResponse string, querys ...string) ([][]string, erro
 		return nil, err
 	}
 	results := make([][]string, len(querys))
-	for idx, query := range querys {
+	for queryIdx, query := range querys {
 		resultNodes := xmlquery.Find(doc, query)
 		if resultNodes == nil {
 			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
@@ -1623,11 +1641,11 @@ func parseSOMAFindLists(somaResponse string, querys ...string) ([][]string, erro
 		}
 
 		result := make([]string, len(resultNodes))
-		for idx, node := range resultNodes {
-			result[idx] = node.InnerText()
+		for nodeIdx, node := range resultNodes {
+			result[nodeIdx] = node.InnerText()
 		}
 
-		results[idx] = result
+		results[queryIdx] = result
 	}
 
 	return results, nil
