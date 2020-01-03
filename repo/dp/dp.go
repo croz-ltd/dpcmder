@@ -43,6 +43,12 @@ var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string)}
 // syncing local directory to DataPower directory.
 var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string)}
 
+// Constants from xml-mgmt.xsd (dmConfigState type), only used ones.
+const (
+	objectStatusSaved    = "saved"
+	objectStatusExternal = "external"
+)
+
 func (r *dpRepo) String() string {
 	return r.name
 }
@@ -833,6 +839,9 @@ func (r *dpRepo) GetObject(dpDomain, objectClass, objectName string, persisted b
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
+		if persisted {
+			return nil, errs.Errorf("Can't get persisted object using REST managment.")
+		}
 		getObjectURL := fmt.Sprintf("/mgmt/config/%s/%s/%s",
 			dpDomain, objectClass, objectName)
 		objectJSON, err := r.restGet(getObjectURL)
@@ -1437,8 +1446,8 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 		if _, oldName := classNameMap[className]; !oldName {
 			classNames = append(classNames, className)
 		}
-		if classNamesAndStatusesWithDuplicates[1][idx] != "saved" &&
-			classNamesAndStatusesWithDuplicates[1][idx] != "external" {
+		if classNamesAndStatusesWithDuplicates[1][idx] != objectStatusSaved &&
+			classNamesAndStatusesWithDuplicates[1][idx] != objectStatusExternal {
 			classNameModifiedMap[className] = true
 		}
 		classNameMap[className] = classNameMap[className] + 1
@@ -1480,12 +1489,29 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		return nil, errs.Error("Can't get object list if no object class is known.")
 	}
 
+	objectClassName := itemConfig.Path
+
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
+		// To get object status we have to fetch all object statuses and merge this
+		// info with each object configuration info because:
+		// Sometimes, response for ObjectStatus has invalid Name element - different
+		// from name attribute in response for configuration of same object.
+		// It seems it is wrong for "singleton" objects in default domain, for
+		// example: WebGUI (Name (status): "web-mgmt", name (config): "WebGUI-Settings").
+		listObjectStatusesURL := fmt.Sprintf("/mgmt/status/%s/ObjectStatus", itemConfig.DpDomain)
+		objectNamesAndStatuses, _, err :=
+			r.restGetForListsResult(listObjectStatusesURL,
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../Name", objectClassName),
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../ConfigState", objectClassName))
+		if err != nil {
+			return nil, err
+		}
+
 		// TODO: add status? Problem is that it is not possible to get status of
 		// only 1 class of objects so we would need to fetch all objects.
-		listObjectsURL := fmt.Sprintf("/mgmt/config/%s/%s", itemConfig.DpDomain, itemConfig.Path)
-		objectNameQuery := fmt.Sprintf("/%s//name", itemConfig.Path)
+		listObjectsURL := fmt.Sprintf("/mgmt/config/%s/%s", itemConfig.DpDomain, objectClassName)
+		objectNameQuery := fmt.Sprintf("/%s//name", objectClassName)
 		objectNames, _, err := r.restGetForListResult(listObjectsURL, objectNameQuery)
 		if err != nil {
 			return nil, err
@@ -1496,13 +1522,25 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 
 		items := make(model.ItemList, len(objectNames))
 		items = append(items, parentDir)
-		for idx, objectName := range objectNames {
+
+		for idx, objectNameFromStatus := range objectNamesAndStatuses[0] {
+			// For "singleton" intrinsic objects in default domain we can't use name
+			// from ObjectStatus.
+			objectName := objectNameFromStatus
+			if len(objectNames) == 1 {
+				objectName = objectNames[0]
+			}
+			modified := ""
+			if objectNamesAndStatuses[1][idx] != objectStatusSaved {
+				modified = objectNamesAndStatuses[1][idx]
+			}
+
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
-				Path:        itemConfig.Path,
+				Path:        objectClassName,
 				Parent:      itemConfig}
-			item := model.Item{Name: objectName, Config: &itemConfig}
+			item := model.Item{Name: objectName, Modified: modified, Config: &itemConfig}
 			items[idx] = item
 		}
 
@@ -1524,7 +1562,7 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		         <man:get-config class="%s"/>
 		      </man:request>
 		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
+		</soapenv:Envelope>`, itemConfig.DpDomain, objectClassName)
 		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 			xmlns:man="http://www.datapower.com/schemas/management">
 		   <soapenv:Header/>
@@ -1533,7 +1571,7 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		         <man:get-status class="ObjectStatus" object-class="%s"/>
 		      </man:request>
 		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
+		</soapenv:Envelope>`, itemConfig.DpDomain, objectClassName)
 		somaConfigResponse, err := r.soma(somaConfigRequest)
 		if err != nil {
 			return nil, err
@@ -1569,13 +1607,13 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 				objectName = objectNames[0]
 			}
 			modified := ""
-			if objectNamesAndStatuses[1][idx] != "saved" {
+			if objectNamesAndStatuses[1][idx] != objectStatusSaved {
 				modified = objectNamesAndStatuses[1][idx]
 			}
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
-				Path:        itemConfig.Path,
+				Path:        objectClassName,
 				Parent:      itemConfig}
 			item := model.Item{Name: objectName, Modified: modified, Config: &itemConfig}
 			items[idx] = item
