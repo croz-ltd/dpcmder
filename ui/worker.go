@@ -566,7 +566,7 @@ func editCurrent(m *model.Model) error {
 			return err
 		}
 		if changed {
-			err := dp.Repo.SetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, newObjectContent, false)
+			err := dp.Repo.SetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, newObjectContent, true)
 			if err != nil {
 				return err
 			}
