@@ -571,6 +571,8 @@ func editCurrent(m *model.Model) error {
 				return err
 			}
 			updateStatusf("DataPower object '%s' of class '%s' updated.", ci.Name, ci.Config.Path)
+			currView := workingModel.ViewConfig(workingModel.CurrSide())
+			showItem(workingModel.CurrSide(), currView, ".")
 		} else {
 			updateStatusf("DataPower object '%s' of class '%s' not changed.", ci.Name, ci.Config.Path)
 		}
