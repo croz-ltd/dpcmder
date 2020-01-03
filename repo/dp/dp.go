@@ -1102,6 +1102,22 @@ func (r *dpRepo) ParseObjectClassAndName(objectBytes []byte) (objectClass, objec
 	}
 }
 
+// GetInfo returns information about given item.
+func (r *dpRepo) GetInfo(item *model.Item) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetInfo(%v)", item)
+
+	itemInfo, err := json.Marshal(item.Config.DpObjectState)
+	if err != nil {
+		return nil, err
+	}
+
+	var prettyJSON bytes.Buffer
+	json.Indent(&prettyJSON, itemInfo, "", "  ")
+	itemInfoPretty := prettyJSON.Bytes()
+
+	return itemInfoPretty, err
+}
+
 // GetManagementInterface returns current DataPower management interface used.
 func (r *dpRepo) GetManagementInterface() string {
 	return r.dataPowerAppliance.DpManagmentInterface()
@@ -1503,13 +1519,15 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		objectNamesAndStatuses, _, err :=
 			r.restGetForListsResult(listObjectStatusesURL,
 				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../Name", objectClassName),
-				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../ConfigState", objectClassName))
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../ConfigState", objectClassName),
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../OpState", objectClassName),
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../AdminState", objectClassName),
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../EventCode", objectClassName),
+				fmt.Sprintf("/ObjectStatus//Class[text()='%s']/../ErrorCode", objectClassName))
 		if err != nil {
 			return nil, err
 		}
 
-		// TODO: add status? Problem is that it is not possible to get status of
-		// only 1 class of objects so we would need to fetch all objects.
 		listObjectsURL := fmt.Sprintf("/mgmt/config/%s/%s", itemConfig.DpDomain, objectClassName)
 		objectNameQuery := fmt.Sprintf("/%s//name", objectClassName)
 		objectNames, _, err := r.restGetForListResult(listObjectsURL, objectNameQuery)
@@ -1534,13 +1552,23 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 			if objectNamesAndStatuses[1][idx] != objectStatusSaved {
 				modified = objectNamesAndStatuses[1][idx]
 			}
+			opState := ""
+			if objectNamesAndStatuses[2][idx] != "up" {
+				opState = objectNamesAndStatuses[2][idx]
+			}
 
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        objectClassName,
 				Parent:      itemConfig}
-			item := model.Item{Name: objectName, Modified: modified, Config: &itemConfig}
+			itemConfig.DpObjectState.ConfigState = objectNamesAndStatuses[1][idx]
+			itemConfig.DpObjectState.OpState = objectNamesAndStatuses[2][idx]
+			itemConfig.DpObjectState.AdminState = objectNamesAndStatuses[3][idx]
+			itemConfig.DpObjectState.EventCode = objectNamesAndStatuses[4][idx]
+			itemConfig.DpObjectState.ErrorCode = objectNamesAndStatuses[5][idx]
+
+			item := model.Item{Name: objectName, Modified: modified, Size: opState, Config: &itemConfig}
 			items[idx] = item
 		}
 
@@ -1590,7 +1618,11 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 
 		objectNamesAndStatuses, err := parseSOMAFindLists(somaStatusResponse,
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/Name",
-			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState",
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/OpState",
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/AdminState",
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/EventCode",
+			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ErrorCode")
 		if err != nil {
 			return nil, err
 		}
@@ -1610,12 +1642,21 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 			if objectNamesAndStatuses[1][idx] != objectStatusSaved {
 				modified = objectNamesAndStatuses[1][idx]
 			}
+			opState := ""
+			if objectNamesAndStatuses[2][idx] != "up" {
+				opState = objectNamesAndStatuses[2][idx]
+			}
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        objectClassName,
 				Parent:      itemConfig}
-			item := model.Item{Name: objectName, Modified: modified, Config: &itemConfig}
+			itemConfig.DpObjectState.ConfigState = objectNamesAndStatuses[1][idx]
+			itemConfig.DpObjectState.OpState = objectNamesAndStatuses[2][idx]
+			itemConfig.DpObjectState.AdminState = objectNamesAndStatuses[3][idx]
+			itemConfig.DpObjectState.EventCode = objectNamesAndStatuses[4][idx]
+			itemConfig.DpObjectState.ErrorCode = objectNamesAndStatuses[5][idx]
+			item := model.Item{Name: objectName, Modified: modified, Size: opState, Config: &itemConfig}
 			items[idx] = item
 		}
 

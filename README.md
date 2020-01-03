@@ -205,6 +205,7 @@ S                   - save running DataPower configuration (SOMA only)
 0                   - toggle DataPower view from filestore view to object view
                     - when using SOMA access changed objects are marked and object
                       changes can be shown using diff (d key)
+?                   - show status information for the current DataPower object
 q                   - quit
 any-other-char      - show help (+ hex value of the key pressed visible in the status bar)
 

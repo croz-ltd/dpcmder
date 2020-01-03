@@ -78,12 +78,22 @@ type Item struct {
 // DataPower domain or DataPower configuration which is required to uniquely
 // identify Item.
 type ItemConfig struct {
-	Type        ItemType
-	Path        string
-	DpAppliance string
-	DpDomain    string
-	DpFilestore string
-	Parent      *ItemConfig
+	Type          ItemType
+	Path          string
+	DpAppliance   string
+	DpDomain      string
+	DpFilestore   string
+	DpObjectState ItemDpObjectState
+	Parent        *ItemConfig
+}
+
+// ItemDpObjectState contains info about DataPower object state.
+type ItemDpObjectState struct {
+	OpState     string
+	AdminState  string
+	EventCode   string
+	ErrorCode   string
+	ConfigState string
 }
 
 // ItemList is slice extended as a sortable list of Items (implements sort.Interface).

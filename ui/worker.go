@@ -217,6 +217,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = showStatusMessages(workingModel.Statuses())
 		case c == '0':
 			err = toggleObjectMode(&workingModel)
+		case c == '?':
+			err = showItemInfo(&workingModel)
 		case c == 'h':
 			err = extprogs.ShowHelp()
 
@@ -1588,6 +1590,37 @@ func toggleObjectMode(m *model.Model) error {
 	}
 	logging.LogDebugf("worker/toggleObjectMode(), currentView: %v", currentView)
 	return showItem(model.Left, currentView, ".")
+}
+
+// showItemInfo shows information about current item.
+func showItemInfo(m *model.Model) error {
+	logging.LogDebugf("worker/showItemInfo(), dp.Repo.ObjectConfigMode: %t", dp.Repo.ObjectConfigMode)
+
+	if !dp.Repo.ObjectConfigMode {
+		return errs.Error("Can't show info for DataPower object if object mode is not active.")
+	}
+
+	currentItem := m.CurrItem()
+
+	switch currentItem.Config.Type {
+	case model.ItemDpObject:
+		infoBytes, err := dp.Repo.GetInfo(currentItem)
+		if err != nil {
+			return err
+		}
+		if infoBytes != nil {
+			err = extprogs.View("*."+currentItem.Name, infoBytes)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errs.Errorf("Can't show info for '%s' object.", currentItem.Name)
+		}
+	default:
+		return errs.Error("Can't show info for non DataPower object.")
+	}
+
+	return nil
 }
 
 func updateDpFile(m *model.Model, tree *localfs.Tree) bool {
