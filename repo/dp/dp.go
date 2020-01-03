@@ -2085,7 +2085,7 @@ func splitOnLast(wholeString string, splitterString string) (string, string) {
 
 // InitNetworkSettings initializes DataPower client network configuration.
 func (r *dpRepo) InitNetworkSettings(dpa config.DataPowerAppliance) error {
-	logging.LogDebug("repo/dp/InitNetworkSettings(%v)", dpa)
+	logging.LogDebugf("repo/dp/InitNetworkSettings(%v)", dpa)
 	r.dataPowerAppliance = dpa
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	if r.dataPowerAppliance.Proxy != "" {
