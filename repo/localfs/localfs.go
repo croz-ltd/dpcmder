@@ -24,7 +24,7 @@ type localRepo struct {
 // Repo is instance or local filesystem repo/Repo interface implementation.
 var Repo = localRepo{name: "local filesystem"}
 
-func (r *localRepo) String() string {
+func (r localRepo) String() string {
 	return r.name
 }
 

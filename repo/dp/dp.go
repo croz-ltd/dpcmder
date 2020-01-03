@@ -827,22 +827,19 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 
 // GetObject fetches DataPower object configuration. If persisted flag is true
 // fetch persisted object, otherwise fetch current object from memory.
-func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string, persisted bool) ([]byte, error) {
-	logging.LogDebugf("repo/dp/GetObject(%v, '%s', %t)", itemConfig, objectName, persisted)
-
-	switch itemConfig.Type {
-	case model.ItemDpObject:
-	default:
-		return nil, errs.Errorf("Can't get object when item is of type %s.",
-			itemConfig.Type.UserFriendlyString())
-	}
+func (r *dpRepo) GetObject(dpDomain, objectClass, objectName string, persisted bool) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetObject('%s', '%s', '%s', %t)",
+		dpDomain, objectClass, objectName, persisted)
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
 		getObjectURL := fmt.Sprintf("/mgmt/config/%s/%s/%s",
-			itemConfig.DpDomain, itemConfig.Path, objectName)
+			dpDomain, objectClass, objectName)
 		objectJSON, err := r.restGet(getObjectURL)
 		if err != nil {
+			if respErr, ok := err.(errs.UnexpectedHTTPResponse); ok && respErr.StatusCode == 404 {
+				return nil, nil
+			}
 			return nil, err
 		}
 
@@ -862,7 +859,7 @@ func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string, pers
 		      </man:request>
 		   </soapenv:Body>
 		</soapenv:Envelope>`,
-			itemConfig.DpDomain, itemConfig.Path, objectName, persisted)
+			dpDomain, objectClass, objectName, persisted)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
 			return nil, err
@@ -877,7 +874,8 @@ func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string, pers
 		resultNode := xmlquery.FindOne(doc, query)
 		if resultNode == nil {
 			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
-			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+			// return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+			return nil, nil
 		}
 
 		resultXML := resultNode.OutputXML(true)
@@ -893,21 +891,25 @@ func (r *dpRepo) GetObject(itemConfig *model.ItemConfig, objectName string, pers
 }
 
 // SetObject updates DataPower object configuration.
-func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, objectContent []byte) error {
-	logging.LogDebugf("repo/dp/SetObject(%v, '%s', ...)", itemConfig, objectName)
-
-	switch itemConfig.Type {
-	case model.ItemDpObject:
-	default:
-		return errs.Errorf("Can't set object when item is of type %s.",
-			itemConfig.Type.UserFriendlyString())
-	}
+func (r *dpRepo) SetObject(dpDomain, objectClass, objectName string, objectContent []byte, existingObject bool) error {
+	logging.LogDebugf("repo/dp/SetObject('%s', '%s', '%s', ...)",
+		dpDomain, objectClass, objectName)
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
-		getObjectURL := fmt.Sprintf("/mgmt/config/%s/%s/%s",
-			itemConfig.DpDomain, itemConfig.Path, objectName)
-		resultJSON, err := r.rest(getObjectURL, "PUT", string(objectContent))
+		var setObjectURL string
+		var setObjectMethod string
+		var err error
+		if existingObject {
+			setObjectURL = fmt.Sprintf("/mgmt/config/%s/%s/%s",
+				dpDomain, objectClass, objectName)
+			setObjectMethod = "PUT"
+		} else {
+			setObjectURL = fmt.Sprintf("/mgmt/config/%s/%s",
+				dpDomain, objectClass)
+			setObjectMethod = "POST"
+		}
+		resultJSON, err := r.rest(setObjectURL, setObjectMethod, string(objectContent))
 		if err != nil {
 			return err
 		}
@@ -934,7 +936,7 @@ func (r *dpRepo) SetObject(itemConfig *model.ItemConfig, objectName string, obje
 						 </man:set-config>
 		      </man:request>
 		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain, objectContent)
+		</soapenv:Envelope>`, dpDomain, objectContent)
 		logging.LogDebugf("repo/dp/SetObject(), somaRequest: '%s'", somaRequest)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
@@ -1038,6 +1040,56 @@ func (r *dpRepo) CreateDomain(domainName string) error {
 	default:
 		logging.LogDebug("repo/dp/CreateDomain(), using neither REST neither SOMA.")
 		return errs.Error("DataPower management interface not set.")
+	}
+}
+
+// ParseObjectClassAndName parses bytes with XML/JSON definition of object
+// (XML/JSON should be used depending on REST/SOMA interface used).
+func (r *dpRepo) ParseObjectClassAndName(objectBytes []byte) (objectClass, objectName string, err error) {
+	logging.LogDebugf("repo/dp/ParseObjectClassAndName('%s')", objectBytes)
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		doc, err := jsonquery.Parse(bytes.NewReader(objectBytes))
+		if err != nil {
+			logging.LogDebug("Error parsing JSON.", err)
+			return "", "", err
+		}
+
+		rootNode := jsonquery.FindOne(doc, "/*")
+		if rootNode == nil {
+			logging.LogDebugf("Can't find class name in JSON object configuration:\n'%s'", objectBytes)
+			return "", "", errs.Error("Unexpected XML, can't find class name.")
+		}
+		nameNode := rootNode.SelectElement("name")
+		if nameNode == nil {
+			logging.LogDebugf("Can't find object name in JSON object configuration:\n'%s'", objectBytes)
+			return "", "", errs.Error("Unexpected XML, can't find object name.")
+		}
+		className := rootNode.Data
+		objectName := nameNode.InnerText()
+		logging.LogDebugf("repo/dp/ParseObjectClassAndName(), className: '%s', objectName: '%s'", className, objectName)
+
+		return className, objectName, nil
+	case config.DpInterfaceSoma:
+		doc, err := xmlquery.Parse(bytes.NewReader(objectBytes))
+		if err != nil {
+			logging.LogDebug("Error parsing XML.", err)
+			return "", "", err
+		}
+
+		rootNode := xmlquery.FindOne(doc, "/*")
+		if rootNode == nil {
+			logging.LogDebugf("Can't find class name in XML object configuration:\n'%s'", objectBytes)
+			return "", "", errs.Error("Unexpected XML, can't find class name.")
+		}
+
+		className := rootNode.Data
+		objectName := rootNode.SelectAttr("name")
+		return className, objectName, nil
+	default:
+		logging.LogDebug("repo/dp/CreateDomain(), using neither REST neither SOMA.")
+		return "", "", errs.Error("DataPower management interface not set.")
 	}
 }
 

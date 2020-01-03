@@ -179,6 +179,10 @@ F5/5                - copy the selected (or current if none selected) directorie
                     - if DataPower domain is selected create an export of the domain
                     - if DataPower configuration is selected create an export of
                       the whole appliance (SOMA only)
+                    - in DataPower object configuration mode copy DataPower
+                      object to file or copy file with proper object configuration
+                      to DataPower object (XML/JSON, depending on REST/SOMA
+                      management interface used)
 F7/7                - create directory
                     - create a new DataPower domain
 F8/8                - create an empty file

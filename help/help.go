@@ -33,6 +33,10 @@ F5/5                - copy the selected (or current if none selected) directorie
                     - if DataPower domain is selected create an export of the domain
                     - if DataPower configuration is selected create an export of
                       the whole appliance (SOMA only)
+                    - in DataPower object configuration mode copy DataPower
+                      object to file or copy file with proper object configuration
+                      to DataPower object (XML/JSON, depending on REST/SOMA
+                      management interface used)
 F7/7                - create directory
                     - create a new DataPower domain
 F8/8                - create an empty file
@@ -91,6 +95,9 @@ TODO:
 
 - add domain/appliance import?
 - add the creation of objects
+  (should be able to show/create all classes of objects, even ones without
+  object instances)
+- add objects cloning (under new name)
 - add deletion of a domain
 
 (to show dpcmder usage help use "-h" flag instead of "-help" flag)

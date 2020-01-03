@@ -488,7 +488,7 @@ func viewCurrent(m *model.Model) error {
 			return err
 		}
 	case model.ItemDpObject:
-		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name, false)
+		objectContent, err := dp.Repo.GetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, false)
 		if err != nil {
 			return err
 		}
@@ -555,7 +555,7 @@ func editCurrent(m *model.Model) error {
 		updateStatusf("DataPower configuration '%s' updated.", ci.Name)
 
 	case model.ItemDpObject:
-		objectContent, err := dp.Repo.GetObject(ci.Config, ci.Name, false)
+		objectContent, err := dp.Repo.GetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, false)
 		if err != nil {
 			return err
 		}
@@ -564,7 +564,7 @@ func editCurrent(m *model.Model) error {
 			return err
 		}
 		if changed {
-			err := dp.Repo.SetObject(ci.Config, ci.Name, newObjectContent)
+			err := dp.Repo.SetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, newObjectContent, false)
 			if err != nil {
 				return err
 			}
@@ -672,11 +672,13 @@ func diffCurrent(m *model.Model) error {
 
 		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
 
-		objectContentMemory, err := dp.Repo.GetObject(dpItem.Config, dpItem.Name, false)
+		objectContentMemory, err := dp.Repo.GetObject(
+			dpItem.Config.DpDomain, dpItem.Config.Path, dpItem.Name, false)
 		if err != nil {
 			return err
 		}
-		objectContentSaved, err := dp.Repo.GetObject(dpItem.Config, dpItem.Name, true)
+		objectContentSaved, err := dp.Repo.GetObject(
+			dpItem.Config.DpDomain, dpItem.Config.Path, dpItem.Name, true)
 		if err != nil {
 			return err
 		}
@@ -738,7 +740,13 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 			return res, err
 		}
 	case model.ItemFile:
-		res, err = copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		// If we copy to DataPower and we are in ObjectConfigMode we copy file to object.
+		if toRepo.String() == dp.Repo.String() && dp.Repo.ObjectConfigMode {
+			res, err = copyFileToObject(item.Config, item.Name, fromRepo, toRepo, fromViewConfig, toViewConfig, confirmOverwrite)
+		} else {
+			res, err = copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
+		}
+
 		if err != nil {
 			return res, err
 		}
@@ -752,8 +760,13 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		if err != nil {
 			return res, err
 		}
+	case model.ItemDpObject:
+		res, err = copyObjectToFile(item.Config, item.Name, fromRepo, toRepo, fromViewConfig, toViewConfig, confirmOverwrite)
+		if err != nil {
+			return res, err
+		}
 	default:
-		updateStatusf("Only files and directories can be copied or appliances/domains exported.")
+		updateStatusf("Item of type '%s' can't be copied/exported.", item.Config.Type.UserFriendlyString())
 	}
 
 	logging.LogDebugf("ui/copyItem(), res: '%s'", res)
@@ -827,10 +840,12 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 }
 
 func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, fileName, confirmOverwrite string) (string, error) {
-	logging.LogDebugf("ui/copyFile(.., .., %v, %v, '%s', '%s')", fromViewConfig, toViewConfig, fileName, confirmOverwrite)
+	logging.LogDebugf("ui/copyFile(.., .., %v, %v, '%s', '%s')",
+		fromViewConfig, toViewConfig, fileName, confirmOverwrite)
 	showProgressDialog("Copying file(s) from DataPower...")
 	defer hideProgressDialog()
-	updateProgressDialogMessagef("Preparing to copy file '%s' from %s to %s...", fileName, fromRepo, toRepo)
+	updateProgressDialogMessagef("Preparing to copy file '%s' from %s to %s...",
+		fileName, fromRepo, toRepo)
 	res := confirmOverwrite
 	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, fileName)
 	if err != nil {
@@ -839,7 +854,9 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 
 	switch targetFileType {
 	case model.ItemDirectory:
-		copyFileToDirStatus := fmt.Sprintf("ERROR: File '%s' could not be copied from '%s' to '%s' - directory with same name exists.", fileName, fromViewConfig.Path, toViewConfig.Path)
+		copyFileToDirStatus :=
+			fmt.Sprintf("ERROR: File '%s' could not be copied from '%s' to '%s' - directory with same name exists.",
+				fileName, fromViewConfig.Path, toViewConfig.Path)
 		updateStatus(copyFileToDirStatus)
 	case model.ItemFile:
 		if res != "ya" && res != "na" {
@@ -850,7 +867,6 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 			if dialogResult.dialogSubmitted {
 				res = dialogResult.inputAnswer
 			}
-			// confirmOverwrite = userInput(m, fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ", fileName, toParentPath), "")
 		}
 	case model.ItemNone:
 		res = "y"
@@ -868,10 +884,12 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 			}
 			logging.LogDebugf("ui/copyFile(): %v", copySuccess)
 			if copySuccess {
-				copySuccessStatus := fmt.Sprintf("File '%s' copied from '%s' to '%s'.", fileName, fromViewConfig.Path, toViewConfig.Path)
+				copySuccessStatus := fmt.Sprintf("File '%s' copied from '%s' to '%s'.",
+					fileName, fromViewConfig.Path, toViewConfig.Path)
 				updateStatus(copySuccessStatus)
 			} else {
-				copyErrStatus := fmt.Sprintf("ERROR: File '%s' not copied from '%s' to '%s'.", fileName, fromViewConfig.Path, toViewConfig.Path)
+				copyErrStatus := fmt.Sprintf("ERROR: File '%s' not copied from '%s' to '%s'.",
+					fileName, fromViewConfig.Path, toViewConfig.Path)
 				updateStatus(copyErrStatus)
 			}
 		}
@@ -880,6 +898,167 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	}
 
 	logging.LogDebugf("ui/copyFile(), res: '%s'", res)
+	return res, nil
+}
+
+func copyObjectToFile(itemConfig *model.ItemConfig, itemName string,
+	fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig,
+	confirmOverwrite string) (string, error) {
+	logging.LogDebugf("ui/copyObjectToFile(%v, '%s', .., .., %v, %v, '%s')",
+		itemConfig, itemName, fromViewConfig, toViewConfig, confirmOverwrite)
+	res := confirmOverwrite
+
+	objectName := itemName
+	var objectFileSuffix string
+
+	switch dp.Repo.GetManagementInterface() {
+	case config.DpInterfaceRest:
+		objectFileSuffix = ".json"
+	case config.DpInterfaceSoma:
+		objectFileSuffix = ".xml"
+	default:
+		logging.LogDebug("ui/copyObjectToFile(), using neither REST neither SOMA.")
+		return "", errs.Error("DataPower management interface not set.")
+	}
+	objectFileName := itemName + objectFileSuffix
+	logging.LogDebugf("ui/copyObjectToFile(), objectName: '%s', objectFileName: '%s'.",
+		objectName, objectFileName)
+
+	targetFileType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, objectFileName)
+	if err != nil {
+		return res, err
+	}
+
+	switch targetFileType {
+	case model.ItemDirectory:
+		copyFileToDirStatus :=
+			fmt.Sprintf("ERROR: Object '%s' could not be copied from '%s' to '%s' - directory with same name exists.",
+				objectFileName, fromViewConfig.Path, toViewConfig.Path)
+		updateStatus(copyFileToDirStatus)
+	case model.ItemFile:
+		if res != "ya" && res != "na" {
+			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
+			dialogResult := askUserInput(
+				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
+					objectFileName, toViewConfig.Path), "", false)
+			if dialogResult.dialogSubmitted {
+				res = dialogResult.inputAnswer
+			}
+		}
+	case model.ItemNone:
+		res = "y"
+	}
+	if res == "y" || res == "ya" {
+		switch targetFileType {
+		case model.ItemFile, model.ItemNone:
+			fBytes, err := dp.Repo.GetObject(itemConfig.DpDomain, itemConfig.Path, objectName, false)
+			if err != nil {
+				return res, err
+			}
+			copySuccess, err := toRepo.UpdateFile(toViewConfig, objectFileName, fBytes)
+			if err != nil {
+				return res, err
+			}
+			logging.LogDebugf("ui/copyObject(): %v", copySuccess)
+			if copySuccess {
+				copySuccessStatus := fmt.Sprintf("File '%s' copied from '%s' to '%s'.",
+					objectFileName, fromViewConfig.Path, toViewConfig.Path)
+				updateStatus(copySuccessStatus)
+			} else {
+				copyErrStatus := fmt.Sprintf("ERROR: File '%s' not copied from '%s' to '%s'.",
+					objectFileName, fromViewConfig.Path, toViewConfig.Path)
+				updateStatus(copyErrStatus)
+			}
+		}
+	} else {
+		updateStatusf("Canceled overwrite of '%s'", objectFileName)
+	}
+
+	logging.LogDebugf("ui/copyObjectToFile(), res: '%s'", res)
+	return res, nil
+}
+
+func copyFileToObject(itemConfig *model.ItemConfig, itemName string,
+	fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig,
+	confirmOverwrite string) (string, error) {
+	logging.LogDebugf("ui/copyFileToObject(%v, '%s', .., .., %v, %v, '%s')",
+		itemConfig, itemName, fromViewConfig, toViewConfig, confirmOverwrite)
+	res := confirmOverwrite
+
+	var objectFileSuffix string
+
+	switch dp.Repo.GetManagementInterface() {
+	case config.DpInterfaceRest:
+		objectFileSuffix = ".json"
+	case config.DpInterfaceSoma:
+		objectFileSuffix = ".xml"
+	default:
+		logging.LogDebug("ui/copyFileToObject(), using neither REST neither SOMA.")
+		return "", errs.Error("DataPower management interface not set.")
+	}
+
+	if !strings.HasSuffix(itemName, objectFileSuffix) {
+		return "", errs.Errorf("Copy from file '%s' to object - wrong suffix, '%s' expected.",
+			itemName, objectFileSuffix)
+	}
+	objectFileName := itemName
+
+	objectBytesLocal, err := localfs.Repo.GetFile(fromViewConfig, objectFileName)
+	if err != nil {
+		return "", err
+	}
+	objectClassName, objectName, err := dp.Repo.ParseObjectClassAndName(objectBytesLocal)
+	if err != nil {
+		return "", err
+	}
+	objectBytesDp, err := dp.Repo.GetObject(
+		toViewConfig.DpDomain, objectClassName, objectName, false)
+	if err != nil {
+		return "", err
+	}
+
+	targetItemType := model.ItemDpObject
+	if objectBytesDp == nil {
+		targetItemType = model.ItemNone
+	}
+
+	existingObject := false
+	switch targetItemType {
+	case model.ItemDpObject:
+		existingObject = true
+		if res != "ya" && res != "na" {
+			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
+			dialogResult := askUserInput(
+				fmt.Sprintf("Confirm overwrite of object '%s' of class '%s' from  file '%s' (y/ya/n/na): ",
+					objectName, objectClassName, objectFileName), "", false)
+			if dialogResult.dialogSubmitted {
+				res = dialogResult.inputAnswer
+			}
+		}
+	case model.ItemNone:
+		res = "y"
+	default:
+		return "", errs.Errorf("Unknown target item type (%s).", targetItemType)
+	}
+
+	logging.LogDebugf("ui/copyFileToObject(), targetItemType: '%s', existingObject: %t, res: '%s'.",
+		targetItemType, existingObject, res)
+
+	if res == "y" || res == "ya" {
+		err = dp.Repo.SetObject(
+			toViewConfig.DpDomain, objectClassName, objectName, objectBytesLocal, existingObject)
+		if err != nil {
+			return res, err
+		}
+		logging.LogDebugf("ui/copyFileToObject() Object '%s' of class '%s' copied from file '%s' to the appliance.",
+			objectName, objectClassName, objectFileName)
+		updateStatusf("Object '%s' of class '%s' copied from file '%s' to the appliance.",
+			objectName, objectClassName, objectFileName)
+	} else {
+		updateStatusf("Canceled overwrite of '%s'", objectName)
+	}
+
+	logging.LogDebugf("ui/copyFileToObject(), res: '%s'", res)
 	return res, nil
 }
 
