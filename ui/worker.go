@@ -1408,6 +1408,8 @@ func saveDataPowerConfig(m *model.Model) error {
 		if err != nil {
 			return err
 		}
+		currView := workingModel.ViewConfig(workingModel.CurrSide())
+		showItem(workingModel.CurrSide(), currView, ".")
 		updateStatusf("Domain '%s' saved.", viewConfig.DpDomain)
 		return nil
 	}
