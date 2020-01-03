@@ -152,9 +152,9 @@ func initConfiguration() {
 	k.Path = configDirPath()
 	k.Path = configDirPathEnsureExists()
 	k.Permission = os.FileMode(0644)
-	logging.LogDebug("config/initConfiguration() - Conf before read: ", Conf)
+	logging.LogDebugf("config/initConfiguration() - Conf before read: %#v", Conf)
 	k.Read()
-	logging.LogDebug("config/initConfiguration() - Conf after read: ", Conf)
+	logging.LogDebugf("config/initConfiguration() - Conf after read: %#v", Conf)
 	if *dpRestURL != "" || *dpSomaURL != "" {
 		if *dpConfigName != "" {
 			validateDpConfigName()
@@ -165,7 +165,7 @@ func initConfiguration() {
 			CurrentApplianceName = PreviousApplianceName
 		}
 		k.Persist()
-		logging.LogDebug("config/initConfiguration() - Conf after persist: ", Conf)
+		logging.LogDebugf("config/initConfiguration() - Conf after persist: %#v", Conf)
 	}
 	CurrentAppliance = DataPowerAppliance{Domain: *dpDomain, Proxy: *proxy, RestUrl: *dpRestURL, SomaUrl: *dpSomaURL, Username: *dpUsername, Password: *dpPassword}
 }
