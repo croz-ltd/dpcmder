@@ -901,8 +901,8 @@ func (r *dpRepo) GetObject(dpDomain, objectClass, objectName string, persisted b
 
 // SetObject updates or creates DataPower object configuration.
 func (r *dpRepo) SetObject(dpDomain, objectClass, objectName string, objectContent []byte, existingObject bool) error {
-	logging.LogDebugf("repo/dp/SetObject('%s', '%s', '%s', ...)",
-		dpDomain, objectClass, objectName)
+	logging.LogDebugf("repo/dp/SetObject('%s', '%s', '%s', .., %t)",
+		dpDomain, objectClass, objectName, existingObject)
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:

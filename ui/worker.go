@@ -566,11 +566,13 @@ func editCurrent(m *model.Model) error {
 			return err
 		}
 		if changed {
-			err := dp.Repo.SetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, newObjectContent, false)
+			err := dp.Repo.SetObject(ci.Config.DpDomain, ci.Config.Path, ci.Name, newObjectContent, true)
 			if err != nil {
 				return err
 			}
 			updateStatusf("DataPower object '%s' of class '%s' updated.", ci.Name, ci.Config.Path)
+			currView := workingModel.ViewConfig(workingModel.CurrSide())
+			showItem(workingModel.CurrSide(), currView, ".")
 		} else {
 			updateStatusf("DataPower object '%s' of class '%s' not changed.", ci.Name, ci.Config.Path)
 		}
@@ -1446,6 +1448,8 @@ func saveDataPowerConfig(m *model.Model) error {
 		if err != nil {
 			return err
 		}
+		currView := workingModel.ViewConfig(workingModel.CurrSide())
+		showItem(workingModel.CurrSide(), currView, ".")
 		updateStatusf("Domain '%s' saved.", viewConfig.DpDomain)
 		return nil
 	}
