@@ -32,7 +32,7 @@ var CurrentAppliance DataPowerAppliance
 // CurrentApplianceName stores configuration of current appliance name used.
 var CurrentApplianceName string
 
-// LocalFolderPath is a folder where dpcmder start showing files - set by command flag.
+// LocalFolderPath is a folder where dpcmder starts showing files - set by command flag.
 var LocalFolderPath *string
 
 // DebugLogFile/TraceLogFile enables writing of debug/trace messages to
@@ -55,8 +55,8 @@ var (
 	helpFull     *bool
 )
 
-// DpTransientPasswordMap contains passwords entered through dpcmder usage,
-// not saved to config during [other] configuration changes.
+// DpTransientPasswordMap contains passwords entered through dpcmder dialogs,
+// not saved to config during (other) configuration changes.
 var DpTransientPasswordMap = make(map[string]string)
 
 // Config is a structure containing dpcmder configuration (saved to JSON).
@@ -74,7 +74,8 @@ type Command struct {
 	Diff   string
 }
 
-// Log is a structure containing dpcmder logging configuration.
+// Log is a structure containing dpcmder logging configuration. MaxEntrySize
+// configures how many bytes can each log line contain (rest is removed).
 type Log struct {
 	MaxEntrySize int
 }
@@ -114,7 +115,9 @@ func (dpa *DataPowerAppliance) SetDpPlaintextPassword(password string) {
 func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
 	passBytes, err := base32.StdEncoding.DecodeString(dpa.Password)
 	if err != nil {
-		logging.LogFatal("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: ", err)
+		logging.LogDebugf("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: '$s', err: %v",
+			dpa.Password, err)
+		return ""
 	}
 	return string(passBytes)
 }
@@ -131,7 +134,9 @@ func (dpa *DataPowerAppliance) DpManagmentInterface() string {
 	}
 }
 
-// Conf variable contains all configuration parameters for dpcmder.
+// Conf variable contains all configuration parameters for dpcmder. Here are
+// default configuration values which will be merged with values read from
+// JSON configuration file (if configuration file is found).
 var Conf = Config{
 	Cmd: Command{
 		Viewer: "less", Editor: "vi", Diff: "diff"},

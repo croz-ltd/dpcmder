@@ -17,11 +17,10 @@ func main() {
 	setupCloseHandler()
 
 	ui.Start()
-	// model.M.Print()
 	logging.LogDebug("main/main() - ...dpcmder ending.")
 }
 
-// SetupCloseHandler creates a 'listener' on a new goroutine which will notify the
+// setupCloseHandler creates a 'listener' on a new goroutine which will notify the
 // program if it receives an interrupt from the OS. Since tcell input catch Ctrl+C
 // it probably comes from Ctrl+C combination sent to external program - ignoring it.
 func setupCloseHandler() {

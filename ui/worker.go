@@ -58,9 +58,6 @@ var repos = []repo.Repo{model.Left: &dp.Repo, model.Right: &localfs.Repo}
 // local filesystem we are showing in dpcmder.
 var workingModel model.Model = model.Model{} //{currSide: model.Left}
 
-// Dialog with user - question asked, user's answer and active state.
-var dialogSession = userDialogInputSessionInfo{}
-
 // progressDialogInfo is structure containing all information needed to show
 // progress dialog for long running actions.
 type progressDialogInfo struct {
