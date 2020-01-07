@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/clbanning/mxj"
 	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/utils/assert"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"reflect"
 	"testing"
@@ -262,4 +263,56 @@ func TestGetViewConfigByPath(t *testing.T) {
 			t.Errorf("for GetViewConfigByPath(%v, '%s') err: got %v, want %v", testCase.currentView, testCase.dirPath, err, testCase.err)
 		}
 	}
+}
+
+func TestRenameObject(t *testing.T) {
+	objectJSONInput := `{
+	"XMLFirewallService": {
+		"name": "example-Firewall5",
+		"mAdminState": "enabled",
+		"LocalAddress": "0.0.0.0",
+		"UserSummary": "an example XML Firewall Service no 5",
+		"Priority": "normal"}
+}`
+	objectJSONExpected := `{
+	"XMLFirewallService": {
+		"name": "new-xmlfw-name",
+		"mAdminState": "enabled",
+		"LocalAddress": "0.0.0.0",
+		"UserSummary": "an example XML Firewall Service no 5",
+		"Priority": "normal"}
+}`
+	Repo.dataPowerAppliance.RestUrl = ""
+	Repo.dataPowerAppliance.SomaUrl = ""
+	objectJSONGotErr, err := Repo.RenameObject([]byte(objectJSONInput), "new-xmlfw-name")
+	assert.DeepEqual(t, "JSON object configuration rename err", err, errs.Error("DataPower management interface not set."))
+	assert.DeepEqual(t, "JSON object configuration rename", objectJSONGotErr, []byte(nil))
+
+	Repo.dataPowerAppliance.RestUrl = "https://some.rest.url"
+	objectJSONGot, err := Repo.RenameObject([]byte(objectJSONInput), "new-xmlfw-name")
+	assert.DeepEqual(t, "JSON object configuration rename err", err, nil)
+	assert.DeepEqual(t, "JSON object configuration rename", string(objectJSONGot), objectJSONExpected)
+
+	objectXMLInput := `<XMLFirewallService name="example-Firewall5">
+  <mAdminState>enabled</mAdminState>
+  <LocalAddress>0.0.0.0</LocalAddress>
+  <UserSummary>an example XML Firewall Service no 5</UserSummary>
+  <Priority>normal</Priority>
+</XMLFirewallService>`
+	objectXMLExpected := `<XMLFirewallService name="new-xmlfw-name">
+  <mAdminState>enabled</mAdminState>
+  <LocalAddress>0.0.0.0</LocalAddress>
+  <UserSummary>an example XML Firewall Service no 5</UserSummary>
+  <Priority>normal</Priority>
+</XMLFirewallService>`
+	Repo.dataPowerAppliance.RestUrl = ""
+	Repo.dataPowerAppliance.SomaUrl = ""
+	objectXMLGotErr, err := Repo.RenameObject([]byte(objectXMLInput), "new-xmlfw-name")
+	assert.DeepEqual(t, "XML object configuration rename err", err, errs.Error("DataPower management interface not set."))
+	assert.DeepEqual(t, "XML object configuration rename", objectXMLGotErr, []byte(nil))
+
+	Repo.dataPowerAppliance.SomaUrl = "https://some.soma.url"
+	objectXMLGot, err := Repo.RenameObject([]byte(objectXMLInput), "new-xmlfw-name")
+	assert.DeepEqual(t, "XML object configuration rename err", err, nil)
+	assert.DeepEqual(t, "XML object configuration rename", string(objectXMLGot), objectXMLExpected)
 }

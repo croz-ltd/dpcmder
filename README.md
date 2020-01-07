@@ -187,10 +187,11 @@ F7/7                - create directory
                     - create a new DataPower domain
 F8/8                - create an empty file
                     - create a new DataPower configuration
-F9/9                - clone current DataPower configuration under a new name
+F9/9                - clone a current DataPower configuration under a new name
+                    - clone a current DataPower object under new name
 DEL/x               - delete selected (or current if none selected) directories and files
-                    - delete DataPower configuration
-                    - delete DataPower object
+                    - delete a DataPower configuration
+                    - delete a DataPower object
 d                   - diff current files/directories
                       (should be "blocking" - see "Custom external commands" below)
                     - diff changes on modified DataPower object (SOMA only)

@@ -1176,11 +1176,11 @@ func cloneCurrent(m *model.Model) error {
 	currentItem := m.CurrItem()
 
 	var newItemName string
-	dialogResult := askUserInput(
+	renameDialogResult := askUserInput(
 		fmt.Sprintf("Enter name of cloned %s: ",
 			currentItem.Config.Type.UserFriendlyString()), currentItem.Name, false)
-	if dialogResult.dialogSubmitted {
-		newItemName = dialogResult.inputAnswer
+	if renameDialogResult.dialogSubmitted {
+		newItemName = renameDialogResult.inputAnswer
 
 		side := m.CurrSide()
 		viewConfig := m.ViewConfig(side)
@@ -1198,6 +1198,46 @@ func cloneCurrent(m *model.Model) error {
 				return err
 			}
 			err = config.Conf.SetDpApplianceConfig(newItemName, clonedConfigContent)
+		case model.ItemDpObject:
+			// func (r *dpRepo) GetObject(dpDomain, objectClass, objectName string, persisted bool) ([]byte, error) {
+			dpDomain := currentItem.Config.DpDomain
+			objectClass := currentItem.Config.Path
+			objectNameOld := currentItem.Name
+			objectNameNew := newItemName
+			objectConfigToOverwrite, err := dp.Repo.GetObject(dpDomain, objectClass, objectNameNew, false)
+			logging.LogDebugf("ui/cloneCurrent(), err: %v, objectConfigToOverwrite: '%v'", err, objectConfigToOverwrite)
+			if err != nil {
+				return err
+			}
+			existingObject := false
+			if objectConfigToOverwrite != nil {
+				existingObject = true
+				confirmDialogResult := askUserInput(
+					fmt.Sprintf("Object of class %s with name '%s' exists, overwrite (y,n): ",
+						currentItem.Config.Type.UserFriendlyString(), objectNameNew), "", false)
+				if confirmDialogResult.dialogCanceled || confirmDialogResult.inputAnswer != "y" {
+					updateStatusf("Clonning of '%s' (%s) canceled.",
+						currentItem.Name, currentItem.Config.Type.UserFriendlyString())
+					return nil
+				}
+			}
+			objectConfigOld, err := dp.Repo.GetObject(dpDomain, objectClass, objectNameOld, false)
+			logging.LogDebugf("ui/cloneCurrent(), err: %v, objectConfigOld: '%v'", err, objectConfigOld)
+			if err != nil {
+				return err
+			}
+			objectConfigNew, err := dp.Repo.RenameObject(objectConfigOld, objectNameNew)
+			logging.LogDebugf("ui/cloneCurrent(), err: %v, objectConfigNew: '%v'", err, objectConfigNew)
+			if err != nil {
+				return err
+			}
+			err = dp.Repo.SetObject(dpDomain, objectClass, objectNameNew, objectConfigNew, existingObject)
+			if err != nil {
+				return err
+			}
+
+			updateStatusf("DataPower object '%s' of class '%s' cloned to '%s'.", objectClass, objectNameOld, objectNameNew)
+			return showItem(side, viewConfig, ".")
 		default:
 			return errs.Errorf("Can't clone item '%s' (%s).",
 				currentItem.Name, currentItem.Config.Type.UserFriendlyString())

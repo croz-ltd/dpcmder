@@ -899,7 +899,7 @@ func (r *dpRepo) GetObject(dpDomain, objectClass, objectName string, persisted b
 	}
 }
 
-// SetObject updates DataPower object configuration.
+// SetObject updates or creates DataPower object configuration.
 func (r *dpRepo) SetObject(dpDomain, objectClass, objectName string, objectContent []byte, existingObject bool) error {
 	logging.LogDebugf("repo/dp/SetObject('%s', '%s', '%s', ...)",
 		dpDomain, objectClass, objectName)
@@ -968,8 +968,33 @@ func (r *dpRepo) SetObject(dpDomain, objectClass, objectName string, objectConte
 	}
 }
 
+// RenameObject changes name in DataPower object configuration (JSON or XML).
+func (r *dpRepo) RenameObject(dpObject []byte, objectName string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/RenameObject(.., '%s')", objectName)
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		// Replace name field ("name": "example-Firewall5",)
+		r := regexp.MustCompile(`("name": *")([^"]+)(",)`)
+		dpObjectRenamed := r.ReplaceAllString(string(dpObject), "${1}"+objectName+"${3}")
+		logging.LogTracef("repo/dp/RenameObject(), rest, dpObject: '%s'", dpObject)
+		logging.LogTracef("repo/dp/RenameObject(), rest, renamed: '%s'", dpObjectRenamed)
+		return []byte(dpObjectRenamed), nil
+	case config.DpInterfaceSoma:
+		// Replace name attribute (<XMLFirewallService name="example-Firewall5">)
+		r := regexp.MustCompile(`(name=")([^"]*)(")`)
+		dpObjectRenamed := r.ReplaceAllString(string(dpObject), "${1}"+objectName+"${3}")
+		logging.LogTracef("repo/dp/RenameObject(), soma, dpObject: '%s'", dpObject)
+		logging.LogTracef("repo/dp/RenameObject(), soma, renamed: '%s'", dpObjectRenamed)
+		return []byte(dpObjectRenamed), nil
+	default:
+		logging.LogDebug("repo/dp/RenameObject(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
+	}
+}
+
 // SaveConfiguration saves current DataPower configuration.
 func (r *dpRepo) SaveConfiguration(itemConfig *model.ItemConfig) error {
+	logging.LogDebugf("repo/dp/SaveConfiguration(%v)", itemConfig)
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
 		logging.LogDebug("repo/dp/SaveConfiguration(), not available using REST.")
@@ -2040,7 +2065,7 @@ func cleanXML(inputXML string) (string, error) {
 	re = regexp.MustCompile(`(?s)(<(MgmtInterface|WebB2BViewer|WebGUI) .+?)(<XMLFirewall .+?</XMLFirewall>)(.*?</(MgmtInterface|WebB2BViewer|WebGUI)>)`)
 	// group 1 is all before XMLFirewall, group 2 is management start element
 	// group 3 is XMLFirewall, group 4 is all after XMLFirewall.
-	outputXML = re.ReplaceAllString(outputXML, "$1$4")
+	outputXML = re.ReplaceAllString(outputXML, "${1}${4}")
 
 	outputXMLBytes, err := mxj.BeautifyXml([]byte(outputXML), "", "  ")
 	if err != nil {
