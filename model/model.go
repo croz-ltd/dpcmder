@@ -407,9 +407,14 @@ func (m *Model) NavPgDown() {
 	m.navUpDown(m.currSide, m.GetVisibleItemCount(m.currSide)-1)
 }
 
-// NavTop moves cursor to first item.
+// NavTop moves cursor to first item for current side.
 func (m *Model) NavTop() {
-	m.navUpDown(m.currSide, -len(m.items[m.currSide]))
+	m.NavTopForSide(m.currSide)
+}
+
+// NavTopForSide moves cursor to first item for Side.
+func (m *Model) NavTopForSide(side Side) {
+	m.navUpDown(side, -len(m.items[m.currSide]))
 }
 
 // NavBottom moves cursor to last item.

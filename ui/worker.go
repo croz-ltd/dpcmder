@@ -414,7 +414,7 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	workingModel.SetItems(side, itemList)
 	workingModel.SetCurrentView(side, itemConfig, title)
 	if itemName != ".." {
-		workingModel.NavTop()
+		workingModel.NavTopForSide(side)
 	} else {
 		workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
 	}
