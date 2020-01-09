@@ -246,6 +246,7 @@ func validatePassword() {
 			} else {
 				password := string(pass)
 				setDpPasswordPlain(password)
+				DpTransientPasswordMap[CurrentApplianceName] = password
 			}
 		}
 
