@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	// configDirName & configFileName are used to save / find dpcmder configuration.
 	configDirName  = ".dpcmder"
 	configFileName = "config.json"
 	// PreviousApplianceName is name of configuration for the last appliance
@@ -32,18 +33,15 @@ var CurrentAppliance DataPowerAppliance
 // CurrentApplianceName stores configuration of current appliance name used.
 var CurrentApplianceName string
 
-// LocalFolderPath is a folder where dpcmder starts showing files - set by command flag.
-var LocalFolderPath *string
-
-// DebugLogFile/TraceLogFile enables writing of debug/trace messages to
-// dpcmder.log file in current folder.
+// DataPower Commander command line parameters.
 var (
+	// LocalFolderPath is a folder where dpcmder starts showing files - set by command flag.
+	LocalFolderPath *string
+	// DebugLogFile/TraceLogFile enables writing of debug/trace messages to
+	// dpcmder.log file in current folder.
 	DebugLogFile *bool
 	TraceLogFile *bool
-)
-
-// DataPower configuration from command flags.
-var (
+	// DataPower connection parameters.
 	dpRestURL    *string
 	dpSomaURL    *string
 	dpUsername   *string
@@ -51,8 +49,9 @@ var (
 	dpDomain     *string
 	proxy        *string
 	dpConfigName *string
-	helpUsage    *bool
-	helpFull     *bool
+	// Help/Usage flags - shows usage or help and exit.
+	helpUsage *bool
+	helpFull  *bool
 )
 
 // DpTransientPasswordMap contains passwords entered through dpcmder dialogs,
@@ -86,13 +85,6 @@ type Sync struct {
 	Seconds int
 }
 
-// List of DataPower management interfaces.
-const (
-	DpInterfaceSoma    = "SOMA"
-	DpInterfaceRest    = "REST"
-	DpInterfaceUnknown = "Unknown"
-)
-
 // DataPowerAppliance is a structure containing dpcmder DataPower appliance
 // configuration details required to connect to appliances.
 type DataPowerAppliance struct {
@@ -103,6 +95,13 @@ type DataPowerAppliance struct {
 	Domain   string
 	Proxy    string
 }
+
+// List of DataPower management interfaces - returned by DpManagmentInterface().
+const (
+	DpInterfaceSoma    = "SOMA"
+	DpInterfaceRest    = "REST"
+	DpInterfaceUnknown = "Unknown"
+)
 
 // SetDpPlaintextPassword sets encoded Password field on DataPowerAppliance
 // from plaintext password.
@@ -377,17 +376,21 @@ func usage(exitStatus int) {
 	fmt.Println(" -x PROXY_SERVER - connect to DataPower through proxy")
 	fmt.Println(" -c DP_CONFIG_NAME - save DataPower configuration under given name")
 	fmt.Println(" -debug - turns on creation of dpcmder.log file with debug log messages")
-	fmt.Println(" -h - shows this help")
-	fmt.Println(" -help - shows dpcmder in-program help on console")
+	fmt.Println(" -h - shows this (usage) help")
+	fmt.Println(" -help - shows dpcmder full help on console")
 	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Example:")
 	fmt.Printf(" %s\n", os.Args[0])
-	fmt.Println("   - will run local file browser (in current dir) with available DataPower connection configurations shown")
+	fmt.Println("   - runs dpcmder with available DataPower connection configurations shown")
 	fmt.Printf(" %s -help\n", os.Args[0])
-	fmt.Printf(" %s -l . -r https://172.17.0.2:5554 -u admin\n", os.Args[0])
-	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -debug\n", os.Args[0])
-	fmt.Printf(" %s -l . -s https://172.17.0.2:5550 -u admin -p admin -d default -c LocalDp\n", os.Args[0])
+	fmt.Println("   - shows full dpcmder help")
+	fmt.Printf(" %s -r https://localhost:5554 -u admin\n", os.Args[0])
+	fmt.Println("   - connect to DataPower using REST managment interface and ask for password")
+	fmt.Printf(" %s -s https://localhost:5550 -u admin -p admin -d default -debug\n", os.Args[0])
+	fmt.Println("   - connect to DataPower using SOMA managment interface and write debug messages to ./dpcmder.log file")
+	fmt.Printf(" %s -s https://localhost:5550 -u admin -p admin -c LocalDp\n", os.Args[0])
+	fmt.Println("   - connect to DataPower using SOMA managment interface and save configuration parameters as LocalDp")
 
 	os.Exit(exitStatus)
 }
