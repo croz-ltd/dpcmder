@@ -411,12 +411,16 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	logging.LogDebug("ui/showItem(), title: ", title)
 
 	oldViewConfig := workingModel.ViewConfig(side)
+	oldCurrItem := workingModel.CurrItemForSide(side)
 	workingModel.SetItems(side, itemList)
 	workingModel.SetCurrentView(side, itemConfig, title)
-	if itemName != ".." {
-		workingModel.NavTopForSide(side)
-	} else {
+	switch itemName {
+	case "..":
 		workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
+	case ".":
+		workingModel.SetCurrItemForSide(side, oldCurrItem.Name)
+	default:
+		workingModel.NavTopForSide(side)
 	}
 
 	return nil
