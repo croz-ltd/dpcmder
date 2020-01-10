@@ -101,6 +101,7 @@ TODO:
   object instances)
 - add deletion of a domain (with maybe 2 confirmation dialogs: are you sure?;
   are you really sure?)
+- shows that domain has unsaved changes in domain view
 
 (to show dpcmder usage help use "-h" flag instead of "-help" flag)
 `

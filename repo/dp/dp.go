@@ -43,6 +43,13 @@ var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string)}
 // syncing local directory to DataPower directory.
 var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string)}
 
+// dpDomainInfo contains domain name and basic state
+type dpDomainInfo struct {
+	name    string
+	unsaved bool
+	down    bool
+}
+
 // Constants from xml-mgmt.xsd (dmConfigState type), only used ones.
 const (
 	objectStatusSaved    = "saved"
@@ -664,15 +671,15 @@ func (r *dpRepo) ExportAppliance(applianceConfigName, exportFileName string) ([]
 	case config.DpInterfaceSoma:
 		// 1. Fetch export (backup) of all domains
 		//    Backup contains all domains export zip + export info and dp-aux files
-		domainNames, err := r.fetchDpDomains()
+		domains, err := r.fetchDpDomains()
 		if err != nil {
 			return nil, err
 		}
-		logging.LogDebugf("repo/dp/ExportAppliance(), domainNames: %v", domainNames)
+		logging.LogDebugf("repo/dp/ExportAppliance(), domainNames: %v", domains)
 
 		backupRequestSomaDomains := ""
-		for _, domainName := range domainNames {
-			backupRequestSomaDomains = backupRequestSomaDomains + fmt.Sprintf(`<man:domain name="%s"/>`, domainName)
+		for _, domain := range domains {
+			backupRequestSomaDomains = backupRequestSomaDomains + fmt.Sprintf(`<man:domain name="%s"/>`, domain.name)
 		}
 		backupRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">
@@ -1179,21 +1186,29 @@ func listAppliances() (model.ItemList, error) {
 // listDomains loads DataPower domains from current DataPower.
 func (r *dpRepo) listDomains(selectedItemConfig *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/listDomains('%s')", selectedItemConfig)
-	domainNames, err := r.fetchDpDomains()
+	domains, err := r.fetchDpDomains()
 	if err != nil {
 		return nil, err
 	}
-	logging.LogDebugf("repo/dp/listDomains('%s'), domainNames: %v", selectedItemConfig, domainNames)
+	logging.LogDebugf("repo/dp/listDomains('%s'), domainNames: %v", selectedItemConfig, domains)
 
-	items := make(model.ItemList, len(domainNames)+1)
+	items := make(model.ItemList, len(domains)+1)
 	items[0] = model.Item{Name: "..", Config: selectedItemConfig.Parent}
 
-	for idx, name := range domainNames {
+	for idx, domain := range domains {
 		itemConfig := model.ItemConfig{Type: model.ItemDpDomain,
 			DpAppliance: selectedItemConfig.DpAppliance,
-			DpDomain:    name,
+			DpDomain:    domain.name,
 			Parent:      selectedItemConfig}
-		items[idx+1] = model.Item{Name: name, Config: &itemConfig}
+		modified := ""
+		opState := ""
+		if domain.unsaved {
+			modified = "*"
+		}
+		if domain.down {
+			opState = "down"
+		}
+		items[idx+1] = model.Item{Name: domain.name, Modified: modified, Size: opState, Config: &itemConfig}
 	}
 
 	sort.Sort(items)
@@ -1724,26 +1739,47 @@ func (r *dpRepo) findItemConfigParentDomain(itemConfig *model.ItemConfig) *model
 	return r.findItemConfigParentDomain(itemConfig.Parent)
 }
 
-func (r *dpRepo) fetchDpDomains() ([]string, error) {
+func (r *dpRepo) fetchDpDomains() ([]dpDomainInfo, error) {
 	logging.LogDebug("repo/dp/fetchDpDomains()")
-	domains := make([]string, 0)
+	domains := make([]dpDomainInfo, 0)
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
-		bodyString, err := r.restGet("/mgmt/domains/config/")
+		// Fetch list of all domains (can call this without authentication)
+		domainsDoc, err := r.restGetDoc("/mgmt/domains/config/")
+		if err != nil {
+			return nil, err
+		}
+		// .domain[].name
+		domainList := jsonquery.Find(domainsDoc, "/domain//name")
+
+		// Fetch status of all domains (so we can show if domain is saved)
+		domainsStatusDoc, err := r.restGetDoc("/mgmt/status/default/DomainStatus")
 		if err != nil {
 			return nil, err
 		}
 
-		// .domain[].name
-		doc, err := jsonquery.Parse(strings.NewReader(bodyString))
+		// Fetch config of all domains (so we can show if domain is enabled)
+		domainsConfigDoc, err := r.restGetDoc("/mgmt/config/default/Domain")
 		if err != nil {
-			logging.LogDebug("Error parsing response JSON.", err)
 			return nil, err
 		}
-		list := jsonquery.Find(doc, "/domain//name")
-		for _, n := range list {
-			domains = append(domains, n.InnerText())
+
+		for _, n := range domainList {
+			domainName := n.InnerText()
+			domain := dpDomainInfo{name: domainName}
+			// .DomainStatus[].Domain, .DomainStatus[].SaveNeeded
+			saveNeeded := jsonquery.FindOne(domainsStatusDoc, fmt.Sprintf("/DomainStatus/*[Domain='%s']/SaveNeeded", domain.name))
+			if saveNeeded != nil && saveNeeded.InnerText() == "on" {
+				domain.unsaved = true
+			}
+			// .Domain[].name, .Domain[].mAdminState
+			mAdminState := jsonquery.FindOne(domainsConfigDoc, fmt.Sprintf("/Domain/*[name='%s']/mAdminState", domain.name))
+			if mAdminState != nil && mAdminState.InnerText() != "enabled" {
+				domain.down = true
+			}
+			domains = append(domains, domain)
+			logging.LogDebugf("repo/dp/fetchDpDomains(), domain: '%v'", domain)
 		}
 	case config.DpInterfaceSoma:
 		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
@@ -1753,7 +1789,47 @@ func (r *dpRepo) fetchDpDomains() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		domains, err = parseSOMAFindList(somaResponse, "//*[local-name()='GetDomainListResponse']/*[local-name()='Domain']/text()")
+		domainNames, err := parseSOMAFindList(somaResponse, "//*[local-name()='GetDomainListResponse']/*[local-name()='Domain']/text()")
+
+		for _, domainName := range domainNames {
+			logging.LogDebugf("repo/dp/fetchDpDomains(), fetching status for domain: '%s'", domainName)
+			// Fetch status for each Domain so we can check if domain needs saving and if it is up.
+			domainStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+				xmlns:man="http://www.datapower.com/schemas/appliance/management/1.0">
+			   <soapenv:Header/>
+			   <soapenv:Body>
+			      <man:GetDomainStatusRequest>
+			          <man:Domain>%s</man:Domain>
+			      </man:GetDomainStatusRequest>
+			   </soapenv:Body>
+			</soapenv:Envelope>`, domainName)
+			domainStatusResponse, err := r.amp(domainStatusRequest)
+			if err != nil {
+				return nil, err
+			}
+			domainStatusDoc, err := xmlquery.Parse(strings.NewReader(domainStatusResponse))
+			if err != nil {
+				logging.LogDebug("Error parsing response SOAP.", err)
+				return nil, err
+			}
+			domainStatusNode := xmlquery.FindOne(domainStatusDoc,
+				"//*[local-name()='GetDomainStatusResponse']/*[local-name()='Domain']")
+			var unsaved bool
+			var down bool
+			if domainStatusNode != nil {
+				configState := domainStatusNode.SelectElement("/*[local-name()='ConfigState']").InnerText()
+				if configState != "saved" {
+					unsaved = true
+				}
+				opState := domainStatusNode.SelectElement("/*[local-name()='OpState']").InnerText()
+				if opState != "up" {
+					down = true
+				}
+			}
+
+			domain := dpDomainInfo{name: domainName, unsaved: unsaved, down: down}
+			domains = append(domains, domain)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -2128,6 +2204,22 @@ func (r *dpRepo) InitNetworkSettings(dpa config.DataPowerAppliance) error {
 func (r *dpRepo) rest(urlPath, method, body string) (string, error) {
 	fullURL := r.dataPowerAppliance.RestUrl + urlPath
 	return r.httpRequest(fullURL, method, body)
+}
+
+// restGetDoc makes DataPower REST GET request and returns parsed JSON doc.
+func (r *dpRepo) restGetDoc(urlPath string) (*jsonquery.Node, error) {
+	logging.LogDebugf("repo/dp/restGetDoc('%s')", urlPath)
+	bodyString, err := r.restGet(urlPath)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := jsonquery.Parse(strings.NewReader(bodyString))
+	if err != nil {
+		logging.LogDebug("Error parsing response JSON.", err)
+		return nil, err
+	}
+
+	return doc, nil
 }
 
 // restGet makes DataPower REST GET request.
