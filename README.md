@@ -54,6 +54,10 @@ GOOS=linux GOARCH=386 go build -o dpcmder-linux-386 dpcmder.go
 GOOS=linux GOARCH=amd64 go build -o dpcmder-linux-amd64 dpcmder.go
 ```
 
+## Make executable smaller
+
+TODO: Describe `go build -ldflags="-s -w"` & `upx --brute` command.
+
 ## Diff command ('d' key)
 
 Diff command in dpcmder is in latest code by default mapped to diff command.
