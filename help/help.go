@@ -4,6 +4,15 @@
 // key "h" or any unrecognized key is pressed.
 package help
 
+// Version (shoud be git tag), Platform & Time contains application information
+// which can be set during build time (using ldflags -X) and is shown
+// when "-v" flag is passed to dpcmder.
+var (
+	Version   = "development"
+	Platform  = "local"
+	BuildTime = ""
+)
+
 // Help contains dpcmder in-program help shown when 'h' or unrecognized key is pressed.
 const Help = `dpcmder Help
 

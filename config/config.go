@@ -49,9 +49,10 @@ var (
 	dpDomain     *string
 	proxy        *string
 	dpConfigName *string
-	// Help/Usage flags - shows usage or help and exit.
+	// Help/Usage/Version flags - shows usage, help or version and exit.
 	helpUsage *bool
 	helpFull  *bool
+	version   *bool
 )
 
 // DpTransientPasswordMap contains passwords entered through dpcmder dialogs,
@@ -188,6 +189,7 @@ func parseProgramArgs() {
 	TraceLogFile = flag.Bool("trace", false, "Write trace dpcmder.log file in current dir")
 	helpUsage = flag.Bool("h", false, "Show dpcmder usage with examples")
 	helpFull = flag.Bool("help", false, "Show dpcmder in-program help on console")
+	version = flag.Bool("v", false, "Show dpcmder version")
 
 	flag.Parse()
 	setDpPasswordPlain(*password)
@@ -207,6 +209,10 @@ func Init() {
 // validateProgramArgs validate parsed program arguments and/or shows usage
 // message in case some mandatory arguments are missing.
 func validateProgramArgs() {
+	if *version {
+		showVersion()
+	}
+
 	if *helpUsage {
 		usage(0)
 	}
@@ -347,6 +353,7 @@ func PrintConfig() {
 	fmt.Println("dpConfigName: ", *dpConfigName)
 	fmt.Println("helpUsage: ", *helpUsage)
 	fmt.Println("helpFull: ", *helpFull)
+	fmt.Println("version: ", *version)
 }
 
 // LogConfig logs configuration values to log file.
@@ -361,6 +368,7 @@ func LogConfig() {
 	logging.LogDebug("dpConfigName: ", *dpConfigName)
 	logging.LogDebug("helpUsage: ", *helpUsage)
 	logging.LogDebug("helpFull: ", *helpFull)
+	logging.LogDebug("version: ", *version)
 }
 
 // usage prints usage help information with examples to console.
@@ -379,6 +387,7 @@ func usage(exitStatus int) {
 	fmt.Println(" -debug - turns on creation of dpcmder.log file with debug log messages")
 	fmt.Println(" -h - shows this (usage) help")
 	fmt.Println(" -help - shows dpcmder full help on console")
+	fmt.Println(" -v - shows dpcmder version")
 	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Example:")
@@ -394,6 +403,12 @@ func usage(exitStatus int) {
 	fmt.Println("   - connect to DataPower using SOMA managment interface and save configuration parameters as LocalDp")
 
 	os.Exit(exitStatus)
+}
+
+func showVersion() {
+	fmt.Printf("dpcmder version %s %s %s\n", help.Version, help.Platform, help.BuildTime)
+
+	os.Exit(0)
 }
 
 // help prints in-program help information to console.
