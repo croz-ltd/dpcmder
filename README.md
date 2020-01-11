@@ -41,11 +41,15 @@ your dpcmder configuration file (~/.dpcmder/config.json) could be compromised.**
 
 ## Build
 
-Build from project directory:
+Build should be done from project directory.
 
+Local build:
 ```sh
 go build dpcmder.go
+```
 
+Local cross-platform build:
+```sh
 GOOS=windows GOARCH=386 go build -o dpcmder-win-386.exe dpcmder.go
 GOOS=windows GOARCH=amd64 go build -o dpcmder-win-amd64.exe dpcmder.go
 GOOS=darwin GOARCH=386 go build -o dpcmder-mac-386 dpcmder.go
@@ -54,9 +58,22 @@ GOOS=linux GOARCH=386 go build -o dpcmder-linux-386 dpcmder.go
 GOOS=linux GOARCH=amd64 go build -o dpcmder-linux-amd64 dpcmder.go
 ```
 
-## Make executable smaller
+Local cross-platform build with version flags and stripping of debug information
+(should be done after properly tagging version with `git tag`):
+```sh
+GOOS=windows GOARCH=386 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=windows/386' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-win-386.exe dpcmder.go
+GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=windows/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-win-amd64.exe dpcmder.go
+GOOS=darwin GOARCH=386 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=darwin/386' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-mac-386 dpcmder.go
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=darwin/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-mac-amd64 dpcmder.go
+GOOS=linux GOARCH=386 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=linux/386' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-linux-386 dpcmder.go
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=linux/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-linux-amd64 dpcmder.go
+```
 
-TODO: Describe `go build -ldflags="-s -w"` & `upx --brute` command.
+After building binary it can be compressed using excellent
+[UPX](https://upx.github.io/) command:
+```sh
+upx --brute release/*
+```
 
 ## Diff command ('d' key)
 
