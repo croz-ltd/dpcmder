@@ -1439,7 +1439,10 @@ func saveDataPowerConfig(m *model.Model) error {
 	viewConfig := m.ViewConfig(side)
 
 	if side == model.Left && viewConfig.DpDomain != "" {
-		confirmSave := askUserInput("Are you sure you want to save current DataPower configuration (y/n): ", "", false)
+		confirmSave := askUserInput(
+			fmt.Sprintf("Are you sure you want to save current DataPower configuration for domain '%s' (y/n): ",
+				viewConfig.DpDomain),
+			"", false)
 
 		if confirmSave.dialogCanceled || confirmSave.inputAnswer != "y" {
 			return errs.Errorf("Canceled saving of DataPower configuration for domain '%s'.", viewConfig.DpDomain)
