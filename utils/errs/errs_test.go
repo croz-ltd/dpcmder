@@ -11,6 +11,13 @@ func TestError(t *testing.T) {
 	}
 }
 
+func TestErrorf(t *testing.T) {
+	testErr := Errorf("my-test-error '%s'.", "aha")
+	if testErr.Error() != "my-test-error 'aha'." {
+		t.Errorf("Error() produced is not 'my-test-error' but '%s'.", testErr.Error())
+	}
+}
+
 func TestUnexpectedHTTPResponse(t *testing.T) {
 	testErr := UnexpectedHTTPResponse{StatusCode: 444, Status: "Some error"}
 	want := "UnexpectedHTTPResponse(444 'Some error')"
