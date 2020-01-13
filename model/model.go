@@ -28,6 +28,7 @@ func (it ItemType) String() string {
 	return string(it)
 }
 
+// UserFriendlyString ruturns ItemType as text understandable to user.
 func (it ItemType) UserFriendlyString() string {
 	switch it {
 	case ItemDirectory:

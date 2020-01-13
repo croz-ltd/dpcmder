@@ -114,6 +114,7 @@ func prepareItemList() ItemList {
 		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path7"}, Name: "Matter", Size: "3002", Modified: "2019-02-06 14:06:10", Selected: false},
 		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path8"}, Name: "Glob", Size: "3003", Modified: "2019-02-06 14:06:10", Selected: false},
 		Item{Config: &ItemConfig{Type: ItemFile, Path: "/path9"}, Name: "Blob", Size: "3004", Modified: "2019-02-06 14:06:10", Selected: false},
+		Item{Config: &ItemConfig{Type: ItemDpConfiguration}, Name: "..", Size: "", Modified: "", Selected: false},
 	}
 }
 
@@ -129,7 +130,7 @@ func prepareAllTypesItemList() ItemList {
 func TestItemListLen(t *testing.T) {
 	itemList := prepareItemList()
 	gotLen := itemList.Len()
-	expectedLen := 9
+	expectedLen := 10
 	assert.DeepEqual(t, "ItemList.Len()", expectedLen, gotLen)
 }
 func TestItemListLess(t *testing.T) {
@@ -170,6 +171,7 @@ func TestItemListSwap(t *testing.T) {
 
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
+	t.Helper()
 	assert.DeepEqual(t, "Model.CurrItem()", want, got)
 }
 
@@ -253,7 +255,7 @@ func TestModelSetItemsAndFiltering(t *testing.T) {
 	model.SetCurrentFilter(filter)
 	model.SetItems(side, items)
 	itemsCount = len(model.items[side])
-	wantedCount = 2
+	wantedCount = 3
 	if itemsCount != wantedCount {
 		t.Errorf("After setting items with '%s' filter there should be %d items but found %d items.", filter, wantedCount, itemsCount)
 	}
@@ -336,7 +338,7 @@ func TestModelNavigate(t *testing.T) {
 		if model.IsCurrentItem(model.CurrSide(), wantCurrIdx) != true ||
 			model.IsCurrentItem(model.CurrSide(), wantCurrIdx-1) != false ||
 			model.IsCurrentItem(model.CurrSide(), wantCurrIdx+1) != false {
-			t.Errorf("checkCurr - only %d should be current item.", wantCurrIdx)
+			t.Errorf("%s - %d should be current item.", msg, wantCurrIdx)
 		}
 	}
 
@@ -354,7 +356,9 @@ func TestModelNavigate(t *testing.T) {
 		{model.NavDown, 6},
 		{model.NavDown, 7},
 		{model.NavDown, 8},
-		{model.NavDown, 8},
+		{model.NavDown, 9},
+		{model.NavDown, 9},
+		{model.NavUp, 8},
 		{model.NavUp, 7},
 		{model.NavUp, 6},
 		{model.NavUp, 5},
@@ -363,13 +367,13 @@ func TestModelNavigate(t *testing.T) {
 		{model.NavUp, 2},
 		{model.NavPgDown, 5},
 		{model.NavPgDown, 8},
-		{model.NavPgDown, 8},
-		{model.NavPgUp, 5},
-		{model.NavPgUp, 2},
+		{model.NavPgDown, 9},
+		{model.NavPgUp, 6},
+		{model.NavPgUp, 3},
 		{model.NavPgUp, 0},
 		{model.NavPgUp, 0},
-		{model.NavBottom, 8},
-		{model.NavBottom, 8},
+		{model.NavBottom, 9},
+		{model.NavBottom, 9},
 		{model.NavTop, 0},
 		{model.NavTop, 0},
 	}
@@ -419,14 +423,14 @@ func TestModelSelect(t *testing.T) {
 		{[]selectionFunc{model.ToggleCurrItem, model.NavDown}, []int{0, 1}},
 		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4}},
 		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7}},
+		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
 		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
-		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7}},
-		{[]selectionFunc{model.NavUp}, []int{0, 1, 2, 3, 4, 5, 6, 7}},
-		{[]selectionFunc{model.NavUp}, []int{0, 1, 2, 3, 4, 5, 6, 7}},
-		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{0, 1, 2, 3, 7}},
-		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{0, 7}},
-		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{7}},
-		{[]selectionFunc{model.SelToBottom, model.NavBottom}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
+		{[]selectionFunc{model.NavUp}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
+		{[]selectionFunc{model.NavUp}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
+		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{0, 1, 2, 3, 4, 8}},
+		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{0, 1, 8}},
+		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{8}},
+		{[]selectionFunc{model.SelToBottom, model.NavBottom}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
 		{[]selectionFunc{model.SelToTop, model.NavTop}, []int{}},
 		{[]selectionFunc{model.ToggleCurrItem}, []int{0}},
 		{[]selectionFunc{model.SelToBottom, model.NavBottom}, []int{}},
@@ -505,6 +509,7 @@ func TestModelSortSide(t *testing.T) {
 
 	items := prepareItemList()
 	want := ItemList{
+		items[9],
 		items[1],
 		items[0],
 		items[8],
@@ -566,6 +571,12 @@ func TestModelSearch(t *testing.T) {
 
 	model.SearchPrev("ali")
 	checkCurrItem(t, model, items[0], "Prev 'ali'")
+
+	model.SearchNext("..")
+	checkCurrItem(t, model, items[9], "Next '..'")
+
+	model.SearchNext("..")
+	checkCurrItem(t, model, items[9], "Next '..'")
 }
 
 func TestModelIsSelectable(t *testing.T) {
@@ -573,7 +584,7 @@ func TestModelIsSelectable(t *testing.T) {
 	itemList := prepareAllTypesItemList()
 	model.SetItems(Left, itemList)
 
-	selectableExpected := []bool{true, false, false, true, true}
+	selectableExpected := []bool{true, false, false, true, true, true}
 
 	for idx := 0; idx < len(itemList); idx++ {
 		itemName := itemList[idx].Name
