@@ -1,17 +1,23 @@
 # DataPower Commander
 
-DataPower Commander (dpcmder) is command line tool I created for easier maintenance
+DataPower Commander (dpcmder) is a command-line tool I created for easier maintenance
 of files on DataPower appliances and easier development of DataPower appliance solutions.
 
 Current functions:
 - basic file maintenance
   - view, edit, copy and delete file hierarchies (DataPower and local file system)
-  - filter and search files in current directory
-  - export DataPower domain ("copy" domain to local filesystem)
-  - view and edit DataPower object (as JSON or XML configurations)
+  - filter and search files in the current directory
+- object maintenance mode (as JSON or XML configurations)
+  - view and edit DataPower object
+  - copy an object to a JSON/XML file on the local file system
+  - create an object from a JSON/XML file on the local file system
+- DataPower domains
+  - view DataPower domains and their status
+  - create a DataPower Domain
+  - export a DataPower domain or whole appliance ("copy" to the local filesystem)
 - sync mode
-  - turn on to automaticaly upload new and changed files from local filesystem to DataPower
-  - useful for development to automaticaly propagate your changes from any IDE/editor you are using to DataPower
+  - turn on to automatically upload new and changed files from a local filesystem to a DataPower
+  - useful for development to automatically propagate your changes from any IDE/editor you are using to DataPower
 
 ## Download
 
@@ -77,15 +83,15 @@ upx --brute release/*
 
 ## Diff command ('d' key)
 
-Diff command in dpcmder is in latest code by default mapped to diff command.
+Diff command in dpcmder is in the latest version by default mapped to diff command.
 Before it was mapped to ldiff command which is not an existing Linux command but
 one simple script which should be created by dpcmder user which combines "diff"
 and "less" commands because dpcmder relies on all external commands to
-"take over" controll from dpcmder and not give controll back until user quits
+"take over" control from dpcmder and not give control back until the user quits
 those external commands.
 If "diff" command is used it is executed twice and is not using all diff flags
-which ensures best possible output (for example "-r" - recursive) - for that
-reason warning is produced in dpcmder status bar.
+which ensures the best possible output (such as "-r" - recursive) - for that
+reason warning is produced in the dpcmder status bar.
 
 For best results create executable ldiff script in $PATH (for example
 /usr/local/bin/ldiff) with something like:
@@ -105,8 +111,8 @@ diff -u -r "$1" "$2" | cdiff | less -R
 ## Helpful notes for Windows users
 
 DataPower Commander uses [tcell](https://github.com/gdamore/tcell) Go package
-for cross platform interactions with text terminals. This package provides great
-cross platform terminal support however there are few limitations:
+for cross-platform interactions with text terminals. This package provides great
+cross-platform terminal support however there are few limitations:
 
 > Windows console mode applications are supported.
 > Unfortunately mintty and other cygwin style applications are not supported.
@@ -119,53 +125,54 @@ which uses [ConEmu](https://conemu.github.io/). In this environment default
 dpcmder view & edit commands (less & vi) are available so you should be able
 to quickly start using dpcmder there.
 
-DataPower Commander need to have proper view, edit and diff commands
-configured if you want to use it's full potential. Unfortunately all Windows OS
-versions doesn't come with default editor so I didn't try to match default
+DataPower Commander needs to have a proper view, edit and diff command
+configured if you want to use its full potential. Unfortunately, all Windows OS
+versions don't come with default editor so I didn't try to match default
 values for Windows OS but I would suggest you to install Windows version of vi
 and less (which are default ones for View and Edit commands) if you are running
-dpcmder under Windows cmd. Alternative is to map both of those to some existing
-"blocking" editor (for example notepad) in ~/.dpcmder/config.json. For more
+dpcmder under Windows cmd. An alternative is to map both of those to some existing
+"blocking" editor (such as notepad) in ~/.dpcmder/config.json. For more
 details please check help.
 
 ## A bit of history of dpcmder
 
-When I started to work with DataPower (beginning of 2008) I plunged into world
-of XSLT-s - it is a verbose functional programming world. As Java developer I
+When I started to work with DataPower (beginning of 2008) I plunged into the world
+of XSLT-s - it is a verbose functional programming world. As Java developer, I
 used Eclipse IDE a lot and I found it a good tool to work with XML/XSL files.
-There were some parts of XLST I could even test without uploading them to DataPower,
+There were some parts of XSLT I could even test without uploading them to DataPower,
 using functionalities available in Eclipse but for some DataPower-specific parts
-only way to test it was to upload them to DataPower appliance.
+the only way to test it was to upload them to the DataPower appliance.
 
 Soon I realized it is a bit cumbersome to upload files to DataPower appliance
-during development. I found IBM created an eclipse plugin which enabled us to
+during development. I found IBM created an eclipse plugin that enabled us to
 quickly copy files from local eclipse workspace to DataPower appliance
-(and vice versa) which made development cycle much more comfortable and faster.
+(and vice versa) which made the development cycle much more comfortable and faster.
 Unfortunately, IBM shipped this plugin only until DataPower firmware 3.8.2 and
 stopped maintaining this plugin to be compatible with new DataPower versions.
-There were some work-around solutions but none felt right for me.
+There were some workaround solutions but none felt right for me.
 
-At some point I thought about developing Eclipse plugin myself but decided to go
+At some point, I thought about developing Eclipse plugin myself but decided to go
 other direction because of the following reasons:
-- from all sources I checked Eclipse plugin development is not fulfilling experience
+- from all sources I checked Eclipse plugin development is not a fulfilling experience
 - I thought it would be nice to have a tool which could be used to maintain files on DataPower by sysadmins, not only developers
 
 At first, I created a bash shell which had basic functionalities I planned to
-implement but on my Linux box it was working a bit slow. Then I started this
+implement but on my Linux box, it was working a bit slow. Then I started this
 script in Linux bash console using cmder Console Emulator (https://cmder.net/)
 and realized it is so slow it is almost unusable. I wanted to have:
-- application which would work on at least 3 major OS-es (both my company and our clients use all 3 of them)
-- command line application so it can be used through ssh on some jump server if required
-- application which would work fast
-- application which would be simple to use (and similar to Midnight Commander and/or Total Commander)
+- the application which would work on at least 3 major OS-es (both my company and our clients use all 3 of them)
+- the command-line application so it can be used through ssh on some jump server if required
+- the application which would work fast
+- the application which would be simple to use (and similar to Midnight Commander and/or Total Commander)
 
-I evaluated few technologies to implement this. After checking Node.js pkg and
+I evaluated a few technologies to implement this. After checking Node.js pkg and
 Golang which both enabled me to build executables for all target platforms on my
-Linux machine. At the end I decided to go with the Go as it produced smaller executables.
+Linux machine. In the end I decided to go with the Go as it produced smaller
+executables and felt more appropriate for TUI development.
 
-One issue which is still left partialy unsolved is handling keypresses for some
+One issue which is still left partially unsolved is handling keypresses for some
 of the special keys on Windows (maybe MacOS) environment. Seems like it is not
-quite easy to crate portable application which can correctly use arrow keys,
+quite easy to create a portable application which can correctly use arrow keys,
 Home & End key etc so I added alternative keys for each of those actions. Best
 of all, if you are not sure just press 'h' key (or any other unmapped key) and
 help will be shown.
@@ -251,7 +258,7 @@ comparison, normal "diff" command can be used as a workaround but "blocking" dif
 command should be used (like vimdiff). Custom ldiff script which combines diff
 and "less" commands can be easily prepared using something like:
   'diff "$1" "$2" | less'
-or for more fancy colored output you can use something like:
+or for the fancier colored output you can use something like:
   'diff -u -r --color=always "$1" "$2" | less -r'.
 
 SOMA (+ AMP) vs REST:

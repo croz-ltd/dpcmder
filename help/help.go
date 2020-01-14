@@ -93,7 +93,7 @@ comparison, normal "diff" command can be used as a workaround but "blocking" dif
 command should be used (like vimdiff). Custom ldiff script which combines diff
 and "less" commands can be easily prepared using something like:
   'diff "$1" "$2" | less'
-or for more fancy colored output you can use something like:
+or for the fancier colored output you can use something like:
   'diff -u -r --color=always "$1" "$2" | less -r'.
 
 SOMA (+ AMP) vs REST:
