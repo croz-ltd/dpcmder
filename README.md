@@ -14,7 +14,7 @@ Current functions:
 - DataPower domains
   - view DataPower domains and their status
   - create a DataPower Domain
-  - export a DataPower domain or whole appliance ("copy" to the local filesystem)
+  - export a DataPower domain or the whole appliance ("copy" to the local filesystem)
 - sync mode
   - turn on to automatically upload new and changed files from a local filesystem to a DataPower
   - useful for development to automatically propagate your changes from any IDE/editor you are using to DataPower
