@@ -452,9 +452,14 @@ func showPrevView() error {
 		updateStatusf("Can't move back in history when list of classes is selected.")
 		return nil
 	}
-	workingModel.NavCurrentViewBack(side)
 
+	viewConfigOld := workingModel.ViewConfig(side)
+	workingModel.NavCurrentViewBack(side)
 	viewConfig := workingModel.ViewConfig(side)
+
+	if viewConfig == viewConfigOld {
+		updateStatusf("Can't move back from the first view in the history.")
+	}
 
 	return showItem(side, viewConfig, ".")
 }
@@ -463,9 +468,14 @@ func showPrevView() error {
 func showNextView() error {
 	logging.LogDebugf("ui/showNextView()")
 	side := workingModel.CurrSide()
-	workingModel.NavCurrentViewForward(side)
 
+	viewConfigOld := workingModel.ViewConfig(side)
+	workingModel.NavCurrentViewForward(side)
 	viewConfig := workingModel.ViewConfig(side)
+
+	if viewConfig == viewConfigOld {
+		updateStatusf("Can't move forward from the last view in the history.")
+	}
 
 	return showItem(side, viewConfig, ".")
 }
