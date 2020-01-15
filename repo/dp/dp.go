@@ -1794,7 +1794,7 @@ func (r *dpRepo) fetchDpDomains() ([]dpDomainInfo, error) {
    <soapenv:Header/>
    <soapenv:Body>
       <man:request domain="default">
-         <man:get-status class="DomainStatus" object-class="Domain"/>
+         <man:get-status class="DomainStatus"/>
       </man:request>
    </soapenv:Body>
 </soapenv:Envelope>`
