@@ -175,7 +175,7 @@ func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	assert.DeepEqual(t, "Model.CurrItem()", want, got)
 }
 
-func TestModelTitle(t *testing.T) {
+func TestModelSetCurrentView(t *testing.T) {
 	model := Model{}
 
 	checkTitle := func(side Side, wantedTitle string) {
@@ -203,6 +203,156 @@ func TestModelTitle(t *testing.T) {
 	checkTitle(Right, "Right Title")
 	checkViewConfig(Left, itemConfig1)
 	checkViewConfig(Right, itemConfig2)
+}
+
+func TestModelNavCurrentViewBackFw(t *testing.T) {
+	model := Model{}
+
+	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig, wabtedViewHistorySize int) {
+		t.Helper()
+		gotViewConfig := model.ViewConfig(side)
+		if gotViewConfig != wantedViewConfig {
+			t.Errorf("Model ViewConfig(%v) should be '%s' but is '%s'.", side, wantedViewConfig, gotViewConfig)
+		}
+		gotViewHistorySize := model.ViewConfigHistorySize(side)
+		if gotViewHistorySize != wabtedViewHistorySize {
+			t.Errorf("Model ViewConfigHistorySize(%v) should be %d but is %d.", side, wabtedViewHistorySize, gotViewHistorySize)
+		}
+	}
+
+	// View history navigation while there is no current view - no change
+	checkViewConfig(Left, nil, 0)
+	checkViewConfig(Right, nil, 0)
+	assert.Equals(t, "History size left", model.ViewConfigHistorySize(Left), 0)
+	assert.Equals(t, "History size right", model.ViewConfigHistorySize(Right), 0)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, nil, 0)
+	checkViewConfig(Right, nil, 0)
+	assert.Equals(t, "History size left", model.ViewConfigHistorySize(Left), 0)
+	assert.Equals(t, "History size right", model.ViewConfigHistorySize(Right), 0)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, nil, 0)
+	checkViewConfig(Right, nil, 0)
+
+	// View history navigation while there is only 1 view - no change
+	itemConfig1a := &ItemConfig{Path: "/path/1a"}
+	itemConfig2a := &ItemConfig{Path: "/path/2a"}
+	model.AddNextView(Left, itemConfig1a, "")
+	model.AddNextView(Right, itemConfig2a, "")
+	checkViewConfig(Left, itemConfig1a, 1)
+	checkViewConfig(Right, itemConfig2a, 1)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 1)
+	checkViewConfig(Right, itemConfig2a, 1)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, itemConfig1a, 1)
+	checkViewConfig(Right, itemConfig2a, 1)
+
+	// View history navigation while there are more than 1 views - navigate
+	// between existing history views
+	itemConfig1b := &ItemConfig{Path: "/path/1b"}
+	itemConfig2b := &ItemConfig{Path: "/path/2b"}
+	model.AddNextView(Left, itemConfig1b, "")
+	model.AddNextView(Right, itemConfig2b, "")
+	checkViewConfig(Left, itemConfig1b, 2)
+	checkViewConfig(Right, itemConfig2b, 2)
+
+	itemConfig1c := &ItemConfig{Path: "/path/1c"}
+	itemConfig2c := &ItemConfig{Path: "/path/2c"}
+	model.AddNextView(Left, itemConfig1c, "")
+	model.AddNextView(Right, itemConfig2c, "")
+	checkViewConfig(Left, itemConfig1c, 3)
+	checkViewConfig(Right, itemConfig2c, 3)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1b, 3)
+	checkViewConfig(Right, itemConfig2b, 3)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 3)
+	checkViewConfig(Right, itemConfig2a, 3)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 3)
+	checkViewConfig(Right, itemConfig2a, 3)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, itemConfig1b, 3)
+	checkViewConfig(Right, itemConfig2b, 3)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, itemConfig1c, 3)
+	checkViewConfig(Right, itemConfig2c, 3)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, itemConfig1c, 3)
+	checkViewConfig(Right, itemConfig2c, 3)
+
+	// Move back in view history and check if navigation behaves as expected.
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 3)
+	checkViewConfig(Right, itemConfig2a, 3)
+
+	// Create new view when we are back in view history - history should be rewritten.
+	model.SetCurrentView(Left, itemConfig1a, "")
+	model.SetCurrentView(Right, itemConfig2a, "")
+	checkViewConfig(Left, itemConfig1a, 3)
+	checkViewConfig(Right, itemConfig2a, 3)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, itemConfig1c, 3)
+	checkViewConfig(Right, itemConfig2c, 3)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 3)
+	checkViewConfig(Right, itemConfig2a, 3)
+
+	// Create new view when we are back in view history - history should be rewritten
+	// (only if view is replaced with other view).
+	itemConfig1d := &ItemConfig{Path: "/path/1d"}
+	itemConfig2d := &ItemConfig{Path: "/path/2d"}
+	model.AddNextView(Left, itemConfig1d, "")
+	model.AddNextView(Right, itemConfig2d, "")
+	checkViewConfig(Left, itemConfig1d, 2)
+	checkViewConfig(Right, itemConfig2d, 2)
+
+	model.NavCurrentViewForward(Left)
+	model.NavCurrentViewForward(Right)
+	checkViewConfig(Left, itemConfig1d, 2)
+	checkViewConfig(Right, itemConfig2d, 2)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 2)
+	checkViewConfig(Right, itemConfig2a, 2)
+
+	model.NavCurrentViewBack(Left)
+	model.NavCurrentViewBack(Right)
+	checkViewConfig(Left, itemConfig1a, 2)
+	checkViewConfig(Right, itemConfig2a, 2)
 }
 
 func TestModelToggleSide(t *testing.T) {
@@ -595,7 +745,7 @@ func TestModelIsSelectable(t *testing.T) {
 	}
 }
 
-func TestStatusHandling(t *testing.T) {
+func TestModelStatusHandling(t *testing.T) {
 	model := Model{}
 	assert.DeepEqual(t, "LastStatus()", "", model.LastStatus())
 	testStatuses := []string{"Status event no 1",

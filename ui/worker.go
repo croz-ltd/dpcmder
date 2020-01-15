@@ -98,7 +98,7 @@ func initialLoadRepo(side model.Side, repo repo.Repo) {
 	logging.LogDebugf("ui/initialLoadRepo(%v, %v), initialItem: %v", side, repo, initialItem)
 
 	title := repo.GetTitle(initialItem.Config)
-	workingModel.SetCurrentView(side, initialItem.Config, title)
+	workingModel.AddNextView(side, initialItem.Config, title)
 
 	itemList, err := repo.GetList(initialItem.Config)
 	if err != nil {
@@ -141,6 +141,10 @@ func ProcessInputEvent(event tcell.Event) error {
 			workingModel.ToggleSide()
 		case k == tcell.KeyEnter:
 			err = enterCurrentDirectory()
+		case (k == tcell.KeyLeft && m == tcell.ModShift), c == 'J':
+			err = showPrevView()
+		case (k == tcell.KeyRight && m == tcell.ModShift), c == 'L':
+			err = showNextView()
 		case c == ' ':
 			workingModel.ToggleCurrItem()
 		case c == '.':
@@ -352,6 +356,7 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyEvent
 }
 
 func enterCurrentDirectory() error {
+	logging.LogDebugf("ui/enterCurrentDirectory()")
 	item := workingModel.CurrItem()
 	if item == nil {
 		return errs.Error("Nothing found, can't enter current directory.")
@@ -379,7 +384,6 @@ func enterCurrentDirectory() error {
 
 func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) error {
 	logging.LogDebugf("ui/showItem(%d, %v, '%s')", side, itemConfig, itemName)
-	r := repos[side]
 	if itemConfig.Type == model.ItemDpConfiguration {
 		applianceName := itemName
 		if applianceName != ".." && applianceName != "." {
@@ -395,6 +399,7 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	var itemList model.ItemList
 	var err error
 
+	r := repos[side]
 	switch itemConfig.Type {
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
 		model.ItemDirectory, model.ItemNone, model.ItemDpObjectClass:
@@ -413,7 +418,15 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	oldViewConfig := workingModel.ViewConfig(side)
 	oldCurrItem := workingModel.CurrItemForSide(side)
 	workingModel.SetItems(side, itemList)
-	workingModel.SetCurrentView(side, itemConfig, title)
+	// If we are refreshing current view or showing a view from history - don't
+	// change view history.
+	// If we are entering new directory/appliance/... add new view to history.
+	switch itemName {
+	case ".":
+		workingModel.SetCurrentView(side, itemConfig, title)
+	default:
+		workingModel.AddNextView(side, itemConfig, title)
+	}
 	switch itemName {
 	case "..":
 		workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
@@ -424,6 +437,37 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	}
 
 	return nil
+}
+
+// showPrevView navigate to the previous view from the view history.
+func showPrevView() error {
+	logging.LogDebugf("ui/showPrevView()")
+	side := workingModel.CurrSide()
+	currentView := workingModel.ViewConfig(side)
+	logging.LogDebugf("ui/showPrevView(), side: %v, currentView: %s", side, currentView)
+
+	// When in object mode we can't move back through history earlier than to
+	// list of object classes.
+	if side == model.Left && dp.Repo.ObjectConfigMode && currentView.Type != model.ItemDpObjectClass {
+		updateStatusf("Can't move back in history when list of classes is selected.")
+		return nil
+	}
+	workingModel.NavCurrentViewBack(side)
+
+	viewConfig := workingModel.ViewConfig(side)
+
+	return showItem(side, viewConfig, ".")
+}
+
+// showNextView navigate to the next view from the view history.
+func showNextView() error {
+	logging.LogDebugf("ui/showNextView()")
+	side := workingModel.CurrSide()
+	workingModel.NavCurrentViewForward(side)
+
+	viewConfig := workingModel.ViewConfig(side)
+
+	return showItem(side, viewConfig, ".")
 }
 
 func setCurrentDpPlainPassword(password string) {
@@ -1354,7 +1398,7 @@ func deleteCurrent(m *model.Model) error {
 				updateStatusf("Couldn't delete '%s' (%s).",
 					item.Name, item.Config.Type.UserFriendlyString())
 			}
-			showItem(side, viewConfig, item.Name)
+			showItem(side, viewConfig, ".")
 		} else {
 			updateStatusf("Canceled deleting of '%s' (%s).",
 				item.Name, item.Config.Type.UserFriendlyString())

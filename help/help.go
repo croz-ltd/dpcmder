@@ -16,62 +16,64 @@ var (
 // Help contains dpcmder in-program help shown when 'h' or unrecognized key is pressed.
 const Help = `dpcmder Help
 
-ArrowUp / i         - move one item up
-ArrowDown / k       - move one item down
-Shift+ArrowUp / I   - select a current item and move one item up (can use Alt instead of Shift)
-Shift+ArrowDown / K - select a current item and move one item down (can use Alt instead of Shift)
-PgUp / u            - move a page of items up
-PgDown / o          - move a page of items down
-Shift+PgUp / U      - select a current item and move a page of items up
-Shift+PgDown / O    - select a current item and move a page of items down
-Home / a            - move to the first item
-End / z             - move to the last item
-Shift+Home / A      - move to the first item and select all items from the current one to the first one
-Shift+End / Z       - move to the last item and select all items from the current one to the last one
-ArrowLeft / j       - scroll items left (useful for long names)
-ArrowRight / l      - scroll items right (useful for long names)
-Space               - select current item
-TAB                 - switch from left to right panel and vice versa
-Return              - enter directory
-F2/2                - refresh focused pane (reload files/dirs)
-F3/3                - view current file or DataPower configuration
-                      (see "Custom external commands" below)
-F4/4                - edit file
-                      (see "Custom external commands" below)
-F5/5                - copy the selected (or current if none selected) directories and files
-                    - if DataPower domain is selected create an export of the domain
-                    - if DataPower configuration is selected create an export of
-                      the whole appliance (SOMA only)
-                    - in DataPower object configuration mode copy DataPower
-                      object to file or copy file with proper object configuration
-                      to DataPower object (XML/JSON, depending on REST/SOMA
-                      management interface used)
-F7/7                - create directory
-                    - create a new DataPower domain
-F8/8                - create an empty file
-                    - create a new DataPower configuration
-F9/9                - clone a current DataPower configuration under a new name
-                    - clone a current DataPower object under new name
-DEL/x               - delete selected (or current if none selected) directories and files
-                    - delete a DataPower configuration
-                    - delete a DataPower object
-d                   - diff current files/directories
-                      (should be "blocking" - see "Custom external commands" below)
-                    - diff changes on modified DataPower object (SOMA only)
-/                   - find string
-n                   - find next string
-m                   - show all status messages saved in the history
-p                   - find previous string
-f                   - filter visible items by a given string
-.                   - enter a location (full path) for the local file system
-s                   - auto-synchronize selected directories (local to DataPower)
-S                   - save running DataPower configuration (SOMA only)
-0                   - toggle DataPower view from filestore view to object view
-                    - when using SOMA access changed objects are marked and object
-                      changes can be shown using diff (d key)
-?                   - show status information for the current DataPower object
-q                   - quit
-any-other-char      - show help (+ hex value of the key pressed visible in the status bar)
+ArrowUp / i          - move one item up
+ArrowDown / k        - move one item down
+Shift+ArrowUp / I    - select a current item and move one item up (can use Alt instead of Shift)
+Shift+ArrowDown / K  - select a current item and move one item down (can use Alt instead of Shift)
+PgUp / u             - move a page of items up
+PgDown / o           - move a page of items down
+Shift+PgUp / U       - select a current item and move a page of items up
+Shift+PgDown / O     - select a current item and move a page of items down
+Home / a             - move to the first item
+End / z              - move to the last item
+Shift+Home / A       - move to the first item and select all items from the current one to the first one
+Shift+End / Z        - move to the last item and select all items from the current one to the last one
+ArrowLeft / j        - scroll items left (useful for long names)
+ArrowRight / l       - scroll items right (useful for long names)
+Shift+ArrowLeft / J  - navigate to the previous view for the current side
+Shift+ArrowRight / L - navigate to the next view for the current side
+Space                - select current item
+TAB                  - switch from left to right panel and vice versa
+Return               - enter directory
+F2/2                 - refresh focused pane (reload files/dirs)
+F3/3                 - view current file or DataPower configuration
+                       (see "Custom external commands" below)
+F4/4                 - edit file
+                       (see "Custom external commands" below)
+F5/5                 - copy the selected (or current if none selected) directories and files
+                     - if DataPower domain is selected create an export of the domain
+                     - if DataPower configuration is selected create an export of
+                       the whole appliance (SOMA only)
+                     - in DataPower object configuration mode copy DataPower
+                       object to file or copy file with proper object configuration
+                       to DataPower object (XML/JSON, depending on REST/SOMA
+                       management interface used)
+F7/7                 - create directory
+                     - create a new DataPower domain
+F8/8                 - create an empty file
+                     - create a new DataPower configuration
+F9/9                 - clone a current DataPower configuration under a new name
+                     - clone a current DataPower object under new name
+DEL/x                - delete selected (or current if none selected) directories and files
+                     - delete a DataPower configuration
+                     - delete a DataPower object
+d                    - diff current files/directories
+                       (should be "blocking" - see "Custom external commands" below)
+                     - diff changes on modified DataPower object (SOMA only)
+/                    - find string
+n                    - find next string
+m                    - show all status messages saved in the history
+p                    - find previous string
+f                    - filter visible items by a given string
+.                    - enter a location (full path) for the local file system
+s                    - auto-synchronize selected directories (local to DataPower)
+S                    - save running DataPower configuration (SOMA only)
+0                    - toggle DataPower view from filestore view to object view
+                     - when using SOMA access changed objects are marked and object
+                       changes can be shown using diff (d key)
+?                    - show status information for the current DataPower object
+q                    - quit
+any-other-char       - show help (+ hex value of the key pressed visible in the status bar)
 
 Navigational keys (except Left/Right can be used in combination with Shift for selections):
 PgUp  Up  PgDn

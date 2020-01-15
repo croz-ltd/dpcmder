@@ -96,6 +96,22 @@ func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 
 	return fmt.Sprintf("%s @ %s (%s) %s", r.dataPowerAppliance.Username, url, dpDomain, currPath)
 }
+func getDpAppliance(itemToShow *model.ItemConfig) config.DataPowerAppliance {
+	switch itemToShow.Type {
+	case model.ItemNone:
+		return config.DataPowerAppliance{}
+	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory:
+		dataPowerAppliance := config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
+		if dataPowerAppliance.Password == "" {
+			dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
+		}
+		return dataPowerAppliance
+	default:
+		logging.LogDebugf("repo/dp/getDpAppliance(%v) - unknown item type: %v.",
+			itemToShow, itemToShow.Type)
+		return config.DataPowerAppliance{}
+	}
+}
 func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
 
@@ -117,22 +133,22 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	} else {
 		switch itemToShow.Type {
 		case model.ItemNone:
-			r.dataPowerAppliance = config.DataPowerAppliance{}
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return listAppliances()
 		case model.ItemDpConfiguration:
-			r.dataPowerAppliance = config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
-			if r.dataPowerAppliance.Password == "" {
-				r.dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
-			}
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			if itemToShow.DpDomain != "" {
 				return r.listFilestores(itemToShow)
 			}
 			return r.listDomains(itemToShow)
 		case model.ItemDpDomain:
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listFilestores(itemToShow)
 		case model.ItemDpFilestore:
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listDpDir(itemToShow)
 		case model.ItemDirectory:
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listDpDir(itemToShow)
 		default:
 			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",

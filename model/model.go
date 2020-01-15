@@ -103,7 +103,9 @@ type ItemList []Item
 // Model is a structure representing our dpcmder view of files,
 // both left-side DataPower view and right-side local filesystem view.
 type Model struct {
-	viewConfig          [2]*ItemConfig
+	// viewConfig          [2]*ItemConfig
+	viewConfigHistory   [2][]*ItemConfig
+	viewConfigCurrIdx   [2]int
 	title               [2]string
 	items               [2]ItemList
 	allItems            [2]ItemList
@@ -198,7 +200,7 @@ func (m *Model) SetItems(side Side, items []Item) {
 // GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
-	logging.LogTrace("model/GetVisibleItemCount(", side, "), visibleItemCount: ", visibleItemCount, ", m.ItemMaxRows: ", m.ItemMaxRows)
+	logging.LogTracef("model/GetVisibleItemCount(%s), visibleItemCount: %d, m.ItemMaxRows: %d", side, visibleItemCount, m.ItemMaxRows)
 	if m.ItemMaxRows < visibleItemCount {
 		return m.ItemMaxRows
 	}
@@ -208,7 +210,7 @@ func (m *Model) GetVisibleItemCount(side Side) int {
 // GetVisibleItem returns (visible) item from given side at given index.
 func (m *Model) GetVisibleItem(side Side, rowIdx int) Item {
 	itemIdx := rowIdx + m.currFirstRowItemIdx[side]
-	logging.LogTrace("model/GetVisibleItem(), rowIdx: ", rowIdx, ", itemIdx: ", itemIdx)
+	logging.LogTracef("model/GetVisibleItem(), rowIdx: %d, itemIdx: %d", rowIdx, itemIdx)
 
 	item := m.items[side][itemIdx]
 
@@ -243,7 +245,78 @@ func (m *Model) Title(side Side) string {
 
 // ViewConfig returns view config for given Side.
 func (m *Model) ViewConfig(side Side) *ItemConfig {
-	return m.viewConfig[side]
+	logging.LogDebugf("model/ViewConfig(%v), history len: %d, history idx: %d", side, len(m.viewConfigHistory[side]), m.viewConfigCurrIdx[side])
+	return m.ViewConfigFromHistory(side, m.viewConfigCurrIdx[side])
+}
+
+// ViewConfigFromHistory returns view config for given Side and history position.
+func (m *Model) ViewConfigFromHistory(side Side, idx int) *ItemConfig {
+	logging.LogDebugf("model/ViewConfigFromHistory(%v, %d), history len: %d", side, idx, len(m.viewConfigHistory[side]))
+	switch {
+	case len(m.viewConfigHistory[side]) < idx+1 || idx < 0:
+		return nil
+	default:
+		return m.viewConfigHistory[side][idx]
+	}
+}
+
+// ViewConfigHistorySize returns current size of view history.
+func (m *Model) ViewConfigHistorySize(side Side) int {
+	return len(m.viewConfigHistory[side])
+}
+
+// SetCurrentView sets title and view config for given Side - overwrites current
+// view in view history.
+func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
+	logging.LogDebugf("model/SetCurrentView(), view history size: %d, idx: %d",
+		m.ViewConfigHistorySize(side), m.viewConfigCurrIdx[side])
+	m.title[side] = viewTitle
+	switch {
+	case len(m.viewConfigHistory[side]) == 0:
+		m.viewConfigHistory[side] = append(m.viewConfigHistory[side], viewConfig)
+		m.viewConfigCurrIdx[side] = 0
+	case len(m.viewConfigHistory[side]) < m.viewConfigCurrIdx[side]+1:
+		m.viewConfigHistory[side] = append(m.viewConfigHistory[side], viewConfig)
+	default:
+		viewConfigOld := m.ViewConfigFromHistory(side, m.viewConfigCurrIdx[side])
+		logging.LogTracef("model/SetCurrentView(), viewConfig: %v, viewConfigOld: %v", viewConfig, viewConfigOld)
+		if viewConfig != viewConfigOld {
+			m.viewConfigHistory[side][m.viewConfigCurrIdx[side]] = viewConfig
+			// reslice  a slice to remove "old view history" if we set current view
+			// somewhere int the middle of view history.
+			m.viewConfigHistory[side] = m.viewConfigHistory[side][:m.viewConfigCurrIdx[side]+1]
+		}
+	}
+	logging.LogTracef("model/SetCurrentView(), view history size after: %d, idx: %d", m.ViewConfigHistorySize(side), m.viewConfigCurrIdx[side])
+}
+
+// AddNextView sets title and add next view config for given Side - appends new
+// view to view history.
+func (m *Model) AddNextView(side Side, viewConfig *ItemConfig, viewTitle string) {
+	prevViewConfig := m.ViewConfigFromHistory(side, m.viewConfigCurrIdx[side]-1)
+	switch viewConfig {
+	case prevViewConfig:
+		m.NavCurrentViewBack(side)
+	default:
+		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] + 1
+	}
+	m.SetCurrentView(side, viewConfig, viewTitle)
+}
+
+// NavCurrentViewBack sets the current view to the previous one from view
+// history (if previous view exists).
+func (m *Model) NavCurrentViewBack(side Side) {
+	if m.viewConfigCurrIdx[side] > 0 {
+		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] - 1
+	}
+}
+
+// NavCurrentViewForward sets the current view to the next one from view
+// history (if next view exists).
+func (m *Model) NavCurrentViewForward(side Side) {
+	if m.viewConfigCurrIdx[side] < len(m.viewConfigHistory[side])-1 {
+		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] + 1
+	}
 }
 
 // AddStatus adds new status event to history of statuses.
@@ -268,12 +341,6 @@ func (m *Model) LastStatus() string {
 // Statuses returns history of all status events.
 func (m *Model) Statuses() []string {
 	return m.statuses
-}
-
-// SetCurrentView sets title and view config for given Side.
-func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
-	m.title[side] = viewTitle
-	m.viewConfig[side] = viewConfig
 }
 
 // IsCurrentSide returns true if given side is currently used.
