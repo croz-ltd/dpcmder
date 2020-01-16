@@ -74,8 +74,10 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 		showStatus(updateViewEvent.Model, updateViewEvent.Status)
 	case events.UpdateViewRefresh:
 		refreshScreen(*updateViewEvent.Model)
-	case events.UpdateViewShowDialog:
+	case events.UpdateViewShowQuestionDialog:
 		showQuestionDialog(updateViewEvent.DialogQuestion, updateViewEvent.DialogAnswer, updateViewEvent.DialogAnswerCursorIdx)
+	case events.UpdateViewShowListSelectionDialog:
+		showListSelectionDialog(updateViewEvent.ListSelectionMessage, updateViewEvent.ListSelectionList, updateViewEvent.ListSelectionSelectedIdx)
 	case events.UpdateViewShowProgress:
 		showProgressDialog(updateViewEvent.Message, updateViewEvent.Progress)
 	default:
@@ -85,7 +87,7 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 	logging.LogDebug("ui/out/drawEvent() finished")
 }
 
-// refreshScreen refreshes whole console screen.
+// refreshScreen refreshes the whole terminal screen.
 func refreshScreen(m model.Model) {
 	logging.LogDebugf("ui/out/refreshScreen('%v')", m)
 
@@ -133,7 +135,7 @@ func refreshScreen(m model.Model) {
 	showStatus(&m, m.LastStatus())
 }
 
-// showQuestionDialog shows question dialog on console screen.
+// showQuestionDialog shows question dialog on the terminal screen.
 func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	logging.LogDebugf("ui/out/showQuestionDialog('%s', '%s', %d)", question, answer, answerCursorIdx)
 
@@ -151,6 +153,44 @@ func showQuestionDialog(question, answer string, answerCursorIdx int) {
 	writeLine(x, y+1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
 	writeLine(x, y+2, buildLine("", "*", "", dialogWidth), 0, stNormal)
 	writeLineWithCursor(x+2, y, line, 0, stNormal, x+2+cursorIdx, stCursor)
+
+	Screen.Show()
+}
+
+// showListSelectionDialog shows list selection dialog on the terminal screen.
+func showListSelectionDialog(message string, list []string, selectionIdx int) {
+	logging.LogDebugf("ui/out/showListSelectionDialog('%s', '%v', %d)", message, list, selectionIdx)
+
+	// termbox.Clear(fgNormal, bgNormal)
+	width, height := Screen.Size()
+	firstLine, lastLine := 2, height-3
+	x := 10
+	// y := 10
+	dialogWidth := width - 20
+
+	// write top frame line
+	writeLine(x, firstLine, buildLine("", "*", "", dialogWidth), 0, stNormal)
+
+	// write message before list
+	writeLine(x, firstLine+1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+	writeLine(x+2, firstLine+1, message, 0, stNormal)
+
+	// write left/right frames and list items
+	for lineNo := firstLine + 2; lineNo < lastLine; lineNo++ {
+		writeLine(x, lineNo, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
+		listIdx := lineNo - firstLine - 2
+		if listIdx < len(list) {
+			text := list[listIdx]
+			if listIdx == selectionIdx {
+				writeLine(x+2, lineNo, text, 0, stCurrent)
+			} else {
+				writeLine(x+2, lineNo, text, 0, stNormal)
+			}
+		}
+	}
+
+	// write bottom frame line
+	writeLine(x, lastLine, buildLine("", "*", "", dialogWidth), 0, stNormal)
 
 	Screen.Show()
 }

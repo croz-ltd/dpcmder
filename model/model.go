@@ -271,6 +271,11 @@ func (m *Model) ViewConfigHistorySize(side Side) int {
 	return len(m.viewConfigHistory[side])
 }
 
+// ViewConfigHistoryList returns all view history.
+func (m *Model) ViewConfigHistoryList(side Side) []*ItemConfig {
+	return m.viewConfigHistory[side]
+}
+
 // SetCurrentView sets title and view config for given Side - overwrites current
 // view in view history.
 func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
@@ -309,22 +314,30 @@ func (m *Model) AddNextView(side Side, viewConfig *ItemConfig, viewTitle string)
 	m.SetCurrentView(side, viewConfig, viewTitle)
 }
 
+// NavCurrentViewIdx sets the current view to the view at given index.
+func (m *Model) NavCurrentViewIdx(side Side, idx int) *ItemConfig {
+	switch {
+	case idx < 0:
+		m.viewConfigCurrIdx[side] = 0
+	case idx >= len(m.viewConfigHistory[side]):
+		m.viewConfigCurrIdx[side] = len(m.viewConfigHistory[side]) - 1
+	default:
+		m.viewConfigCurrIdx[side] = idx
+	}
+
+	return m.ViewConfig(side)
+}
+
 // NavCurrentViewBack sets the current view to the previous one from view
 // history (if previous view exists).
 func (m *Model) NavCurrentViewBack(side Side) *ItemConfig {
-	if m.viewConfigCurrIdx[side] > 0 {
-		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] - 1
-	}
-	return m.ViewConfig(side)
+	return m.NavCurrentViewIdx(side, m.viewConfigCurrIdx[side]-1)
 }
 
 // NavCurrentViewForward sets the current view to the next one from view
 // history (if next view exists).
 func (m *Model) NavCurrentViewForward(side Side) *ItemConfig {
-	if m.viewConfigCurrIdx[side] < len(m.viewConfigHistory[side])-1 {
-		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] + 1
-	}
-	return m.ViewConfig(side)
+	return m.NavCurrentViewIdx(side, m.viewConfigCurrIdx[side]+1)
 }
 
 // AddStatus adds new status event to history of statuses.

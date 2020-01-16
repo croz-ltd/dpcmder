@@ -51,6 +51,23 @@ func (ud userDialogInputSessionInfo) String() string {
 		ud.dialogCanceled, ud.dialogSubmitted)
 }
 
+// listSelectionDialogSessionInfo is structure containing all information neccessary
+// for user selection item from list selection dialog.
+type listSelectionDialogSessionInfo struct {
+	message         string
+	list            []string
+	selectionIdx    int
+	dialogCanceled  bool
+	dialogSubmitted bool
+}
+
+func (lsd listSelectionDialogSessionInfo) String() string {
+	return fmt.Sprintf("Session(m: '%s', len(l): %d, idx: %d, c/s: %T/%T)",
+		lsd.message, len(lsd.list),
+		lsd.selectionIdx,
+		lsd.dialogCanceled, lsd.dialogSubmitted)
+}
+
 // repos contains references to DataPower and local filesystem repositories.
 var repos = []repo.Repo{model.Left: &dp.Repo, model.Right: &localfs.Repo}
 
@@ -145,6 +162,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = showPrevView()
 		case (k == tcell.KeyRight && m == tcell.ModShift), c == 'L':
 			err = showNextView()
+		case c == 'H':
+			err = showViewHistory()
 		case c == ' ':
 			workingModel.ToggleCurrItem()
 		case c == '.':
@@ -248,7 +267,7 @@ func prepareInputDialog(dialogSession *userDialogInputSessionInfo) events.Update
 	}
 
 	return events.UpdateViewEvent{
-		Type:                  events.UpdateViewShowDialog,
+		Type:                  events.UpdateViewShowQuestionDialog,
 		DialogQuestion:        dialogSession.inputQuestion,
 		DialogAnswer:          answer,
 		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
@@ -486,6 +505,84 @@ func showNextView() error {
 	}
 
 	return showItem(side, newView, ".")
+}
+
+// showViewHistory shows dialog with history of views where we can select any
+// view and jump straight to it.
+func showViewHistory() error {
+	logging.LogDebug("ui/showViewHistory()")
+	// When progress dialog is shown we don't won't it to hid our selection dialog.
+	progressDialogSession.waitUserInput = true
+
+	side := workingModel.CurrSide()
+	viewHistory := workingModel.ViewConfigHistoryList(side)
+	logging.LogDebugf("ui/showViewHistory(), viewHistory: %v", viewHistory)
+	pathHistory := make([]string, len(viewHistory))
+	r := repos[side]
+	for idx, view := range viewHistory {
+		pathHistory[idx] = r.GetTitle(view)
+	}
+	logging.LogDebugf("ui/showViewHistory(), pathHistory: %v", pathHistory)
+	dialogSession := listSelectionDialogSessionInfo{message: "Select a view:",
+		list: pathHistory}
+
+loop:
+	for {
+		updateViewEvent := events.UpdateViewEvent{
+			Type:                     events.UpdateViewShowListSelectionDialog,
+			ListSelectionMessage:     dialogSession.message,
+			ListSelectionList:        dialogSession.list,
+			ListSelectionSelectedIdx: dialogSession.selectionIdx}
+
+		out.DrawEvent(updateViewEvent)
+		event := out.Screen.PollEvent()
+		switch event := event.(type) {
+		case *tcell.EventKey:
+			processSelectListDialogInput(&dialogSession, event)
+		}
+
+		if dialogSession.dialogCanceled || dialogSession.dialogSubmitted {
+			break loop
+		}
+	}
+
+	if dialogSession.dialogSubmitted {
+		newView := workingModel.NavCurrentViewIdx(side, dialogSession.selectionIdx)
+		showItem(side, newView, ".")
+	}
+
+	// When progress dialog was shown we show it after we don't need selection
+	// dialog any more.
+	progressDialogSession.waitUserInput = false
+
+	return nil
+}
+
+// processSelectListDialogInput processes user's input to list selection dialog.
+func processSelectListDialogInput(dialogSession *listSelectionDialogSessionInfo, keyEvent *tcell.EventKey) {
+	logging.LogDebugf("ui/processSelectListDialogInput(): '%s'", dialogSession)
+	c := keyEvent.Rune()
+	k := keyEvent.Key()
+	switch {
+	case k == tcell.KeyEsc:
+		logging.LogDebug("ui/processSelectListDialogInput() canceling selection: '%s'", dialogSession)
+		dialogSession.dialogCanceled = true
+	case k == tcell.KeyEnter:
+		logging.LogDebugf("ui/processSelectListDialogInput() accepting selection: '%s'", dialogSession)
+		dialogSession.dialogSubmitted = true
+	case k == tcell.KeyUp, c == 'i':
+		if dialogSession.selectionIdx > 0 {
+			dialogSession.selectionIdx = dialogSession.selectionIdx - 1
+		}
+	case k == tcell.KeyDown, c == 'k':
+		if dialogSession.selectionIdx < len(dialogSession.list)-1 {
+			dialogSession.selectionIdx = dialogSession.selectionIdx + 1
+		}
+	case k == tcell.KeyHome, c == 'a':
+		dialogSession.selectionIdx = 0
+	case k == tcell.KeyEnd, c == 'z':
+		dialogSession.selectionIdx = len(dialogSession.list) - 1
+	}
 }
 
 func setCurrentDpPlainPassword(password string) {

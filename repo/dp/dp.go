@@ -81,6 +81,7 @@ func (r *dpRepo) GetInitialItem() (model.Item, error) {
 
 func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 	logging.LogDebugf("repo/dp/GetTitle(%v)", itemToShow)
+	dpConfigName := itemToShow.DpAppliance
 	dpDomain := itemToShow.DpDomain
 	currPath := itemToShow.Path
 
@@ -94,7 +95,8 @@ func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 		logging.LogDebug("repo/dp/GetTitle(), using neither REST neither SOMA.")
 	}
 
-	return fmt.Sprintf("%s @ %s (%s) %s", r.dataPowerAppliance.Username, url, dpDomain, currPath)
+	return fmt.Sprintf("%s @ %s - %s (%s) %s",
+		r.dataPowerAppliance.Username, url, dpConfigName, dpDomain, currPath)
 }
 func getDpAppliance(itemToShow *model.ItemConfig) config.DataPowerAppliance {
 	switch itemToShow.Type {

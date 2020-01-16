@@ -304,6 +304,13 @@ func TestModelNavCurrentViewBackFw(t *testing.T) {
 	checkViewConfig(Left, itemConfig1c, 3)
 	checkViewConfig(Right, itemConfig2c, 3)
 
+	gotLeftHistory := model.ViewConfigHistoryList(Left)
+	gotRightHistory := model.ViewConfigHistoryList(Right)
+	wantLeftHistory := []*ItemConfig{itemConfig1a, itemConfig1b, itemConfig1c}
+	wantRightHistory := []*ItemConfig{itemConfig2a, itemConfig2b, itemConfig2c}
+	assert.DeepEqual(t, "Left history list", wantLeftHistory, gotLeftHistory)
+	assert.DeepEqual(t, "Right history list", wantRightHistory, gotRightHistory)
+
 	// Move back in view history and check if navigation behaves as expected.
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
