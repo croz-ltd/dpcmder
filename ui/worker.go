@@ -445,6 +445,8 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	switch itemName {
 	case ".":
 		workingModel.SetCurrentView(side, itemConfig, title)
+	case "..":
+		workingModel.NavCurrentViewBack(side)
 	default:
 		workingModel.AddNextView(side, itemConfig, title)
 	}

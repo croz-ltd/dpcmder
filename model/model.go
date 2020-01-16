@@ -279,8 +279,8 @@ func (m *Model) ViewConfigHistoryList(side Side) []*ItemConfig {
 // SetCurrentView sets title and view config for given Side - overwrites current
 // view in view history.
 func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {
-	logging.LogDebugf("model/SetCurrentView(), view history size: %d, idx: %d",
-		m.ViewConfigHistorySize(side), m.viewConfigCurrIdx[side])
+	logging.LogDebugf("model/SetCurrentView(%v, .., '%s'), view history size: %d, idx: %d",
+		side, viewTitle, m.ViewConfigHistorySize(side), m.viewConfigCurrIdx[side])
 	m.title[side] = viewTitle
 	switch {
 	case len(m.viewConfigHistory[side]) == 0:
