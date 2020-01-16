@@ -276,6 +276,11 @@ func (m *Model) ViewConfigHistoryList(side Side) []*ItemConfig {
 	return m.viewConfigHistory[side]
 }
 
+// ViewConfigHistorySelectedIdx returns index of current view from history.
+func (m *Model) ViewConfigHistorySelectedIdx(side Side) int {
+	return m.viewConfigCurrIdx[side]
+}
+
 // SetCurrentView sets title and view config for given Side - overwrites current
 // view in view history.
 func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle string) {

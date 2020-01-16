@@ -210,53 +210,61 @@ func TestModelSetCurrentView(t *testing.T) {
 func TestModelNavCurrentViewBackFw(t *testing.T) {
 	model := Model{}
 
-	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig, wabtedViewHistorySize int) {
+	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig,
+		wantedViewHistoryIdx, wantedViewHistorySize int) {
 		t.Helper()
 		gotViewConfig := model.ViewConfig(side)
 		if gotViewConfig != wantedViewConfig {
 			t.Errorf("Model ViewConfig(%v) should be '%s' but is '%s'.", side, wantedViewConfig, gotViewConfig)
 		}
 		gotViewHistorySize := model.ViewConfigHistorySize(side)
-		if gotViewHistorySize != wabtedViewHistorySize {
-			t.Errorf("Model ViewConfigHistorySize(%v) should be %d but is %d.", side, wabtedViewHistorySize, gotViewHistorySize)
+		if gotViewHistorySize != wantedViewHistorySize {
+			t.Errorf("Model ViewConfigHistorySize(%v) should be %d but is %d.", side, wantedViewHistorySize, gotViewHistorySize)
+		}
+		gotViewHistoryIdx := model.ViewConfigHistorySelectedIdx(side)
+		if gotViewHistorySize != wantedViewHistorySize {
+			t.Errorf("Model ViewConfigHistorySelectedIdx(%v) should be %d but is %d.", side, wantedViewHistoryIdx, gotViewHistoryIdx)
 		}
 	}
 
 	// View history navigation while there is no current view - no change
-	checkViewConfig(Left, nil, 0)
-	checkViewConfig(Right, nil, 0)
+	checkViewConfig(Left, nil, 0, 0)
+	checkViewConfig(Right, nil, 0, 0)
 	assert.Equals(t, "History size left", model.ViewConfigHistorySize(Left), 0)
 	assert.Equals(t, "History size right", model.ViewConfigHistorySize(Right), 0)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, nil, 0)
-	checkViewConfig(Right, nil, 0)
+	checkViewConfig(Left, nil, 0, 0)
+	checkViewConfig(Right, nil, 0, 0)
 	assert.Equals(t, "History size left", model.ViewConfigHistorySize(Left), 0)
 	assert.Equals(t, "History size right", model.ViewConfigHistorySize(Right), 0)
 
+	assert.Equals(t, "History idx left", model.ViewConfigHistorySelectedIdx(Left), 0)
+	assert.Equals(t, "History idx right", model.ViewConfigHistorySelectedIdx(Right), 0)
+
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, nil, 0)
-	checkViewConfig(Right, nil, 0)
+	checkViewConfig(Left, nil, 0, 0)
+	checkViewConfig(Right, nil, 0, 0)
 
 	// View history navigation while there is only 1 view - no change
 	itemConfig1a := &ItemConfig{Path: "/path/1a"}
 	itemConfig2a := &ItemConfig{Path: "/path/2a"}
 	model.AddNextView(Left, itemConfig1a, "")
 	model.AddNextView(Right, itemConfig2a, "")
-	checkViewConfig(Left, itemConfig1a, 1)
-	checkViewConfig(Right, itemConfig2a, 1)
+	checkViewConfig(Left, itemConfig1a, 0, 1)
+	checkViewConfig(Right, itemConfig2a, 0, 1)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 1)
-	checkViewConfig(Right, itemConfig2a, 1)
+	checkViewConfig(Left, itemConfig1a, 0, 1)
+	checkViewConfig(Right, itemConfig2a, 0, 1)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, itemConfig1a, 1)
-	checkViewConfig(Right, itemConfig2a, 1)
+	checkViewConfig(Left, itemConfig1a, 0, 1)
+	checkViewConfig(Right, itemConfig2a, 0, 1)
 
 	// View history navigation while there are more than 1 views - navigate
 	// between existing history views
@@ -264,45 +272,45 @@ func TestModelNavCurrentViewBackFw(t *testing.T) {
 	itemConfig2b := &ItemConfig{Path: "/path/2b"}
 	model.AddNextView(Left, itemConfig1b, "")
 	model.AddNextView(Right, itemConfig2b, "")
-	checkViewConfig(Left, itemConfig1b, 2)
-	checkViewConfig(Right, itemConfig2b, 2)
+	checkViewConfig(Left, itemConfig1b, 1, 2)
+	checkViewConfig(Right, itemConfig2b, 1, 2)
 
 	itemConfig1c := &ItemConfig{Path: "/path/1c"}
 	itemConfig2c := &ItemConfig{Path: "/path/2c"}
 	model.AddNextView(Left, itemConfig1c, "")
 	model.AddNextView(Right, itemConfig2c, "")
-	checkViewConfig(Left, itemConfig1c, 3)
-	checkViewConfig(Right, itemConfig2c, 3)
+	checkViewConfig(Left, itemConfig1c, 2, 3)
+	checkViewConfig(Right, itemConfig2c, 2, 3)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1b, 3)
-	checkViewConfig(Right, itemConfig2b, 3)
+	checkViewConfig(Left, itemConfig1b, 1, 3)
+	checkViewConfig(Right, itemConfig2b, 1, 3)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 3)
-	checkViewConfig(Right, itemConfig2a, 3)
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 3)
-	checkViewConfig(Right, itemConfig2a, 3)
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, itemConfig1b, 3)
-	checkViewConfig(Right, itemConfig2b, 3)
+	checkViewConfig(Left, itemConfig1b, 1, 3)
+	checkViewConfig(Right, itemConfig2b, 1, 3)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, itemConfig1c, 3)
-	checkViewConfig(Right, itemConfig2c, 3)
+	checkViewConfig(Left, itemConfig1c, 2, 3)
+	checkViewConfig(Right, itemConfig2c, 2, 3)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, itemConfig1c, 3)
-	checkViewConfig(Right, itemConfig2c, 3)
+	checkViewConfig(Left, itemConfig1c, 2, 3)
+	checkViewConfig(Right, itemConfig2c, 2, 3)
 
 	gotLeftHistory := model.ViewConfigHistoryList(Left)
 	gotRightHistory := model.ViewConfigHistoryList(Right)
@@ -316,28 +324,28 @@ func TestModelNavCurrentViewBackFw(t *testing.T) {
 	model.NavCurrentViewBack(Right)
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 3)
-	checkViewConfig(Right, itemConfig2a, 3)
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
 
 	// Create new view when we are back in view history - history should be rewritten.
 	model.SetCurrentView(Left, itemConfig1a, "")
 	model.SetCurrentView(Right, itemConfig2a, "")
-	checkViewConfig(Left, itemConfig1a, 3)
-	checkViewConfig(Right, itemConfig2a, 3)
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, itemConfig1c, 3)
-	checkViewConfig(Right, itemConfig2c, 3)
+	checkViewConfig(Left, itemConfig1c, 2, 3)
+	checkViewConfig(Right, itemConfig2c, 2, 3)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 3)
-	checkViewConfig(Right, itemConfig2a, 3)
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
 
 	// Create new view when we are back in view history - history should be rewritten
 	// (only if view is replaced with other view).
@@ -345,23 +353,23 @@ func TestModelNavCurrentViewBackFw(t *testing.T) {
 	itemConfig2d := &ItemConfig{Path: "/path/2d"}
 	model.AddNextView(Left, itemConfig1d, "")
 	model.AddNextView(Right, itemConfig2d, "")
-	checkViewConfig(Left, itemConfig1d, 2)
-	checkViewConfig(Right, itemConfig2d, 2)
+	checkViewConfig(Left, itemConfig1d, 1, 2)
+	checkViewConfig(Right, itemConfig2d, 1, 2)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
-	checkViewConfig(Left, itemConfig1d, 2)
-	checkViewConfig(Right, itemConfig2d, 2)
+	checkViewConfig(Left, itemConfig1d, 1, 2)
+	checkViewConfig(Right, itemConfig2d, 1, 2)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 2)
-	checkViewConfig(Right, itemConfig2a, 2)
+	checkViewConfig(Left, itemConfig1a, 2, 2)
+	checkViewConfig(Right, itemConfig2a, 2, 2)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
-	checkViewConfig(Left, itemConfig1a, 2)
-	checkViewConfig(Right, itemConfig2a, 2)
+	checkViewConfig(Left, itemConfig1a, 0, 2)
+	checkViewConfig(Right, itemConfig2a, 0, 2)
 }
 
 func TestModelToggleSide(t *testing.T) {

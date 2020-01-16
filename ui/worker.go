@@ -526,7 +526,8 @@ func showViewHistory() error {
 	}
 	logging.LogDebugf("ui/showViewHistory(), pathHistory: %v", pathHistory)
 	dialogSession := listSelectionDialogSessionInfo{message: "Select a view:",
-		list: pathHistory}
+		list:         pathHistory,
+		selectionIdx: workingModel.ViewConfigHistorySelectedIdx(side)}
 
 loop:
 	for {
