@@ -234,33 +234,35 @@ func TestGetViewConfigByPath(t *testing.T) {
 			&model.ItemConfig{Type: model.ItemDpDomain, DpDomain: "default"}, nil},
 		{&model.ItemConfig{
 			Type: model.ItemDpFilestore, DpDomain: "default", DpFilestore: "local:",
-			Path:   "/dir1/dir2",
+			Name: "dir2", Path: "/dir1/dir2",
 			Parent: &model.ItemConfig{Type: model.ItemDpDomain, DpDomain: "default"}}, "",
 			&model.ItemConfig{Type: model.ItemDpDomain, DpDomain: "default"}, nil},
 		{&model.ItemConfig{
-			Type: model.ItemDpFilestore, DpDomain: "default", DpFilestore: "cert:",
-			Parent: &model.ItemConfig{Type: model.ItemDpDomain, DpDomain: "default"}},
+			Type: model.ItemDpFilestore, Name: "cert:", DpDomain: "default", DpFilestore: "cert:",
+			Parent: &model.ItemConfig{Type: model.ItemDpDomain, Name: "default", DpDomain: "default"}},
 			"local:/dirA/dirB",
 			&model.ItemConfig{
 				Type: model.ItemDirectory, DpDomain: "default", DpFilestore: "local:",
-				Path: "local:/dirA/dirB",
+				Name: "dirB", Path: "local:/dirA/dirB",
 				Parent: &model.ItemConfig{
 					Type: model.ItemDirectory, DpDomain: "default", DpFilestore: "local:",
-					Path: "local:/dirA",
+					Name: "dirA", Path: "local:/dirA",
 					Parent: &model.ItemConfig{
 						Type: model.ItemDpFilestore, DpDomain: "default", DpFilestore: "local:",
-						Path: "local:", Parent: &model.ItemConfig{
-							Type: model.ItemDpDomain, DpDomain: "default"}}}},
+						Name: "local:", Path: "local:", Parent: &model.ItemConfig{
+							Type: model.ItemDpDomain, Name: "default", DpDomain: "default"}}}},
 			nil},
 	}
 
-	for _, testCase := range testDataMatrix {
+	for idx, testCase := range testDataMatrix {
 		newView, err := Repo.GetViewConfigByPath(testCase.currentView, testCase.dirPath)
 		if !reflect.DeepEqual(newView, testCase.newView) {
-			t.Errorf("for GetViewConfigByPath(%v, '%s') res: got %v, want %v", testCase.currentView, testCase.dirPath, newView, testCase.newView)
+			t.Errorf("[%d] GetViewConfigByPath(%v, '%s') res: got %v, want %v",
+				idx, testCase.currentView, testCase.dirPath, newView, testCase.newView)
 		}
 		if !reflect.DeepEqual(err, testCase.err) {
-			t.Errorf("for GetViewConfigByPath(%v, '%s') err: got %v, want %v", testCase.currentView, testCase.dirPath, err, testCase.err)
+			t.Errorf("[%d] GetViewConfigByPath(%v, '%s') err: got %v, want %v",
+				idx, testCase.currentView, testCase.dirPath, err, testCase.err)
 		}
 	}
 }

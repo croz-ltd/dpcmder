@@ -74,8 +74,8 @@ func TestItemConfigEquals(t *testing.T) {
 }
 
 func TestItemConfigString(t *testing.T) {
-	itemDp := ItemConfig{Type: ItemDirectory, DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{Type: ItemNone}}
-	assert.DeepEqual(t, "ItemConfig.String()", "IC(d, 'local:/hello/dir', 'mydp' (dom1) local: IC(-, '', '' ()  <nil>))", itemDp.String())
+	itemDp := ItemConfig{Type: ItemDirectory, Name: "MyName", DpAppliance: "mydp", DpDomain: "dom1", DpFilestore: "local:", Path: "local:/hello/dir", Parent: &ItemConfig{Type: ItemNone}}
+	assert.DeepEqual(t, "ItemConfig.String()", "IC(d, 'MyName' (local:/hello/dir), 'mydp' (dom1) local: IC(-, '' (), '' ()  <nil>))", itemDp.String())
 }
 
 // Item methods tests
@@ -100,7 +100,7 @@ func TestItemGetDisplayableType(t *testing.T) {
 }
 func TestItemString(t *testing.T) {
 	item := Item{Config: &ItemConfig{Type: ItemFile}, Name: "master", Size: "3000", Modified: "2019-02-06 14:06:10", Selected: true}
-	assert.DeepEqual(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '', '' ()  <nil>))", item.String())
+	assert.DeepEqual(t, "Item.String()", "Item('master', '3000', '2019-02-06 14:06:10', true, IC(f, '' (), '' ()  <nil>))", item.String())
 }
 
 // ItemList methods tests

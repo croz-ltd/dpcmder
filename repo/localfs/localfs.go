@@ -36,9 +36,14 @@ func (r localRepo) GetInitialItem() (model.Item, error) {
 		logging.LogDebug("Loading initial local filesystem view.", err)
 		return model.Item{}, err
 	}
+	currName := filepath.Base(currPath)
+	parentPath := paths.GetFilePath(currPath, "..")
+	parentName := filepath.Base(parentPath)
 
-	parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(currPath, "..")}
-	initialItem := model.Item{Config: &model.ItemConfig{Type: model.ItemDirectory, Path: currPath, Parent: &parentConfig}}
+	parentConfig := model.ItemConfig{Type: model.ItemDirectory,
+		Name: parentName, Path: parentPath}
+	initialItem := model.Item{Config: &model.ItemConfig{Type: model.ItemDirectory,
+		Name: currName, Path: currPath, Parent: &parentConfig}}
 	return initialItem, nil
 }
 
@@ -51,10 +56,13 @@ func (r localRepo) GetTitle(itemToShow *model.ItemConfig) string {
 func (r localRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/localfs/GetList('%s')", itemToShow)
 	currPath := itemToShow.Path
+	currName := paths.GetFileName(currPath)
+	parentPath := paths.GetFilePath(currPath, "..")
 
 	parentDir := model.Item{Name: "..",
 		Config: &model.ItemConfig{
-			Type: model.ItemDirectory, Path: paths.GetFilePath(currPath, "..")}}
+			Type: model.ItemDirectory,
+			Name: currName, Path: parentPath}}
 	items, err := listFiles(currPath)
 	if err != nil {
 		return nil, err
@@ -162,9 +170,14 @@ func (r localRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath st
 	case model.ItemDirectory:
 		var parentConfig *model.ItemConfig = nil
 		if dirPath != "/" {
-			parentConfig = &model.ItemConfig{Type: model.ItemDirectory, Path: paths.GetFilePath(dirPath, "..")}
+			parentPath := paths.GetFilePath(dirPath, "..")
+			parentName := paths.GetFileName(parentPath)
+			parentConfig = &model.ItemConfig{Type: model.ItemDirectory,
+				Name: parentName, Path: parentPath}
 		}
-		viewConfig := &model.ItemConfig{Type: model.ItemDirectory, Path: dirPath, Parent: parentConfig}
+		currName := paths.GetFileName(dirPath)
+		viewConfig := &model.ItemConfig{Type: model.ItemDirectory,
+			Name: currName, Path: dirPath, Parent: parentConfig}
 		return viewConfig, nil
 	default:
 		return nil, errs.Errorf("Given path '%s' is not directory.", dirPath)
@@ -267,11 +280,13 @@ func listFiles(dirPath string) ([]model.Item, error) {
 		} else {
 			dirType = model.ItemFile
 		}
-		parentConfig := model.ItemConfig{Type: model.ItemDirectory, Path: dirPath}
+		parentName := paths.GetFileName(dirPath)
+		parentConfig := model.ItemConfig{Type: model.ItemDirectory,
+			Name: parentName, Path: dirPath}
 		items[idx] = model.Item{Name: file.Name(), Size: strconv.FormatInt(file.Size(), 10),
 			Modified: file.ModTime().Format("2006-01-02 15:04:05"),
-			Config: &model.ItemConfig{
-				Type: dirType, Path: paths.GetFilePath(dirPath, file.Name()), Parent: &parentConfig}}
+			Config: &model.ItemConfig{Type: dirType, Name: file.Name(),
+				Path: paths.GetFilePath(dirPath, file.Name()), Parent: &parentConfig}}
 	}
 
 	sort.Sort(items)
@@ -279,6 +294,7 @@ func listFiles(dirPath string) ([]model.Item, error) {
 	return items, nil
 }
 
+// GetFileByPath fetches file from local filesystem by it's path.
 func GetFileByPath(filePath string) ([]byte, error) {
 	logging.LogDebugf("repo/localfs/GetFileByPath('%s')", filePath)
 	result, err := ioutil.ReadFile(filePath)

@@ -16,14 +16,16 @@ func TestLocalRepoString(t *testing.T) {
 
 func TestLocalRepoGetInitialItem(t *testing.T) {
 	initialDirParent := "/dir1/dir2"
+	initialDirParentName := "dir2"
 	initialDir := "/dir1/dir2/dir3"
+	initialDirName := "dir3"
 	config.LocalFolderPath = &initialDir
 
 	item, _ := Repo.GetInitialItem()
 	want := model.Item{Config: &model.ItemConfig{
-		Type: model.ItemDirectory, Path: initialDir,
+		Type: model.ItemDirectory, Name: initialDirName, Path: initialDir,
 		Parent: &model.ItemConfig{
-			Type: model.ItemDirectory, Path: initialDirParent}}}
+			Type: model.ItemDirectory, Name: initialDirParentName, Path: initialDirParent}}}
 
 	assert.DeepEqual(t, "GetInitialItem()", item, want)
 }

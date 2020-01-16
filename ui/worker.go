@@ -401,14 +401,15 @@ func enterCurrentDirectory() error {
 	return err
 }
 
-func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) error {
-	logging.LogDebugf("ui/showItem(%d, %v, '%s')", side, itemConfig, itemName)
+func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, currentItemName string) error {
+	logging.LogDebugf("ui/showView(%d, %v, '%s', '%s')",
+		side, itemConfig, viewItemName, currentItemName)
 	if itemConfig.Type == model.ItemDpConfiguration {
-		applianceName := itemName
+		applianceName := viewItemName
 		if applianceName != ".." && applianceName != "." {
 			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
 			dpTransientPassword := config.DpTransientPasswordMap[applianceName]
-			logging.LogDebugf("ui/showItem(), applicanceConfig: '%s'", applicanceConfig)
+			logging.LogDebugf("ui/showView(), applicanceConfig: '%s'", applicanceConfig)
 			if applicanceConfig.Password == "" && dpTransientPassword == "" {
 				return dpMissingPasswordError
 			}
@@ -425,32 +426,39 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 		model.ItemDpObjectClassList, model.ItemDpObjectClass,
 		model.ItemNone:
 		itemList, err = r.GetList(itemConfig)
+		if err != nil {
+			return err
+		}
 	default:
-		return errs.Errorf("ui/showItem(), unknown type: %s", itemConfig.Type)
+		return errs.Errorf("ui/showView(), unknown type: %s", itemConfig.Type)
 	}
 
-	if err != nil {
-		return err
-	}
-	logging.LogDebug("ui/showItem(), itemList: ", itemList)
+	logging.LogDebug("ui/showView(), itemList: ", itemList)
 	title := r.GetTitle(itemConfig)
-	logging.LogDebug("ui/showItem(), title: ", title)
+	logging.LogDebug("ui/showView(), title: ", title)
 
 	oldViewConfig := workingModel.ViewConfig(side)
-	oldCurrItem := workingModel.CurrItemForSide(side)
 	workingModel.SetItems(side, itemList)
 	// If we are refreshing current view or showing a view from history - don't
 	// change view history.
 	// If we are entering new directory/appliance/... add new view to history.
-	switch itemName {
+	switch viewItemName {
 	case ".":
 		workingModel.SetCurrentView(side, itemConfig, title)
 	case "..":
 		workingModel.NavCurrentViewBack(side)
+		workingModel.SetTitle(side, title)
 	default:
 		workingModel.AddNextView(side, itemConfig, title)
 	}
-	switch itemName {
+
+	if currentItemName != "" {
+		workingModel.SetCurrItemForSide(side, currentItemName)
+		return nil
+	}
+
+	oldCurrItem := workingModel.CurrItemForSide(side)
+	switch viewItemName {
 	case "..":
 		workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
 	case ".":
@@ -460,6 +468,11 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	}
 
 	return nil
+}
+
+func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) error {
+	logging.LogDebugf("ui/showItem(%d, %v, '%s')", side, itemConfig, itemName)
+	return showView(side, itemConfig, itemName, "")
 }
 
 // showPrevView navigate to the previous view from the view history.
@@ -484,7 +497,7 @@ func showPrevView() error {
 		updateStatusf("Can't move back from the first view in the history.")
 	}
 
-	return showItem(side, newView, ".")
+	return showView(side, newView, ".", oldView.Name)
 }
 
 // showNextView navigate to the next view from the view history.
@@ -506,7 +519,13 @@ func showNextView() error {
 		updateStatusf("Can't move forward from the last view in the history.")
 	}
 
-	return showItem(side, newView, ".")
+	viewHistoryIdx := workingModel.ViewConfigHistorySelectedIdx(side)
+	nextViewFromHistory := workingModel.ViewConfigFromHistory(side, viewHistoryIdx+1)
+	nextViewName := ""
+	if nextViewFromHistory != nil {
+		nextViewName = nextViewFromHistory.Name
+	}
+	return showView(side, newView, ".", nextViewName)
 }
 
 // showViewHistory shows dialog with history of views where we can select any
@@ -818,7 +837,6 @@ func diffCurrent(m *model.Model) error {
 		dpCopyDir := extprogs.CreateTempDir("dp")
 		updateStatusf("Created tmp dir on localfs '%s'", dpCopyDir)
 		localViewTmp := model.ItemConfig{Type: model.ItemDirectory, Path: dpCopyDir}
-		// func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.ItemConfig, item model.Item, confirmOverwrite string) (string, error) {
 		copyItem(&dp.Repo, localfs.Repo, dpView, &localViewTmp, *dpItem, "y")
 		var dpDirName string
 		switch dpItem.Config.Type {
@@ -1809,6 +1827,7 @@ func toggleObjectMode(m *model.Model) error {
 			}
 			newView := model.ItemConfig{
 				Parent:      oldView,
+				Name:        "Object classes",
 				Type:        model.ItemDpObjectClassList,
 				Path:        "Object classes",
 				DpAppliance: oldView.DpAppliance,

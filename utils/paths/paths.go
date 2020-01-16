@@ -9,12 +9,17 @@ import (
 
 // GetFilePath generates local os correct path from parentPath and fileName.
 func GetFilePath(parentPath, fileName string) string {
-	return GetFilePathUsingSeparator(parentPath, fileName, string(os.PathSeparator))
+	return getFilePathUsingSeparator(parentPath, fileName, string(os.PathSeparator))
+}
+
+// GetFileName extract local os name from fullPath.
+func GetFileName(fullPath string) string {
+	return getFileNameUsingSeparator(fullPath, string(os.PathSeparator))
 }
 
 // GetDpPath generates local os correct path from parentPath and fileName.
 func GetDpPath(parentPath, fileName string) string {
-	fullPath := GetFilePathUsingSeparator(parentPath, fileName, "/")
+	fullPath := getFilePathUsingSeparator(parentPath, fileName, "/")
 	firstSeparatorIdx := strings.Index(fullPath, "/")
 	filestoreEndIdx := strings.Index(fullPath, ":")
 	switch {
@@ -27,9 +32,9 @@ func GetDpPath(parentPath, fileName string) string {
 	}
 }
 
-// GetFilePathUsingSeparator generates correct path from parentPath and fileName
+// getFilePathUsingSeparator generates correct path from parentPath and fileName
 //  using given path sepearator.
-func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) string {
+func getFilePathUsingSeparator(parentPath, fileName, pathSeparator string) string {
 	switch {
 	case fileName == ".", fileName == "":
 		return parentPath
@@ -49,6 +54,41 @@ func GetFilePathUsingSeparator(parentPath, fileName, pathSeparator string) strin
 	default:
 		return parentPath + pathSeparator + fileName
 	}
+}
+
+// getFileNameUsingSeparator extract fileName from full path
+//  using given path sepearator.
+func getFileNameUsingSeparator(fullPath, pathSeparator string) string {
+	switch {
+	case fullPath == "/":
+		return "/"
+	case strings.HasSuffix(fullPath, pathSeparator):
+		fullPath = strings.TrimRight(fullPath, pathSeparator)
+	}
+
+	pathParts := strings.Split(fullPath, pathSeparator)
+
+	partsNo := len(pathParts)
+	fileName := "/"
+
+	switch {
+	case partsNo == 0:
+	case pathParts[partsNo-1] == "":
+	case pathParts[partsNo-1] == "." && partsNo > 1:
+		fileName = pathParts[partsNo-2]
+	case pathParts[partsNo-1] == ".." && partsNo > 2:
+		fileName = pathParts[partsNo-3]
+	case pathParts[partsNo-1] == ".." && partsNo > 1:
+		fileName = pathParts[partsNo-2]
+	default:
+		fileName = pathParts[partsNo-1]
+	}
+
+	if fileName == "" {
+		return "/"
+	}
+
+	return fileName
 }
 
 // SplitDpPath splits DataPower path into splice where first element is

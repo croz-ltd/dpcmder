@@ -83,6 +83,7 @@ type Item struct {
 // identify Item.
 type ItemConfig struct {
 	Type          ItemType
+	Name          string
 	Path          string
 	DpAppliance   string
 	DpDomain      string
@@ -131,8 +132,8 @@ type Model struct {
 
 // String method returns ItemConfig details.
 func (ic ItemConfig) String() string {
-	return fmt.Sprintf("IC(%s, '%s', '%s' (%s) %s %v)",
-		ic.Type, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
+	return fmt.Sprintf("IC(%s, '%s' (%s), '%s' (%s) %s %v)",
+		ic.Type, ic.Name, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
 }
 
 // Equals method returns true if other object is refering to same ItemConfig.
@@ -244,6 +245,11 @@ func (m *Model) OtherSide() Side {
 // Title returns title for given Side.
 func (m *Model) Title(side Side) string {
 	return m.title[side]
+}
+
+// SetTitle sets title for given Side.
+func (m *Model) SetTitle(side Side, title string) {
+	m.title[side] = title
 }
 
 // ViewConfig returns view config for given Side.

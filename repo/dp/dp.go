@@ -63,10 +63,12 @@ func (r *dpRepo) String() string {
 func (r *dpRepo) GetInitialItem() (model.Item, error) {
 	logging.LogDebugf("repo/dp/GetInitialItem(), dataPowerAppliance: %#v", r.dataPowerAppliance)
 	var initialConfig model.ItemConfig
+	initialViewName := "List appliance configurations"
 	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
 	if r.dataPowerAppliance.RestUrl != "" || r.dataPowerAppliance.SomaUrl != "" || r.dataPowerAppliance.Username != "" {
 		initialConfig = model.ItemConfig{
 			Type:        model.ItemDpConfiguration,
+			Name:        initialViewName,
 			DpAppliance: config.CurrentApplianceName,
 			DpDomain:    r.dataPowerAppliance.Domain,
 			Parent:      &initialConfigTop}
@@ -74,7 +76,7 @@ func (r *dpRepo) GetInitialItem() (model.Item, error) {
 		initialConfig = initialConfigTop
 	}
 	logging.LogDebugf("repo/dp/GetInitialItem() initialConfig: %#v", initialConfig)
-	initialItem := model.Item{Config: &initialConfig}
+	initialItem := model.Item{Name: initialViewName, Config: &initialConfig}
 
 	return initialItem, nil
 }
@@ -176,6 +178,8 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 
 	return r.GetFileByPath(currentView.DpDomain, filePath)
 }
+
+// GetFileByPath fetches file from DataPower by it's domain and path.
 func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 	logging.LogDebugf("repo/dp/GetFile('%s', '%s')", dpDomain, filePath)
 
@@ -655,6 +659,7 @@ func (r *dpRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath stri
 			parentView = dpView
 		}
 		resultView = &model.ItemConfig{Type: itemType,
+			Name:        dirFsName,
 			Path:        paths.GetDpPath(parentView.Path, dirFsName),
 			DpAppliance: dpView.DpAppliance,
 			DpDomain:    dpView.DpDomain,
@@ -1185,6 +1190,7 @@ func listAppliances() (model.ItemList, error) {
 	idx := 0
 	for name, config := range appliances {
 		itemConfig := model.ItemConfig{Type: model.ItemDpConfiguration,
+			Name:        name,
 			DpAppliance: name,
 			DpDomain:    config.Domain,
 			Parent:      &appliancesConfig}
@@ -1217,6 +1223,7 @@ func (r *dpRepo) listDomains(selectedItemConfig *model.ItemConfig) (model.ItemLi
 
 	for idx, domain := range domains {
 		itemConfig := model.ItemConfig{Type: model.ItemDpDomain,
+			Name:        domain.name,
 			DpAppliance: selectedItemConfig.DpAppliance,
 			DpDomain:    domain.name,
 			Parent:      selectedItemConfig}
@@ -1262,6 +1269,7 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 			// "local:"
 			filestoreName := node.InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
+				Name:        filestoreName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
 				Path:        filestoreName,
@@ -1292,6 +1300,7 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 
 		for idx, filestoreName := range filestoreNames {
 			itemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
+				Name:        filestoreName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
 				Path:        filestoreName,
@@ -1368,6 +1377,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			dirDpPath := n.SelectElement("name").InnerText()
 			_, dirName := splitOnLast(dirDpPath, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
+				Name:        dirName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
 				Path:        dirDpPath,
@@ -1383,6 +1393,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			fileSize := n.SelectElement("size").InnerText()
 			fileModified := n.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
+				Name:        fileName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
 				Path:        paths.GetDpPath(selectedItemConfig.Path, fileName),
@@ -1433,6 +1444,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			dirFullName := node.SelectAttr("name")
 			_, dirName := splitOnLast(dirFullName, "/")
 			itemConfig := model.ItemConfig{Type: model.ItemDirectory,
+				Name:        dirName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
 				Path:        dirFullName,
@@ -1447,6 +1459,7 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			fileSize := node.SelectElement("size").InnerText()
 			fileModified := node.SelectElement("modified").InnerText()
 			itemConfig := model.ItemConfig{Type: model.ItemFile,
+				Name:        fileName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
 				Path:        selectedItemConfig.Path,
@@ -1534,6 +1547,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 	items := make(model.ItemList, len(classNames))
 	for idx, className := range classNames {
 		itemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
+			Name:        className,
 			DpAppliance: currentView.DpAppliance,
 			DpDomain:    currentView.DpDomain,
 			Path:        className,
@@ -1618,6 +1632,7 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 			}
 
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
+				Name:        objectName,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        objectClassName,
@@ -1707,6 +1722,7 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 				opState = objectNamesAndStatuses[2][idx]
 			}
 			itemConfig := model.ItemConfig{Type: model.ItemDpObject,
+				Name:        objectName,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        objectClassName,

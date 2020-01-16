@@ -40,9 +40,33 @@ func TestGetFilePathUsingSeparator(t *testing.T) {
 		{"/", "testfile", "/", "/testfile"},
 	}
 	for _, testCase := range testDataMatrix {
-		newPath := GetFilePathUsingSeparator(testCase[0], testCase[1], testCase[2])
+		newPath := getFilePathUsingSeparator(testCase[0], testCase[1], testCase[2])
 		if newPath != testCase[3] {
 			t.Errorf("for GetFilePathUsingSeparator('%s', '%s', '%s'): got '%s', want '%s'", testCase[0], testCase[1], testCase[2], newPath, testCase[3])
+		}
+	}
+}
+
+func TestGetFileNameUsingSeparator(t *testing.T) {
+	testDataMatrix := [][]string{
+		{"myfile", "/", "myfile"},
+		{"/usr/bin/share/..", "/", "bin"},
+		{"/usr/bin/share/.", "/", "share"},
+		{"/usr/bin/share/", "/", "share"},
+		{"/usr/bin/share", "/", "share"},
+		{"/testdir/..", "/", "/"},
+		{"/testdir/.", "/", "testdir"},
+		{"/testdir/", "/", "testdir"},
+		{"/testdir", "/", "testdir"},
+		{"..", "/", ".."},
+		{"/..", "/", "/"},
+		{"/.", "/", "/"},
+		{"/", "/", "/"},
+	}
+	for _, testCase := range testDataMatrix {
+		gotName := getFileNameUsingSeparator(testCase[0], testCase[1])
+		if gotName != testCase[2] {
+			t.Errorf("for getFileNameUsingSeparator('%s', '%s'): got '%s', want '%s'", testCase[0], testCase[1], gotName, testCase[2])
 		}
 	}
 }
