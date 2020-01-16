@@ -1710,12 +1710,11 @@ func toggleObjectMode(m *model.Model) error {
 			newView := model.ItemConfig{
 				Parent:      oldView,
 				Type:        model.ItemDpObjectClassList,
-				Path:        "",
+				Path:        "Object classes",
 				DpAppliance: oldView.DpAppliance,
 				DpDomain:    oldView.DpDomain,
 				DpFilestore: oldView.DpFilestore}
-			m.AddNextView(side, &newView, "Object classes")
-			return showItem(model.Left, &newView, ".")
+			return showItem(model.Left, &newView, newView.Path)
 		}
 
 		switch oldView.Type {
