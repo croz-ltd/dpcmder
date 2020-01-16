@@ -11,8 +11,9 @@ import (
 
 func TestItemTypeString(t *testing.T) {
 	types := []ItemType{ItemFile, ItemDirectory, ItemDpConfiguration, ItemDpDomain,
-		ItemDpFilestore, ItemDpObjectClass, ItemDpObject, ItemNone}
-	wantArr := []string{"f", "d", "A", "D", "F", "C", "O", "-"}
+		ItemDpFilestore, ItemDpObjectClassList, ItemDpObjectClass, ItemDpObject,
+		ItemNone}
+	wantArr := []string{"f", "d", "A", "D", "F", "L", "C", "O", "-"}
 
 	for idx, gotType := range types {
 		got := gotType.String()
@@ -23,9 +24,10 @@ func TestItemTypeString(t *testing.T) {
 
 func TestUserFriendlyString(t *testing.T) {
 	types := []ItemType{ItemFile, ItemDirectory, ItemDpConfiguration, ItemDpDomain,
-		ItemDpFilestore, ItemDpObjectClass, ItemDpObject, ItemNone}
+		ItemDpFilestore, ItemDpObjectClassList, ItemDpObjectClass, ItemDpObject,
+		ItemNone}
 	wantArr := []string{"file", "directory", "appliance configuration", "domain",
-		"filestore", "object class", "object", "-"}
+		"filestore", "object class list", "object class", "object", "-"}
 
 	for idx, gotType := range types {
 		got := gotType.UserFriendlyString()

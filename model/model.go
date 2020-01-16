@@ -41,6 +41,8 @@ func (it ItemType) UserFriendlyString() string {
 		return "domain"
 	case ItemDpFilestore:
 		return "filestore"
+	case ItemDpObjectClassList:
+		return "object class list"
 	case ItemDpObjectClass:
 		return "object class"
 	case ItemDpObject:
@@ -54,15 +56,16 @@ func (it ItemType) UserFriendlyString() string {
 
 // Available types of Item
 const (
-	ItemDirectory       = ItemType('d')
-	ItemFile            = ItemType('f')
-	ItemDpConfiguration = ItemType('A')
-	ItemDpDomain        = ItemType('D')
-	ItemDpFilestore     = ItemType('F')
-	ItemDpObjectClass   = ItemType('C')
-	ItemDpObject        = ItemType('O')
-	ItemNone            = ItemType('-')
-	ItemAny             = ItemType('*')
+	ItemDirectory         = ItemType('d')
+	ItemFile              = ItemType('f')
+	ItemDpConfiguration   = ItemType('A')
+	ItemDpDomain          = ItemType('D')
+	ItemDpFilestore       = ItemType('F')
+	ItemDpObjectClassList = ItemType('L')
+	ItemDpObjectClass     = ItemType('C')
+	ItemDpObject          = ItemType('O')
+	ItemNone              = ItemType('-')
+	ItemAny               = ItemType('*')
 )
 
 // Item contains information about File, Directory, DataPower filestore,
@@ -252,6 +255,9 @@ func (m *Model) ViewConfig(side Side) *ItemConfig {
 // ViewConfigFromHistory returns view config for given Side and history position.
 func (m *Model) ViewConfigFromHistory(side Side, idx int) *ItemConfig {
 	logging.LogDebugf("model/ViewConfigFromHistory(%v, %d), history len: %d", side, idx, len(m.viewConfigHistory[side]))
+	for i, viewConfig := range m.viewConfigHistory[side] {
+		logging.LogTracef("model/ViewConfigFromHistory(%v, %d), config: %v", side, i, viewConfig)
+	}
 	switch {
 	case len(m.viewConfigHistory[side]) < idx+1 || idx < 0:
 		return nil
@@ -305,18 +311,20 @@ func (m *Model) AddNextView(side Side, viewConfig *ItemConfig, viewTitle string)
 
 // NavCurrentViewBack sets the current view to the previous one from view
 // history (if previous view exists).
-func (m *Model) NavCurrentViewBack(side Side) {
+func (m *Model) NavCurrentViewBack(side Side) *ItemConfig {
 	if m.viewConfigCurrIdx[side] > 0 {
 		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] - 1
 	}
+	return m.ViewConfig(side)
 }
 
 // NavCurrentViewForward sets the current view to the next one from view
 // history (if next view exists).
-func (m *Model) NavCurrentViewForward(side Side) {
+func (m *Model) NavCurrentViewForward(side Side) *ItemConfig {
 	if m.viewConfigCurrIdx[side] < len(m.viewConfigHistory[side])-1 {
 		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] + 1
 	}
+	return m.ViewConfig(side)
 }
 
 // AddStatus adds new status event to history of statuses.

@@ -113,12 +113,11 @@ func getDpAppliance(itemToShow *model.ItemConfig) config.DataPowerAppliance {
 	}
 }
 func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
-	logging.LogDebugf("repo/dp/GetList(%v)", itemToShow)
+	logging.LogDebugf("repo/dp/GetList(%v), r.ObjectConfigMode: %t", itemToShow, r.ObjectConfigMode)
 
 	if r.ObjectConfigMode {
 		switch itemToShow.Type {
-		case model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory,
-			model.ItemDpConfiguration:
+		case model.ItemDpObjectClassList:
 			// For DP configuration we doesn't need to have domain name (but can have it).
 			if itemToShow.DpDomain != "" {
 				return r.listObjectClasses(itemToShow)
@@ -129,7 +128,7 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
 			itemToShow, r.ObjectConfigMode)
 		r.ObjectConfigMode = false
-		return nil, errs.Errorf("Can't show object view if DataPower domain is not selected.")
+		return nil, errs.Errorf("Internal error showing object config mode.")
 	} else {
 		switch itemToShow.Type {
 		case model.ItemNone:

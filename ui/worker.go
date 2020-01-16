@@ -402,7 +402,9 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 	r := repos[side]
 	switch itemConfig.Type {
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
-		model.ItemDirectory, model.ItemNone, model.ItemDpObjectClass:
+		model.ItemDirectory,
+		model.ItemDpObjectClassList, model.ItemDpObjectClass,
+		model.ItemNone:
 		itemList, err = r.GetList(itemConfig)
 	default:
 		return errs.Errorf("ui/showItem(), unknown type: %s", itemConfig.Type)
@@ -443,41 +445,47 @@ func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) er
 func showPrevView() error {
 	logging.LogDebugf("ui/showPrevView()")
 	side := workingModel.CurrSide()
-	currentView := workingModel.ViewConfig(side)
-	logging.LogDebugf("ui/showPrevView(), side: %v, currentView: %s", side, currentView)
+	oldView := workingModel.ViewConfig(side)
 
-	// When in object mode we can't move back through history earlier than to
-	// list of object classes.
-	if side == model.Left && dp.Repo.ObjectConfigMode && currentView.Type != model.ItemDpObjectClass {
-		updateStatusf("Can't move back in history when list of classes is selected.")
-		return nil
+	newView := workingModel.NavCurrentViewBack(side)
+	logging.LogDebugf("ui/showPrevView(), side: %v, oldView: %v, newView: %s",
+		side, oldView, newView)
+
+	// If previous view in history requires filestore mode, switch to filestore mode.
+	if side == model.Left &&
+		newView.Type != model.ItemDpObjectClassList &&
+		newView.Type != model.ItemDpObjectClass &&
+		dp.Repo.ObjectConfigMode {
+		dp.Repo.ObjectConfigMode = false
 	}
 
-	viewConfigOld := workingModel.ViewConfig(side)
-	workingModel.NavCurrentViewBack(side)
-	viewConfig := workingModel.ViewConfig(side)
-
-	if viewConfig == viewConfigOld {
+	if newView == oldView {
 		updateStatusf("Can't move back from the first view in the history.")
 	}
 
-	return showItem(side, viewConfig, ".")
+	return showItem(side, newView, ".")
 }
 
 // showNextView navigate to the next view from the view history.
 func showNextView() error {
 	logging.LogDebugf("ui/showNextView()")
 	side := workingModel.CurrSide()
+	oldView := workingModel.ViewConfig(side)
 
-	viewConfigOld := workingModel.ViewConfig(side)
-	workingModel.NavCurrentViewForward(side)
-	viewConfig := workingModel.ViewConfig(side)
+	newView := workingModel.NavCurrentViewForward(side)
+	logging.LogDebugf("ui/showNextView(), side: %v, oldView: %v, newView: %s",
+		side, oldView, newView)
 
-	if viewConfig == viewConfigOld {
+	// If next view in history requires object mode, switch to object config mode.
+	if side == model.Left && newView.Type == model.ItemDpObjectClassList && !dp.Repo.ObjectConfigMode {
+		dp.Repo.ObjectConfigMode = true
+	}
+
+	if newView == oldView {
 		updateStatusf("Can't move forward from the last view in the history.")
 	}
 
-	return showItem(side, viewConfig, ".")
+	return showItem(side, newView, ".")
 }
 
 func setCurrentDpPlainPassword(password string) {
@@ -919,7 +927,7 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		updateStatus(copyFileToDirStatus)
 	case model.ItemFile:
 		if res != "ya" && res != "na" {
-			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
+			logging.LogDebugf("ui/copyFile(), confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
 					fileName, toViewConfig.Path), "", false)
@@ -996,7 +1004,7 @@ func copyObjectToFile(itemConfig *model.ItemConfig, itemName string,
 		updateStatus(copyFileToDirStatus)
 	case model.ItemFile:
 		if res != "ya" && res != "na" {
-			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
+			logging.LogDebugf("ui/copyObjectToFile(), confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
 					objectFileName, toViewConfig.Path), "", false)
@@ -1086,7 +1094,7 @@ func copyFileToObject(itemConfig *model.ItemConfig, itemName string,
 	case model.ItemDpObject:
 		existingObject = true
 		if res != "ya" && res != "na" {
-			logging.LogDebugf("TODO: confirm overwrite: '%s'", res)
+			logging.LogDebugf("ui/copyFileToObject(), confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of object '%s' of class '%s' from  file '%s' (y/ya/n/na): ",
 					objectName, objectClassName, objectFileName), "", false)
@@ -1682,16 +1690,50 @@ func syncLocalToDpLater(tree, treeOld *localfs.Tree) bool {
 	return changesMade
 }
 
+// toggleObjectMode switches between (default) filestore mode and object mode
+// for DataPower view.
 func toggleObjectMode(m *model.Model) error {
 	logging.LogDebugf("worker/toggleObjectMode(), dp.Repo.ObjectConfigMode: %t", dp.Repo.ObjectConfigMode)
 
-	dp.Repo.ObjectConfigMode = !dp.Repo.ObjectConfigMode
-	currentView := m.ViewConfig(m.CurrSide())
-	if !dp.Repo.ObjectConfigMode && currentView.Type == model.ItemDpObjectClass {
-		currentView = currentView.Parent
+	side := m.CurrSide()
+	switch side {
+	case model.Left:
+		dp.Repo.ObjectConfigMode = !dp.Repo.ObjectConfigMode
+		oldView := m.ViewConfig(side)
+
+		if dp.Repo.ObjectConfigMode {
+			if oldView.DpDomain == "" {
+				logging.LogDebug("worker/toggleObjectMode(), can't switch to object mode, oldView: %v.", oldView)
+				dp.Repo.ObjectConfigMode = false
+				return errs.Errorf("Can't show object view if DataPower domain is not selected.")
+			}
+			newView := model.ItemConfig{
+				Parent:      oldView,
+				Type:        model.ItemDpObjectClassList,
+				Path:        "",
+				DpAppliance: oldView.DpAppliance,
+				DpDomain:    oldView.DpDomain,
+				DpFilestore: oldView.DpFilestore}
+			m.AddNextView(side, &newView, "Object classes")
+			return showItem(model.Left, &newView, ".")
+		}
+
+		switch oldView.Type {
+		case model.ItemDpObjectClassList:
+			m.NavCurrentViewBack(side)
+		case model.ItemDpObjectClass:
+			m.NavCurrentViewBack(side)
+			m.NavCurrentViewBack(side)
+		default:
+			logging.LogDebugf("worker/toggleObjectMode(), currentView of unexpected type: %v", oldView)
+			return errs.Error("Internal error occured while switching back to filestore mode.")
+		}
+		firstNonObjectView := m.ViewConfig(side)
+		return showItem(model.Left, firstNonObjectView, ".")
+	default:
+		logging.LogDebug("worker/toggleObjectMode(), To toggle object mode select DataPower view.")
+		return errs.Error("To toggle object mode select DataPower view.")
 	}
-	logging.LogDebugf("worker/toggleObjectMode(), currentView: %v", currentView)
-	return showItem(model.Left, currentView, ".")
 }
 
 // showItemInfo shows information about current item.
