@@ -119,16 +119,19 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 		switch itemToShow.Type {
 		case model.ItemDpObjectClassList:
 			// For DP configuration we doesn't need to have domain name (but can have it).
-			if itemToShow.DpDomain != "" {
-				return r.listObjectClasses(itemToShow)
+			if itemToShow.DpDomain == "" {
+				logging.LogDebugf("repo/dp/GetList(%v) - can't find DpDomain.", itemToShow)
+				return nil, errs.Errorf("Internal error showing object config mode - missing domain.")
 			}
+			return r.listObjectClasses(itemToShow)
 		case model.ItemDpObjectClass:
 			return r.listObjects(itemToShow)
+		default:
+			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
+				itemToShow, r.ObjectConfigMode)
+			r.ObjectConfigMode = false
+			return nil, errs.Errorf("Internal error showing object config mode - wrong view type.")
 		}
-		logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
-			itemToShow, r.ObjectConfigMode)
-		r.ObjectConfigMode = false
-		return nil, errs.Errorf("Internal error showing object config mode.")
 	} else {
 		switch itemToShow.Type {
 		case model.ItemNone:
