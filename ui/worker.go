@@ -401,12 +401,22 @@ func enterCurrentDirectory() error {
 	return err
 }
 
+// showItem lists items in given view and select current item if possible.
+// Current item is the item currently under cursor.
+// Values for the viewItemName (view containing new list of items) can be:
+// - "" - don't know viewItemName - set the first item as the current item
+// - "." - refresh current view - keep the current item
+// - ".." - go to parent view - use the previous view as the current item
+// - other - adding new view - set the first item as the current item
+// Values for the currentItemName can be:
+// - "" - don't know current item name - the current item by viewItemName
+// - other - set currentItemName as the current item
 func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, currentItemName string) error {
 	logging.LogDebugf("ui/showView(%d, %v, '%s', '%s')",
 		side, itemConfig, viewItemName, currentItemName)
 	if itemConfig.Type == model.ItemDpConfiguration {
 		applianceName := viewItemName
-		if applianceName != ".." && applianceName != "." {
+		if applianceName != ".." && applianceName != "." && applianceName != "" {
 			applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
 			dpTransientPassword := config.DpTransientPasswordMap[applianceName]
 			logging.LogDebugf("ui/showView(), applicanceConfig: '%s'", applicanceConfig)
@@ -443,6 +453,8 @@ func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, curre
 	// change view history.
 	// If we are entering new directory/appliance/... add new view to history.
 	switch viewItemName {
+	case "":
+		workingModel.SetCurrentView(side, itemConfig, title)
 	case ".":
 		workingModel.SetCurrentView(side, itemConfig, title)
 	case "..":
@@ -457,11 +469,11 @@ func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, curre
 		return nil
 	}
 
-	oldCurrItem := workingModel.CurrItemForSide(side)
 	switch viewItemName {
 	case "..":
 		workingModel.SetCurrItemForSideAndConfig(side, oldViewConfig)
 	case ".":
+		oldCurrItem := workingModel.CurrItemForSide(side)
 		workingModel.SetCurrItemForSide(side, oldCurrItem.Name)
 	default:
 		workingModel.NavTopForSide(side)
@@ -497,7 +509,7 @@ func showPrevView() error {
 		updateStatusf("Can't move back from the first view in the history.")
 	}
 
-	return showView(side, newView, ".", oldView.Name)
+	return showView(side, newView, "", oldView.Name)
 }
 
 // showNextView navigate to the next view from the view history.
@@ -525,7 +537,7 @@ func showNextView() error {
 	if nextViewFromHistory != nil {
 		nextViewName = nextViewFromHistory.Name
 	}
-	return showView(side, newView, ".", nextViewName)
+	return showView(side, newView, "", nextViewName)
 }
 
 // showViewHistory shows dialog with history of views where we can select any
@@ -1819,6 +1831,7 @@ func toggleObjectMode(m *model.Model) error {
 		dp.Repo.ObjectConfigMode = !dp.Repo.ObjectConfigMode
 		oldView := m.ViewConfig(side)
 
+		// When we switch to object config mode - add/open object class list.
 		if dp.Repo.ObjectConfigMode {
 			if oldView.DpDomain == "" {
 				logging.LogDebug("worker/toggleObjectMode(), can't switch to object mode, oldView: %v.", oldView)
@@ -1836,6 +1849,7 @@ func toggleObjectMode(m *model.Model) error {
 			return showItem(model.Left, &newView, newView.Path)
 		}
 
+		// When we switch from object config mode - navigate to first non-object view.
 		switch oldView.Type {
 		case model.ItemDpObjectClassList:
 			m.NavCurrentViewBack(side)
