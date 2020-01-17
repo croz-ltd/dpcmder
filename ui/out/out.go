@@ -181,6 +181,10 @@ func showListSelectionDialog(message string, list []string, selectionIdx int) {
 		listIdx := lineNo - firstLine - 2
 		if listIdx < len(list) {
 			text := list[listIdx]
+			maxTextWidth := dialogWidth - 4
+			if len(text) > maxTextWidth {
+				text = text[len(text)-maxTextWidth:]
+			}
 			if listIdx == selectionIdx {
 				writeLine(x+2, lineNo, text, 0, stCurrent)
 			} else {
