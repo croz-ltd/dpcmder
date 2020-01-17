@@ -104,7 +104,9 @@ func getDpAppliance(itemToShow *model.ItemConfig) config.DataPowerAppliance {
 	switch itemToShow.Type {
 	case model.ItemNone:
 		return config.DataPowerAppliance{}
-	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore, model.ItemDirectory:
+	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
+		model.ItemDpObjectClassList, model.ItemDpObjectClass,
+		model.ItemDirectory:
 		dataPowerAppliance := config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
 		if dataPowerAppliance.Password == "" {
 			dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
@@ -127,8 +129,10 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 				logging.LogDebugf("repo/dp/GetList(%v) - can't find DpDomain.", itemToShow)
 				return nil, errs.Errorf("Internal error showing object config mode - missing domain.")
 			}
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listObjectClasses(itemToShow)
 		case model.ItemDpObjectClass:
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listObjects(itemToShow)
 		default:
 			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
