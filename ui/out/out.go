@@ -165,7 +165,6 @@ func showListSelectionDialog(message string, list []string, selectionIdx int) {
 	width, height := Screen.Size()
 	firstLine, lastLine := 2, height-3
 	x := 10
-	// y := 10
 	dialogWidth := width - 20
 
 	// write top frame line
@@ -175,10 +174,21 @@ func showListSelectionDialog(message string, list []string, selectionIdx int) {
 	writeLine(x, firstLine+1, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
 	writeLine(x+2, firstLine+1, message, 0, stNormal)
 
-	// write left/right frames and list items
-	for lineNo := firstLine + 2; lineNo < lastLine; lineNo++ {
+	textLinesMaxNo := lastLine - firstLine - 2
+	textLinesNo := len(list)
+	textLineStart := firstLine + 2
+	textLineEnd := lastLine - 1
+	listScrollVert := 0
+	if textLinesNo > textLinesMaxNo && selectionIdx >= textLinesMaxNo {
+		logging.LogDebugf("ui/out/showListSelectionDialog() in if...")
+		listScrollVert = selectionIdx - textLinesMaxNo + 1
+	}
+	logging.LogDebugf("ui/out/showListSelectionDialog() %d/%d/%d/%d", textLinesNo, textLinesMaxNo, selectionIdx, listScrollVert)
+
+	// write select dialog frame and list items
+	for lineNo := textLineStart; lineNo <= textLineEnd; lineNo++ {
 		writeLine(x, lineNo, buildLine("*", " ", "*", dialogWidth), 0, stNormal)
-		listIdx := lineNo - firstLine - 2
+		listIdx := lineNo - textLineStart + listScrollVert
 		if listIdx < len(list) {
 			text := list[listIdx]
 			maxTextWidth := dialogWidth - 4
