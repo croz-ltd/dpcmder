@@ -582,6 +582,12 @@ loop:
 
 	if dialogSession.dialogSubmitted {
 		newView := workingModel.NavCurrentViewIdx(side, dialogSession.selectionIdx)
+		// If proper mode for new view (object mode vs filestore mode).
+		if side == model.Left {
+			dp.Repo.ObjectConfigMode =
+				(newView.Type == model.ItemDpObjectClassList ||
+					newView.Type == model.ItemDpObjectClass)
+		}
 		showItem(side, newView, ".")
 	}
 
