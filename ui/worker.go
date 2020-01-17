@@ -604,7 +604,7 @@ func processSelectListDialogInput(dialogSession *listSelectionDialogSessionInfo,
 	c := keyEvent.Rune()
 	k := keyEvent.Key()
 	switch {
-	case k == tcell.KeyEsc:
+	case k == tcell.KeyEsc, c == 'H':
 		logging.LogDebug("ui/processSelectListDialogInput() canceling selection: '%s'", dialogSession)
 		dialogSession.dialogCanceled = true
 	case k == tcell.KeyEnter:
