@@ -197,6 +197,7 @@ ArrowLeft / j        - scroll items left (useful for long names)
 ArrowRight / l       - scroll items right (useful for long names)
 Shift+ArrowLeft / J  - navigate to the previous view for the current side
 Shift+ArrowRight / L - navigate to the next view for the current side
+H                    - show view history list - can jump to any view in the current history
 Space                - select current item
 TAB                  - switch from left to right panel and vice versa
 Return               - enter directory
@@ -237,6 +238,7 @@ S                    - save running DataPower configuration (SOMA only)
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
 ?                    - show status information for the current DataPower object
+h                    - show help
 q                    - quit
 any-other-char       - show help (+ hex value of the key pressed visible in the status bar)
 

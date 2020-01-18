@@ -73,8 +73,8 @@ S                    - save running DataPower configuration (SOMA only)
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
 ?                    - show status information for the current DataPower object
-q                    - quit
 h                    - show help
+q                    - quit
 any-other-char       - show help (+ hex value of the key pressed visible in the status bar)
 
 Navigational keys (except Left/Right can be used in combination with Shift for selections):
@@ -107,15 +107,12 @@ Some new features added are SOMA-only. For example, with REST you can't compare
 persisted DataPower object configuration to saved configuration.
 
 TODO:
-
-- add show view history list and select one from list
 - add domain/appliance import?
 - add creation of new DataPower objects
   (should be able to show/create all classes of objects, even ones without
   object instances)
 - add deletion of a domain (with maybe 2 confirmation dialogs: are you sure?;
   are you really sure?)
-- shows that domain has unsaved changes in domain view
 
 (to show dpcmder usage help use "-h" flag instead of "-help" flag)
 `
