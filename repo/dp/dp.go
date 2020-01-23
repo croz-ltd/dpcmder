@@ -1276,6 +1276,7 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 				Name:        filestoreName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
+				DpFilestore: filestoreName,
 				Path:        filestoreName,
 				Parent:      selectedItemConfig}
 			items[idx+1] = model.Item{Name: filestoreName, Config: &itemConfig}
