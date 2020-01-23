@@ -133,7 +133,8 @@ type Model struct {
 // String method returns ItemConfig details.
 func (ic ItemConfig) String() string {
 	return fmt.Sprintf("IC(%s, '%s' (%s), '%s' (%s) %s %v)",
-		ic.Type, ic.Name, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore, ic.Parent)
+		ic.Type, ic.Name, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore,
+		ic.Parent)
 }
 
 // Equals method returns true if other object is refering to same ItemConfig.
@@ -141,7 +142,8 @@ func (ic *ItemConfig) Equals(other *ItemConfig) bool {
 	if other == nil {
 		return false
 	}
-	return ic.Path == other.Path && ic.DpAppliance == other.DpAppliance && ic.DpDomain == other.DpDomain && ic.DpFilestore == other.DpFilestore
+	return ic.Path == other.Path && ic.DpAppliance == other.DpAppliance &&
+		ic.DpDomain == other.DpDomain && ic.DpFilestore == other.DpFilestore
 }
 
 // Item methods
@@ -154,7 +156,8 @@ func (item Item) String() string {
 
 // DisplayString method returns formatted string representing how item will be shown.
 func (item *Item) DisplayString() string {
-	return fmt.Sprintf("%s %10s %19s %s", item.GetDisplayableType(), item.Size, item.Modified, item.Name)
+	return fmt.Sprintf("%s %10s %19s %s",
+		item.GetDisplayableType(), item.Size, item.Modified, item.Name)
 }
 
 // GetDisplayableType retuns single character string representation of Item type.
@@ -204,7 +207,8 @@ func (m *Model) SetItems(side Side, items []Item) {
 // GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
-	logging.LogTracef("model/GetVisibleItemCount(%s), visibleItemCount: %d, m.ItemMaxRows: %d", side, visibleItemCount, m.ItemMaxRows)
+	logging.LogTracef("model/GetVisibleItemCount(%s), visibleItemCount: %d, m.ItemMaxRows: %d",
+		side, visibleItemCount, m.ItemMaxRows)
 	if m.ItemMaxRows < visibleItemCount {
 		return m.ItemMaxRows
 	}
@@ -254,15 +258,18 @@ func (m *Model) SetTitle(side Side, title string) {
 
 // ViewConfig returns view config for given Side.
 func (m *Model) ViewConfig(side Side) *ItemConfig {
-	logging.LogDebugf("model/ViewConfig(%v), history len: %d, history idx: %d", side, len(m.viewConfigHistory[side]), m.viewConfigCurrIdx[side])
+	logging.LogDebugf("model/ViewConfig(%v), history len: %d, history idx: %d",
+		side, len(m.viewConfigHistory[side]), m.viewConfigCurrIdx[side])
 	return m.ViewConfigFromHistory(side, m.viewConfigCurrIdx[side])
 }
 
 // ViewConfigFromHistory returns view config for given Side and history position.
 func (m *Model) ViewConfigFromHistory(side Side, idx int) *ItemConfig {
-	logging.LogDebugf("model/ViewConfigFromHistory(%v, %d), history len: %d", side, idx, len(m.viewConfigHistory[side]))
+	logging.LogDebugf("model/ViewConfigFromHistory(%v, %d), history len: %d",
+		side, idx, len(m.viewConfigHistory[side]))
 	for i, viewConfig := range m.viewConfigHistory[side] {
-		logging.LogTracef("model/ViewConfigFromHistory(%v, %d), config: %v", side, i, viewConfig)
+		logging.LogTracef("model/ViewConfigFromHistory(%v, %d), config: %v",
+			side, i, viewConfig)
 	}
 	switch {
 	case len(m.viewConfigHistory[side]) < idx+1 || idx < 0:
@@ -301,7 +308,8 @@ func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle stri
 		m.viewConfigHistory[side] = append(m.viewConfigHistory[side], viewConfig)
 	default:
 		viewConfigOld := m.ViewConfigFromHistory(side, m.viewConfigCurrIdx[side])
-		logging.LogTracef("model/SetCurrentView(), viewConfig: %v, viewConfigOld: %v", viewConfig, viewConfigOld)
+		logging.LogTracef("model/SetCurrentView(), viewConfig: %v, viewConfigOld: %v",
+			viewConfig, viewConfigOld)
 		if viewConfig != viewConfigOld {
 			m.viewConfigHistory[side][m.viewConfigCurrIdx[side]] = viewConfig
 			// reslice  a slice to remove "old view history" if we set current view
@@ -309,7 +317,8 @@ func (m *Model) SetCurrentView(side Side, viewConfig *ItemConfig, viewTitle stri
 			m.viewConfigHistory[side] = m.viewConfigHistory[side][:m.viewConfigCurrIdx[side]+1]
 		}
 	}
-	logging.LogTracef("model/SetCurrentView(), view history size after: %d, idx: %d", m.ViewConfigHistorySize(side), m.viewConfigCurrIdx[side])
+	logging.LogTracef("model/SetCurrentView(), view history size after: %d, idx: %d",
+		m.ViewConfigHistorySize(side), m.viewConfigCurrIdx[side])
 }
 
 // AddNextView sets title and add next view config for given Side - appends new
@@ -423,7 +432,8 @@ func (m *Model) SetCurrItemForSideAndConfig(side Side, config *ItemConfig) {
 		}
 	}
 
-	logging.LogDebugf("model/SetCurrItemForSideAndConfig(%v, %v), itemIdx: %v", side, config, itemIdx)
+	logging.LogDebugf("model/SetCurrItemForSideAndConfig(%v, %v), itemIdx: %v",
+		side, config, itemIdx)
 	m.currItemIdx[side] = itemIdx
 	m.navUpDown(side, 0)
 }
@@ -566,7 +576,9 @@ func (m *Model) SelToBottom() {
 
 func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
-	logging.LogDebug("model/navUpDown(), side: ", side, ", move: ", move, ", newCurr: ", newCurr, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
+	logging.LogDebugf(
+		"model/navUpDown(), side: %d, move: %d, newCurr: %d, m.currFirstRowItemIdx[side]: ",
+		side, move, newCurr, m.currFirstRowItemIdx[side])
 
 	if newCurr < 0 {
 		newCurr = 0
@@ -582,7 +594,9 @@ func (m *Model) navUpDown(side Side, move int) {
 	} else if newCurr < minIdx {
 		m.currFirstRowItemIdx[side] = newCurr
 	}
-	logging.LogTrace("model/navUpDown(), newCurr: ", newCurr, ", minIdx: ", minIdx, ", maxIdx: ", maxIdx, ", maxRows: ", maxRows, ", m.currFirstRowItemIdx[side]: ", m.currFirstRowItemIdx[side])
+	logging.LogTracef(
+		"model/navUpDown(), newCurr: %d, minIdx: %d, maxIdx: %d, maxRows: %d, m.currFirstRowItemIdx[side]: ",
+		newCurr, minIdx, maxIdx, maxRows, m.currFirstRowItemIdx[side])
 
 	m.currItemIdx[side] = newCurr
 }
@@ -624,7 +638,8 @@ func (m *Model) SearchNext(searchStr string) bool {
 	return false
 }
 
-// SearchPrev moves cursor to previous item containing given searchStr and returns true if item is found.
+// SearchPrev moves cursor to previous item containing given searchStr
+// and returns true if item is found.
 func (m *Model) SearchPrev(searchStr string) bool {
 	logging.LogDebugf("model/SearchPrev('%s')", searchStr)
 	side := m.CurrSide()
