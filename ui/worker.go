@@ -401,17 +401,18 @@ func enterCurrentDirectory() error {
 	return err
 }
 
-// showItem lists items in given view and select current item if possible.
+// showItem lists items in given view and select current item if possible. If
+// changeHistory is false we just refresh current view without changing history.
 // Current item is the item currently under cursor.
-// Values for the viewItemName (view containing new list of items) can be:
-// - "" - don't know viewItemName - set the first item as the current item
-// - "." - refresh current view - keep the current item
-// - ".." - go to parent view - use the previous view as the current item
-// - other - adding new view - set the first item as the current item
 // Values for the currentItemName can be:
 // - "" - don't know current item name - the current item by viewItemName
 // - other - set currentItemName as the current item
-func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, currentItemName string) error {
+// Values for the viewItemName (view containing new list of items) can be:
+// - "." - refresh current view - keep the current item
+// - ".." - go to parent view - use the previous view as the current item
+// - other - adding new view - set the first item as the current item
+func showView(side model.Side, itemConfig *model.ItemConfig,
+	viewItemName, currentItemName string, changeHistory bool) error {
 	logging.LogDebugf("ui/showView(%d, %v, '%s', '%s')",
 		side, itemConfig, viewItemName, currentItemName)
 	if itemConfig.Type == model.ItemDpConfiguration {
@@ -449,18 +450,19 @@ func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, curre
 
 	oldViewConfig := workingModel.ViewConfig(side)
 	workingModel.SetItems(side, itemList)
-	// If we are refreshing current view or showing a view from history - don't
+	// If we are refreshing current view, showing a view from history
+	// or navigating to previous/next view from history - don't
 	// change view history.
 	// If we are entering new directory/appliance/... add new view to history.
-	switch viewItemName {
-	case "":
-		workingModel.SetCurrentView(side, itemConfig, title)
-	case ".":
-		workingModel.SetCurrentView(side, itemConfig, title)
-	default:
+	switch changeHistory {
+	case true:
 		histIdx := workingModel.ViewConfigHistorySelectedIdx(side)
 		prevView := workingModel.ViewConfigFromHistory(side, histIdx-1)
 		nextView := workingModel.ViewConfigFromHistory(side, histIdx+1)
+		logging.LogTracef("ui/showView(), itemConfig: %v", itemConfig)
+		logging.LogTracef("ui/showView(), prevView: %v", prevView)
+		logging.LogTracef("ui/showView(), nextView: %v", nextView)
+		// If we navigate "manually" to prev/next view in history - don't change it.
 		switch {
 		case itemConfig.Equals(prevView):
 			workingModel.NavCurrentViewBack(side)
@@ -471,6 +473,8 @@ func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, curre
 		default:
 			workingModel.AddNextView(side, itemConfig, title)
 		}
+	default:
+		workingModel.SetCurrentView(side, itemConfig, title)
 	}
 
 	if currentItemName != "" {
@@ -493,7 +497,7 @@ func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, curre
 
 func showItem(side model.Side, itemConfig *model.ItemConfig, itemName string) error {
 	logging.LogDebugf("ui/showItem(%d, %v, '%s')", side, itemConfig, itemName)
-	return showView(side, itemConfig, itemName, "")
+	return showView(side, itemConfig, itemName, "", itemName != ".")
 }
 
 // showPrevView navigate to the previous view from the view history.
@@ -518,7 +522,7 @@ func showPrevView() error {
 		updateStatusf("Can't move back from the first view in the history.")
 	}
 
-	return showView(side, newView, "", oldView.Name)
+	return showView(side, newView, "", oldView.Name, false)
 }
 
 // showNextView navigate to the next view from the view history.
@@ -546,7 +550,7 @@ func showNextView() error {
 	if nextViewFromHistory != nil {
 		nextViewName = nextViewFromHistory.Name
 	}
-	return showView(side, newView, "", nextViewName)
+	return showView(side, newView, "", nextViewName, false)
 }
 
 // showViewHistory shows dialog with history of views where we can select any
@@ -597,7 +601,7 @@ loop:
 				(newView.Type == model.ItemDpObjectClassList ||
 					newView.Type == model.ItemDpObjectClass)
 		}
-		showItem(side, newView, ".")
+		showView(side, newView, ".", "", false)
 	}
 
 	// When progress dialog was shown we show it after we don't need selection
@@ -651,7 +655,7 @@ func refreshView(m *model.Model, side model.Side) error {
 	repo.InvalidateCache()
 	viewConfig := m.ViewConfig(side)
 	logging.LogDebugf("ui/refreshView() viewConfig: %v", viewConfig)
-	err := showItem(side, viewConfig, ".")
+	err := showView(side, viewConfig, ".", "", false)
 	if err != nil {
 		return err
 	}
@@ -1596,7 +1600,7 @@ func enterDirectoryPath(m *model.Model) error {
 	switch newViewConfig.Type {
 	case model.ItemDirectory, model.ItemDpFilestore, model.ItemDpDomain:
 		updateStatusf("Showing path '%s'.", path)
-		return showItem(side, newViewConfig, ".")
+		return showView(side, newViewConfig, path, "", true)
 	default:
 		return errs.Errorf("Can't show path '%s', not directory nor filestore nor domain.", path)
 	}
