@@ -457,11 +457,20 @@ func showView(side model.Side, itemConfig *model.ItemConfig, viewItemName, curre
 		workingModel.SetCurrentView(side, itemConfig, title)
 	case ".":
 		workingModel.SetCurrentView(side, itemConfig, title)
-	case "..":
-		workingModel.NavCurrentViewBack(side)
-		workingModel.SetTitle(side, title)
 	default:
-		workingModel.AddNextView(side, itemConfig, title)
+		histIdx := workingModel.ViewConfigHistorySelectedIdx(side)
+		prevView := workingModel.ViewConfigFromHistory(side, histIdx-1)
+		nextView := workingModel.ViewConfigFromHistory(side, histIdx+1)
+		switch {
+		case itemConfig.Equals(prevView):
+			workingModel.NavCurrentViewBack(side)
+			workingModel.SetTitle(side, title)
+		case itemConfig.Equals(nextView):
+			workingModel.NavCurrentViewForward(side)
+			workingModel.SetTitle(side, title)
+		default:
+			workingModel.AddNextView(side, itemConfig, title)
+		}
 	}
 
 	if currentItemName != "" {
@@ -640,7 +649,8 @@ func setScreenSize() {
 func refreshView(m *model.Model, side model.Side) error {
 	repo := repos[side]
 	repo.InvalidateCache()
-	viewConfig := workingModel.ViewConfig(side)
+	viewConfig := m.ViewConfig(side)
+	logging.LogDebugf("ui/refreshView() viewConfig: %v", viewConfig)
 	err := showItem(side, viewConfig, ".")
 	if err != nil {
 		return err
