@@ -11,6 +11,120 @@ import (
 	"testing"
 )
 
+func clearRepo() {
+	Repo.dpFilestoreXmls = nil
+	Repo.invalidateCache = false
+	Repo.dataPowerAppliance = dpApplicance{}
+	Repo.ObjectConfigMode = false
+}
+
+func TestString(t *testing.T) {
+	clearRepo()
+
+	assert.Equals(t, "Normal DataPower repo", Repo.String(), "DataPower")
+	assert.Equals(t, "Sync DataPower repo", SyncRepo.String(), "SyncDataPower")
+}
+
+func TestGetInitialItem(t *testing.T) {
+	t.Run("Showing list of configurations", func(t *testing.T) {
+		clearRepo()
+
+		ii, err := Repo.GetInitialItem()
+		assert.Equals(t, "GetInitialItem", err, nil)
+		assert.DeepEqual(t, "GetInitialItem",
+			ii,
+			model.Item{
+				Name:   "List appliance configurations",
+				Config: &model.ItemConfig{Type: model.ItemNone}})
+	})
+
+	t.Run("Showing DataPower domains", func(t *testing.T) {
+		clearRepo()
+
+		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.name = "MyApplianceName"
+		ii, err := Repo.GetInitialItem()
+		assert.Equals(t, "GetInitialItem", err, nil)
+		assert.DeepEqual(t, "GetInitialItem",
+			ii,
+			model.Item{
+				Name: "MyApplianceName",
+				Config: &model.ItemConfig{Type: model.ItemDpConfiguration,
+					Name:        "MyApplianceName",
+					DpAppliance: "MyApplianceName",
+					Parent:      &model.ItemConfig{Type: model.ItemNone}}})
+	})
+
+	t.Run("Showing DataPower domain filestores", func(t *testing.T) {
+		clearRepo()
+
+		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.Domain = "my_domain"
+		Repo.dataPowerAppliance.name = "MyApplianceName"
+		ii, err := Repo.GetInitialItem()
+		assert.Equals(t, "GetInitialItem", err, nil)
+		assert.DeepEqual(t, "GetInitialItem",
+			ii,
+			model.Item{
+				Name: "my_domain",
+				Config: &model.ItemConfig{Type: model.ItemDpDomain,
+					Name:        "my_domain",
+					DpAppliance: "MyApplianceName",
+					DpDomain:    "my_domain",
+					Parent:      &model.ItemConfig{Type: model.ItemNone}}})
+	})
+}
+
+func TestGetTitle(t *testing.T) {
+	t.Run("Initial title", func(t *testing.T) {
+		clearRepo()
+
+		itemToShow := model.ItemConfig{}
+		title := Repo.GetTitle(&itemToShow)
+		assert.Equals(t, "GetTitle", title, " @  -  () ")
+	})
+
+	t.Run("List domains title", func(t *testing.T) {
+		clearRepo()
+
+		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.Username = "user"
+		Repo.dataPowerAppliance.name = "xxx"
+		itemToShow := model.ItemConfig{DpAppliance: "MyApplianceName"}
+		title := Repo.GetTitle(&itemToShow)
+		assert.Equals(t, "GetTitle", title,
+			"user @ https://my_dp_host:9999/rest/url - MyApplianceName () ")
+	})
+
+	t.Run("List filestores title", func(t *testing.T) {
+		clearRepo()
+
+		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.Username = "user"
+		Repo.dataPowerAppliance.name = "xxx"
+		Repo.dataPowerAppliance.Domain = "xxx"
+		itemToShow := model.ItemConfig{DpAppliance: "MyApplianceName",
+			DpDomain: "MyDomain"}
+		title := Repo.GetTitle(&itemToShow)
+		assert.Equals(t, "GetTitle", title,
+			"user @ https://my_dp_host:9999/rest/url - MyApplianceName (MyDomain) ")
+	})
+
+	t.Run("List files title", func(t *testing.T) {
+		clearRepo()
+
+		Repo.dataPowerAppliance.SomaUrl = "https://my_dp_host:9999/soma/url"
+		Repo.dataPowerAppliance.Username = "user"
+		Repo.dataPowerAppliance.name = "xxx"
+		Repo.dataPowerAppliance.Domain = "xxx"
+		itemToShow := model.ItemConfig{DpAppliance: "MyApplianceName",
+			DpDomain: "MyDomain", DpFilestore: "xxx", Path: "local:/config/etc"}
+		title := Repo.GetTitle(&itemToShow)
+		assert.Equals(t, "GetTitle", title,
+			"user @ https://my_dp_host:9999/soma/url - MyApplianceName (MyDomain) local:/config/etc")
+	})
+}
+
 func TestRemoveJSONKey(t *testing.T) {
 	inputJSON := `{
   "keyok": "valok",

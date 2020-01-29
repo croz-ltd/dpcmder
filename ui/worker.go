@@ -90,7 +90,8 @@ var progressDialogSession = progressDialogInfo{}
 // InitialLoad initializes DataPower and local filesystem access and load initial views.
 func InitialLoad() {
 	logging.LogDebug("ui/InitialLoad()")
-	err := dp.Repo.InitNetworkSettings(config.CurrentAppliance)
+	err := dp.Repo.InitNetworkSettings(
+		config.CurrentApplianceName, config.CurrentAppliance)
 	if err != nil {
 		logging.LogDebug("ui/initialLoadRepo(): ", err)
 		updateStatus(err.Error())
@@ -1706,7 +1707,8 @@ func syncModeToggle(m *model.Model) error {
 	if syncModeToggleConfirm.dialogSubmitted && syncModeToggleConfirm.inputAnswer == "y" {
 		m.SyncModeOn = !m.SyncModeOn
 		if m.SyncModeOn {
-			dp.SyncRepo.InitNetworkSettings(config.Conf.DataPowerAppliances[dpApplianceName])
+			dp.SyncRepo.InitNetworkSettings(
+				dpApplianceName, config.Conf.DataPowerAppliances[dpApplianceName])
 			m.SyncDpDomain = dpDomain
 			m.SyncDirDp = dpDir
 			m.SyncDirLocal = m.ViewConfig(model.Right).Path

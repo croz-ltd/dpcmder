@@ -26,13 +26,22 @@ import (
 	"time"
 )
 
+// dpApplicance extends with additional name field. This struct contains all
+// DataPower configuration info from config module + additional info required
+// to communicate with appliance.
+type dpApplicance struct {
+	name string
+	config.DataPowerAppliance
+}
+
 // dpRepo contains basic DataPower repo information and implements Repo interface.
 type dpRepo struct {
 	name               string
 	dpFilestoreXmls    map[string]string
 	invalidateCache    bool
-	dataPowerAppliance config.DataPowerAppliance
-	ObjectConfigMode   bool
+	dataPowerAppliance dpApplicance
+	// dataPowerAppliance config.DataPowerAppliance
+	ObjectConfigMode bool
 }
 
 // Repo is instance or DataPower repo/Repo interface implementation used for all
@@ -64,12 +73,20 @@ func (r *dpRepo) GetInitialItem() (model.Item, error) {
 	logging.LogDebugf("repo/dp/GetInitialItem(), dataPowerAppliance: %#v", r.dataPowerAppliance)
 	var initialConfig model.ItemConfig
 	initialViewName := "List appliance configurations"
+	var initialConfigType model.ItemType
 	initialConfigTop := model.ItemConfig{Type: model.ItemNone}
 	if r.dataPowerAppliance.RestUrl != "" || r.dataPowerAppliance.SomaUrl != "" || r.dataPowerAppliance.Username != "" {
+		if r.dataPowerAppliance.Domain != "" {
+			initialViewName = r.dataPowerAppliance.Domain
+			initialConfigType = model.ItemDpDomain
+		} else {
+			initialViewName = r.dataPowerAppliance.name
+			initialConfigType = model.ItemDpConfiguration
+		}
 		initialConfig = model.ItemConfig{
-			Type:        model.ItemDpConfiguration,
+			Type:        initialConfigType,
 			Name:        initialViewName,
-			DpAppliance: config.CurrentApplianceName,
+			DpAppliance: r.dataPowerAppliance.name,
 			DpDomain:    r.dataPowerAppliance.Domain,
 			Parent:      &initialConfigTop}
 	} else {
@@ -100,10 +117,10 @@ func (r *dpRepo) GetTitle(itemToShow *model.ItemConfig) string {
 	return fmt.Sprintf("%s @ %s - %s (%s) %s",
 		r.dataPowerAppliance.Username, url, dpConfigName, dpDomain, currPath)
 }
-func getDpAppliance(itemToShow *model.ItemConfig) config.DataPowerAppliance {
+func getDpAppliance(itemToShow *model.ItemConfig) dpApplicance {
 	switch itemToShow.Type {
 	case model.ItemNone:
-		return config.DataPowerAppliance{}
+		return dpApplicance{}
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
 		model.ItemDpObjectClassList, model.ItemDpObjectClass,
 		model.ItemDirectory:
@@ -111,11 +128,12 @@ func getDpAppliance(itemToShow *model.ItemConfig) config.DataPowerAppliance {
 		if dataPowerAppliance.Password == "" {
 			dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[itemToShow.DpAppliance])
 		}
-		return dataPowerAppliance
+		return dpApplicance{name: itemToShow.DpAppliance,
+			DataPowerAppliance: dataPowerAppliance}
 	default:
 		logging.LogDebugf("repo/dp/getDpAppliance(%v) - unknown item type: %v.",
 			itemToShow, itemToShow.Type)
-		return config.DataPowerAppliance{}
+		return dpApplicance{}
 	}
 }
 func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
@@ -682,7 +700,9 @@ func (r *dpRepo) ExportAppliance(applianceConfigName, exportFileName string) ([]
 
 	// 0. Prepare DataPower connection configuration.
 	oldDataPowerAppliance := r.dataPowerAppliance
-	r.dataPowerAppliance = config.Conf.DataPowerAppliances[applianceConfigName]
+	// r.dataPowerAppliance = config.Conf.DataPowerAppliances[applianceConfigName]
+	r.dataPowerAppliance = dpApplicance{name: applianceConfigName,
+		DataPowerAppliance: config.Conf.DataPowerAppliances[applianceConfigName]}
 	clearCurrentConfig := func() {
 		r.dataPowerAppliance = oldDataPowerAppliance
 	}
@@ -2214,9 +2234,10 @@ func splitOnLast(wholeString string, splitterString string) (string, string) {
 }
 
 // InitNetworkSettings initializes DataPower client network configuration.
-func (r *dpRepo) InitNetworkSettings(dpa config.DataPowerAppliance) error {
+func (r *dpRepo) InitNetworkSettings(applianceName string,
+	dpa config.DataPowerAppliance) error {
 	logging.LogDebugf("repo/dp/InitNetworkSettings(%v)", dpa)
-	r.dataPowerAppliance = dpa
+	r.dataPowerAppliance = dpApplicance{name: applianceName, DataPowerAppliance: dpa}
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	if r.dataPowerAppliance.Proxy != "" {
 		proxyURL, err := url.Parse(r.dataPowerAppliance.Proxy)
