@@ -1,0 +1,1452 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/status/test/ObjectStatus"
+    },
+    "doc": {
+      "href": "/mgmt/docs/status/ObjectStatus"
+    }
+  },
+  "ObjectStatus": [
+    {
+      "Class": "Statistics",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "statistics",
+      "EventCode": "0x0034000d",
+      "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-accept-service-providers",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test-xmlfw-polica",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "HTTPUserAgent",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "URLMap",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-attempt-stream-all",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "XMLManager",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "XMLManager",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-attempt-stream",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "XMLManager",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-wsrr",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__default-accept-service-providers-request__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__default-accept-service-providers-response__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__dp-policy-begin__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test-xmlfw-polica_rule_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "Matching",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__default-accept-service-providers__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "Matching",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "match-all",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test-xmlfw",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "modified"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "down",
+      "AdminState": "enabled",
+      "Name": "test-xmlfw2",
+      "EventCode": "0x00b30002",
+      "ErrorCode": "Failed to install on port",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogTarget",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-log",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "aaa",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "all",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "apic-gw-service",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "apiconnect",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "apigw",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "audit",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "auth",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "b2bgw",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "b2bp",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "cert-monitor",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "cli",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "cloud-connector",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "cloud-gateway",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "cluster-service",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "cms",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "crypto",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "dfdl",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "evtlog",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "extlatency",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "fibre-channel",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "file",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "file-capture",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "file-poller",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ftp",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "gateway-peering",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "gateway-peering-manager",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "gatewayscript",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "gatewayscript-user",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "http",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "http-convert",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ip-multicast",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ipmi",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "iscsi",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "kerberos",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "latency",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ldap",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "llm",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ltpa",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "memory-report",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mgmt",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mime",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "monitor",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mpgw",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mq",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "multistep",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "netegrity",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "network",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "network-file",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "networkhsm-luna",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "oauth",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ocsp",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "odr",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "odr-connector-group",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "odrlib",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "parse",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "peer-group",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "product-insights",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "quiesce",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "quota-enforcement",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "rbm",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "rpcsec-gss",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "schema",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "secure-cloud-connector",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "secure-conversation",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "self-balancing",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "sftp",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "sgclient",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "slm",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "smtp",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "sql",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ssh",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ssl",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "system",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "tam",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "tenant",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "tfim",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "tibco-ems",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "uddi",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "uddisub",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "user",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "useragent",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "wasjms",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "wcc",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "web-token-service",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "webapp-firewall",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ws-proxy",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "wsm-agent",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "wsrr",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "wtx",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "wxs-grid",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xacml",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xc10-grid",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xformng",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xmlfilter",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xmlfirewall",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xmlparse",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xmlroute",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xquery",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xslcoproc",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xslproxy",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xslt",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "xsltmsg",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "LogLabel",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "zosnss",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "CompileOptionsPolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-attempt-stream",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__default-accept-service-providers-filter-action__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__default-accept-service-providers-results-action__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__dp-policy-call-action__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__dp-policy-init-xform-action__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__dp-policy-results-action__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "__dp-policy-traverse-xform-action__",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test-xmlfw-polica_rule_0_results_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "WSStylePolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "WebServicesAgent",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "wsm-agent",
+      "EventCode": "0x0034000d",
+      "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "SLMAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "notify",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "SLMAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "shape",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "SLMAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "throttle",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "NFSDynamicMounts",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "nfs-dynamic-mounts",
+      "EventCode": "0x0034000d",
+      "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "ProcessingMetadata",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ftp-usercert-metadata",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "ProcessingMetadata",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ftp-username-metadata",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "ProcessingMetadata",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "oauth-scope-metadata",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "ProcessingMetadata",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ssh-password-metadata",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "SMTPServerConnection",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "DomainAvailability",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "domain-availability",
+      "EventCode": "0x0034000d",
+      "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "DomainSettings",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "domain-settings",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "ControlList",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-accept-all",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "ControlList",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-reject-all",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-error-rule",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-rule",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIConnectGatewayService",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "apic-gw-service",
+      "EventCode": "0x00350015",
+      "ErrorCode": "Operational state down",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "SSHServerProfile",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "sshserverprofile",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "SSHDomainClientProfile",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "sshdomainclientprofile",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "GatewayPeering",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "default-gateway-peering",
+      "EventCode": "0x0034000d",
+      "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIExecute",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-execute",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIResult",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-result",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIRouting",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-route",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APISecurity",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-security",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIRateLimit",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-ratelimit",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIClientIdentification",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-client-identification",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APICORS",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-cors",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APISecurityTokenManager",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "api-security-token-manager",
+      "EventCode": "0x00350015",
+      "ErrorCode": "Operational state down",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIDebugProbe",
+      "OpState": "down",
+      "AdminState": "disabled",
+      "Name": "api-debugprobe",
+      "EventCode": "0x0034000d",
+      "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "GatewayPeeringManager",
+      "OpState": "down",
+      "AdminState": "enabled",
+      "Name": "gateway-peering-manager",
+      "EventCode": "0x00350022",
+      "ErrorCode": "The object has not processed any configuration",
+      "ConfigState": "saved"
+    }
+  ]
+}

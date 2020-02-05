@@ -40,17 +40,19 @@ type dpRepo struct {
 	dpFilestoreXmls    map[string]string
 	invalidateCache    bool
 	dataPowerAppliance dpApplicance
-	// dataPowerAppliance config.DataPowerAppliance
-	ObjectConfigMode bool
+	ObjectConfigMode   bool
+	req                requester
 }
 
 // Repo is instance or DataPower repo/Repo interface implementation used for all
 // operations on DataPower except syncing local filesystem to DataPower.
-var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string)}
+var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string),
+	req: netRequester{}}
 
 // SyncRepo is instance or DataPower repo/Repo interface implementation used for
 // syncing local directory to DataPower directory.
-var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string)}
+var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string),
+	req: netRequester{}}
 
 // dpDomainInfo contains domain name and basic state
 type dpDomainInfo struct {
@@ -2303,8 +2305,13 @@ func (r *dpRepo) somaGetDoc(body string) (*xmlquery.Node, error) {
 	return doc, nil
 }
 
-// httpRequest makes DataPower HTTP request.
-func (r *dpRepo) httpRequest(urlFullPath, method, body string) (string, error) {
+type requester interface {
+	httpRequest(dpa dpApplicance, urlFullPath, method, body string) (string, error)
+}
+
+type netRequester struct{}
+
+func (nr netRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body string) (string, error) {
 	logging.LogTracef("repo/dp/httpRequest(%s, %s, '%s')", urlFullPath, method, body)
 
 	client := &http.Client{}
@@ -2318,7 +2325,7 @@ func (r *dpRepo) httpRequest(urlFullPath, method, body string) (string, error) {
 		return "", err
 	}
 
-	req.SetBasicAuth(r.dataPowerAppliance.Username, r.dataPowerAppliance.DpPlaintextPassword())
+	req.SetBasicAuth(dpa.Username, dpa.DpPlaintextPassword())
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -2346,6 +2353,11 @@ func (r *dpRepo) httpRequest(urlFullPath, method, body string) (string, error) {
 	logging.LogDebugf("repo/dp/httpRequest() - HTTP %s call to '%s' returned HTTP StatusCode %v (%s)",
 		method, urlFullPath, resp.StatusCode, resp.Status)
 	return "", errs.UnexpectedHTTPResponse{StatusCode: resp.StatusCode, Status: resp.Status}
+}
+
+// httpRequest makes DataPower HTTP request.
+func (r *dpRepo) httpRequest(urlFullPath, method, body string) (string, error) {
+	return r.req.httpRequest(r.dataPowerAppliance, urlFullPath, method, body)
 }
 
 // makeRestPath creates DataPower REST path to given domain.
