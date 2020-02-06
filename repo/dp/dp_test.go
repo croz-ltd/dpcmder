@@ -145,7 +145,7 @@ func TestGetList(t *testing.T) {
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
 			DpAppliance: "MyApplianceName",
-			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "local:/config/etc"}
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "Object classes"}
 		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
 		itemList, err := Repo.GetList(&itemToShow)
 
@@ -154,7 +154,7 @@ func TestGetList(t *testing.T) {
 
 		if len(itemList) == 43 {
 			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClassList,
-				Path: "local:/config/etc", DpAppliance: "MyApplianceName",
+				Path: "Object classes", DpAppliance: "MyApplianceName",
 				DpDomain: "MyDomain", DpFilestore: "local:"}
 			assert.DeepEqual(t, "GetList", itemList[0],
 				model.Item{Name: "AAAJWTValidator", Size: "1", Modified: "",
@@ -193,7 +193,7 @@ func TestGetList(t *testing.T) {
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
 			DpAppliance: "MyApplianceName",
-			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "local:/config/etc"}
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "Object classes"}
 		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
 		itemList, err := Repo.GetList(&itemToShow)
 
@@ -202,7 +202,7 @@ func TestGetList(t *testing.T) {
 
 		if len(itemList) == 43 {
 			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClassList,
-				Path: "local:/config/etc", DpAppliance: "MyApplianceName",
+				Path: "Object classes", DpAppliance: "MyApplianceName",
 				DpDomain: "MyDomain", DpFilestore: "local:"}
 			assert.DeepEqual(t, "GetList", itemList[0],
 				model.Item{Name: "AAAJWTValidator", Size: "1", Modified: "",
@@ -227,6 +227,119 @@ func TestGetList(t *testing.T) {
 						Parent: &parentItemConfig}})
 		}
 	})
+
+	t.Run("ObjectConfigMode/ObjectList REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.ObjectConfigMode = true
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "XMLFirewallService"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 9)
+
+		if len(itemList) == 9 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
+				Path: "XMLFirewallService", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "example-Firewall", Modified: "modified",
+					Config: &model.ItemConfig{Type: model.ItemDpObject,
+						Name: "example-Firewall", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						DpObjectState: model.ItemDpObjectState{OpState: "up",
+							AdminState: "enabled", EventCode: "0x00000000",
+							ConfigState: "modified"},
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[3],
+				model.Item{Name: "example-Firewall3", Size: "down", Modified: "new",
+					Config: &model.ItemConfig{Type: model.ItemDpObject,
+						Name: "example-Firewall3", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						DpObjectState: model.ItemDpObjectState{OpState: "down",
+							AdminState: "enabled", EventCode: "0x00b30002",
+							ErrorCode:   "Failed to install on port",
+							ConfigState: "new"},
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[6],
+				model.Item{Name: "get_internal_js_xmlfw", Modified: "",
+					Config: &model.ItemConfig{Type: model.ItemDpObject,
+						Name: "get_internal_js_xmlfw", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						DpObjectState: model.ItemDpObjectState{OpState: "up",
+							AdminState: "enabled", EventCode: "0x00000000",
+							ConfigState: "saved"},
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("ObjectConfigMode/ObjectList SOMA", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.ObjectConfigMode = true
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "XMLFirewallService"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 9)
+
+		if len(itemList) == 9 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClass,
+				Path: "XMLFirewallService", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "example-Firewall", Modified: "modified",
+					Config: &model.ItemConfig{Type: model.ItemDpObject,
+						Name: "example-Firewall", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						DpObjectState: model.ItemDpObjectState{OpState: "up",
+							AdminState: "enabled", EventCode: "0x00000000",
+							ConfigState: "modified"},
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[3],
+				model.Item{Name: "example-Firewall3", Size: "down", Modified: "new",
+					Config: &model.ItemConfig{Type: model.ItemDpObject,
+						Name: "example-Firewall3", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						DpObjectState: model.ItemDpObjectState{OpState: "down",
+							AdminState: "enabled", EventCode: "0x00b30002",
+							ErrorCode:   "Failed to install on port",
+							ConfigState: "new"},
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[6],
+				model.Item{Name: "get_internal_js_xmlfw", Modified: "",
+					Config: &model.ItemConfig{Type: model.ItemDpObject,
+						Name: "get_internal_js_xmlfw", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						DpObjectState: model.ItemDpObjectState{OpState: "up",
+							AdminState: "enabled", EventCode: "0x00000000",
+							ConfigState: "saved"},
+						Parent: &parentItemConfig}})
+		}
+	})
+
 }
 
 func TestRemoveJSONKey(t *testing.T) {

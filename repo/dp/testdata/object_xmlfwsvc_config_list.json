@@ -1,0 +1,624 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/config/tmp/XMLFirewallService"
+    },
+    "doc": {
+      "href": "/mgmt/docs/config/XMLFirewallService"
+    }
+  },
+  "XMLFirewallService": [
+    {
+      "name": "example-Firewall",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/example-Firewall"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "an example XML Firewall Service changed",
+      "Priority": "normal",
+      "LocalPort": 20002,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/StylePolicy/default"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    },
+    {
+      "name": "example-Firewall2",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/example-Firewall2"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "an example XML Firewall Service",
+      "Priority": "normal",
+      "LocalPort": 21002,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/StylePolicy/default"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    },
+    {
+      "name": "example-Firewall3",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/example-Firewall3"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "an example XML Firewall Service",
+      "Priority": "normal",
+      "LocalPort": 21002,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/StylePolicy/default"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    },
+    {
+      "name": "example-Firewall4",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/example-Firewall4"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "an example XML Firewall Service no 4",
+      "Priority": "normal",
+      "LocalPort": 21002,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/StylePolicy/default"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    },
+    {
+      "name": "example-Firewall5",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/example-Firewall5"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "an example XML Firewall Service no 5",
+      "Priority": "normal",
+      "LocalPort": 21002,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/StylePolicy/default"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    },
+    {
+      "name": "get_internal_js_xmlfw",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/get_internal_js_xmlfw"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "an example XML Firewall Service",
+      "Priority": "normal",
+      "LocalPort": 10001,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "get_internal_js_xmlpolicy",
+        "href": "/mgmt/config/tmp/StylePolicy/get_internal_js_xmlpolicy"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    },
+    {
+      "name": "mTLS-test-xfw",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/mTLS-test-xfw"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "Testing RBI truststore - cert not visible",
+      "Priority": "normal",
+      "LocalPort": 30000,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "mTLS-test-xfw-policy",
+        "href": "/mgmt/config/tmp/StylePolicy/mTLS-test-xfw-policy"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "soap",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "server",
+      "SSLServer": {
+        "value": "mTLS-test-xfw-ssl-server-profile",
+        "href": "/mgmt/config/tmp/SSLServerProfile/mTLS-test-xfw-ssl-server-profile"
+      }
+    },
+    {
+      "name": "parse-cert",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/tmp/XMLFirewallService/parse-cert"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/XMLFirewallService"
+        }
+      },
+      "mAdminState": "enabled",
+      "LocalAddress": "0.0.0.0",
+      "UserSummary": "parse-cert XML Firewall :)",
+      "Priority": "normal",
+      "LocalPort": 10000,
+      "HTTPTimeout": 120,
+      "HTTPPersistTimeout": 180,
+      "DoHostRewrite": "on",
+      "SuppressHTTPWarnings": "off",
+      "HTTPCompression": "off",
+      "HTTPIncludeResponseTypeEncoding": "off",
+      "AlwaysShowErrors": "off",
+      "DisallowGet": "off",
+      "DisallowEmptyResponse": "off",
+      "HTTPPersistentConnections": "on",
+      "HTTPClientIPLabel": "X-Client-IP",
+      "HTTPLogCorIDLabel": "X-Global-Transaction-ID",
+      "HTTPProxyPort": 800,
+      "HTTPVersion": {
+        "Front": "HTTP/1.1",
+        "Back": "HTTP/1.1"
+      },
+      "DoChunkedUpload": "off",
+      "DefaultParamNamespace": "http://www.datapower.com/param/config",
+      "QueryParamNamespace": "http://www.datapower.com/param/query",
+      "ForcePolicyExec": "off",
+      "MonitorProcessingPolicy": "terminate-at-first-throttle",
+      "DebugMode": "off",
+      "DebugHistory": 25,
+      "Type": "loopback-proxy",
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/tmp/XMLManager/default"
+      },
+      "StylePolicy": {
+        "value": "parse-cert-policy",
+        "href": "/mgmt/config/tmp/StylePolicy/parse-cert-policy"
+      },
+      "MaxMessageSize": 0,
+      "RequestType": "preprocessed",
+      "ResponseType": "unprocessed",
+      "RequestAttachments": "strip",
+      "ResponseAttachments": "strip",
+      "RootPartNotFirstAction": "process-in-order",
+      "FrontAttachmentFormat": "dynamic",
+      "BackAttachmentFormat": "dynamic",
+      "MIMEHeaders": "on",
+      "RewriteErrors": "on",
+      "DelayErrors": "on",
+      "DelayErrorsDuration": 1000,
+      "SOAPSchemaURL": "store:///schemas/soap-envelope.xsd",
+      "WSDLResponsePolicy": "off",
+      "FirewallParserLimits": "off",
+      "ParserLimitsBytesScanned": 4194304,
+      "ParserLimitsElementDepth": 512,
+      "ParserLimitsAttributeCount": 128,
+      "ParserLimitsMaxNodeSize": 33554432,
+      "ParserLimitsMaxPrefixes": 1024,
+      "ParserLimitsMaxNamespaces": 1024,
+      "ParserLimitsMaxLocalNames": 60000,
+      "ParserLimitsAttachmentByteCount": 2000000000,
+      "ParserLimitsAttachmentPackageByteCount": 0,
+      "ParserLimitsExternalReferences": "forbid",
+      "CredentialCharset": "protocol",
+      "SSLConfigType": "proxy"
+    }
+  ]
+}

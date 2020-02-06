@@ -1,0 +1,81 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-06T10:00:20-05:00</dp:timestamp>
+         <dp:status>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>modified</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall2</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall3</Name>
+               <EventCode>0x00b30002</EventCode>
+               <ErrorCode>Failed to install on port</ErrorCode>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall4</Name>
+               <EventCode>0x00b30002</EventCode>
+               <ErrorCode>Failed to install on port</ErrorCode>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall5</Name>
+               <EventCode>0x00b30002</EventCode>
+               <ErrorCode>Failed to install on port</ErrorCode>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>get_internal_js_xmlfw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mTLS-test-xfw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>parse-cert</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+         </dp:status>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

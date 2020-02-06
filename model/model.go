@@ -132,9 +132,9 @@ type Model struct {
 
 // String method returns ItemConfig details.
 func (ic ItemConfig) String() string {
-	return fmt.Sprintf("IC(%s, '%s' (%s), '%s' (%s) %s %v)",
+	return fmt.Sprintf("IC(%s, '%s' (%s), '%s' (%s) %s %v %v)",
 		ic.Type, ic.Name, ic.Path, ic.DpAppliance, ic.DpDomain, ic.DpFilestore,
-		ic.Parent)
+		ic.DpObjectState, ic.Parent)
 }
 
 // Equals method returns true if other object is refering to same ItemConfig.
@@ -144,6 +144,15 @@ func (ic *ItemConfig) Equals(other *ItemConfig) bool {
 	}
 	return ic.Path == other.Path && ic.DpAppliance == other.DpAppliance &&
 		ic.DpDomain == other.DpDomain && ic.DpFilestore == other.DpFilestore
+}
+
+// ItemDpObjectState methods
+
+// String method returns ItemDpObjectState details.
+func (idos ItemDpObjectState) String() string {
+	return fmt.Sprintf("IDOS('%s'/'%s', '%s'/'%s' (%s))",
+		idos.OpState, idos.AdminState, idos.EventCode, idos.ErrorCode,
+		idos.ConfigState)
 }
 
 // Item methods
