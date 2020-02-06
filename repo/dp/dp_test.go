@@ -150,28 +150,28 @@ func TestGetList(t *testing.T) {
 		itemList, err := Repo.GetList(&itemToShow)
 
 		assert.Equals(t, "GetList", err, nil)
-		assert.Equals(t, "GetList", len(itemList), 36)
+		assert.Equals(t, "GetList", len(itemList), 43)
 
-		if len(itemList) == 36 {
+		if len(itemList) == 43 {
 			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClassList,
 				Path: "local:/config/etc", DpAppliance: "MyApplianceName",
 				DpDomain: "MyDomain", DpFilestore: "local:"}
 			assert.DeepEqual(t, "GetList", itemList[0],
-				model.Item{Name: "APIClientIdentification", Size: "1", Modified: "",
+				model.Item{Name: "AAAJWTValidator", Size: "1", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
-						Name: "APIClientIdentification", Path: "APIClientIdentification",
+						Name: "AAAJWTValidator", Path: "AAAJWTValidator",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
-			assert.DeepEqual(t, "GetList", itemList[18],
-				model.Item{Name: "LogLabel", Size: "103", Modified: "",
+			assert.DeepEqual(t, "GetList", itemList[23],
+				model.Item{Name: "LogLabel", Size: "102", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
 						Name: "LogLabel", Path: "LogLabel",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
-			assert.DeepEqual(t, "GetList", itemList[34],
-				model.Item{Name: "XMLFirewallService", Size: "2", Modified: "*",
+			assert.DeepEqual(t, "GetList", itemList[41],
+				model.Item{Name: "XMLFirewallService", Size: "8", Modified: "*",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
 						Name: "XMLFirewallService", Path: "XMLFirewallService",

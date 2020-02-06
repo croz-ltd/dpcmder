@@ -1,7 +1,7 @@
 {
   "_links": {
     "self": {
-      "href": "/mgmt/status/test/ObjectStatus"
+      "href": "/mgmt/status/tmp/ObjectStatus"
     },
     "doc": {
       "href": "/mgmt/docs/status/ObjectStatus"
@@ -39,7 +39,25 @@
       "Class": "StylePolicy",
       "OpState": "up",
       "AdminState": "enabled",
-      "Name": "test-xmlfw-polica",
+      "Name": "get_internal_js_xmlpolicy",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mTLS-test-xfw-policy",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "StylePolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "parse-cert-policy",
       "EventCode": "0x00000000",
       "ErrorCode": "",
       "ConfigState": "saved"
@@ -120,7 +138,25 @@
       "Class": "StylePolicyRule",
       "OpState": "up",
       "AdminState": "enabled",
-      "Name": "test-xmlfw-polica_rule_0",
+      "Name": "get_internal_js_xmlpolicy_rule_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mTLS-test-xfw-policy_rule_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "StylePolicyRule",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "parse-cert-policy_rule_0",
       "EventCode": "0x00000000",
       "ErrorCode": "",
       "ConfigState": "saved"
@@ -147,19 +183,271 @@
       "Class": "XMLFirewallService",
       "OpState": "up",
       "AdminState": "enabled",
-      "Name": "test-xmlfw",
+      "Name": "example-Firewall",
       "EventCode": "0x00000000",
       "ErrorCode": "",
       "ConfigState": "modified"
     },
     {
       "Class": "XMLFirewallService",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "example-Firewall2",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "XMLFirewallService",
       "OpState": "down",
       "AdminState": "enabled",
-      "Name": "test-xmlfw2",
+      "Name": "example-Firewall3",
       "EventCode": "0x00b30002",
       "ErrorCode": "Failed to install on port",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "down",
+      "AdminState": "enabled",
+      "Name": "example-Firewall4",
+      "EventCode": "0x00b30002",
+      "ErrorCode": "Failed to install on port",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "down",
+      "AdminState": "enabled",
+      "Name": "example-Firewall5",
+      "EventCode": "0x00b30002",
+      "ErrorCode": "Failed to install on port",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "get_internal_js_xmlfw",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
       "ConfigState": "saved"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mTLS-test-xfw",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "XMLFirewallService",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "parse-cert",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "CryptoKey",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "172.17.0.2",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoKey",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "172.17.0.2-privkey",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoKey",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test-cert",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "172.17.0.2",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "172.17.0.2-cert",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "172.17.0.2-sscert.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "AC_CAMERFIRMA_FOR_WEBSITES_-_2016.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "AC_CAMERFIRMA_FOR_WEBSITES_2018-cert.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "AC_CAMERFIRMA_FOR_WEBSITES_2018.crt",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "CHAMBERS_OF_COMMERCE_ROOT_-_2016.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ES.AC.CAMERFIRMA.FOR.WEBSITES-2016.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "ES.AC.CAMERFIRMA.FOR.WEBSITES.2018.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.Actalis.Authentication.Root.CA.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.Actalis.EU.Qualified.Certificates.CA.G2.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.ArubaPEC.EU.Qualified.Certificates.CA.G2.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.InfoCert.Domain.Validation.SHA256-CA.3.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.InfoCert.Extended.Validation.SHA256-CA.3.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.InfoCert.Organization.Validation.CA.3.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "IT.InfoCert.Organization.Validation.SHA256-CA.3.pem",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoCertificate",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test-cert",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "CryptoIdentCred",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "172.17.0.2-crypto-id",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "CryptoValCred",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "rbi-cmc-test-valid-cred",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
     },
     {
       "Class": "LogTarget",
@@ -391,15 +679,6 @@
       "OpState": "up",
       "AdminState": "enabled",
       "Name": "gateway-peering",
-      "EventCode": "0x00000000",
-      "ErrorCode": "",
-      "ConfigState": "saved"
-    },
-    {
-      "Class": "LogLabel",
-      "OpState": "up",
-      "AdminState": "enabled",
-      "Name": "gateway-peering-manager",
       "EventCode": "0x00000000",
       "ErrorCode": "",
       "ConfigState": "saved"
@@ -1107,6 +1386,15 @@
       "ConfigState": "saved"
     },
     {
+      "Class": "AAAPolicy",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "tmp_aaa_policy",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
       "Class": "StylePolicyAction",
       "OpState": "up",
       "AdminState": "enabled",
@@ -1164,7 +1452,34 @@
       "Class": "StylePolicyAction",
       "OpState": "up",
       "AdminState": "enabled",
-      "Name": "test-xmlfw-polica_rule_0_results_0",
+      "Name": "get_internal_js_xmlpolicy_rule_0_gatewayscript_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "get_internal_js_xmlpolicy_rule_0_setvar_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mTLS-test-xfw-policy_rule_0_results_output_0",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
+      "Class": "StylePolicyAction",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "parse-cert-policy_rule_0_gatewayscript_0",
       "EventCode": "0x00000000",
       "ErrorCode": "",
       "ConfigState": "saved"
@@ -1269,12 +1584,39 @@
       "ConfigState": "saved"
     },
     {
+      "Class": "SSLServerProfile",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "mTLS-test-xfw-ssl-server-profile",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "new"
+    },
+    {
       "Class": "DomainAvailability",
       "OpState": "down",
       "AdminState": "disabled",
       "Name": "domain-availability",
       "EventCode": "0x0034000d",
       "ErrorCode": "Object is disabled",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "AAAJWTValidator",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "tmp_jwt_validator",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "PasswordAlias",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "test_password_map",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
       "ConfigState": "saved"
     },
     {
@@ -1325,10 +1667,10 @@
     {
       "Class": "APIConnectGatewayService",
       "OpState": "down",
-      "AdminState": "disabled",
+      "AdminState": "enabled",
       "Name": "apic-gw-service",
-      "EventCode": "0x00350015",
-      "ErrorCode": "Operational state down",
+      "EventCode": "0x00350022",
+      "ErrorCode": "The object has not processed any configuration",
       "ConfigState": "saved"
     },
     {
@@ -1350,19 +1692,19 @@
       "ConfigState": "saved"
     },
     {
-      "Class": "GatewayPeering",
-      "OpState": "down",
-      "AdminState": "disabled",
-      "Name": "default-gateway-peering",
-      "EventCode": "0x0034000d",
-      "ErrorCode": "Object is disabled",
-      "ConfigState": "saved"
-    },
-    {
       "Class": "APIExecute",
       "OpState": "up",
       "AdminState": "enabled",
       "Name": "default-api-execute",
+      "EventCode": "0x00000000",
+      "ErrorCode": "",
+      "ConfigState": "saved"
+    },
+    {
+      "Class": "APIContext",
+      "OpState": "up",
+      "AdminState": "enabled",
+      "Name": "default-api-context",
       "EventCode": "0x00000000",
       "ErrorCode": "",
       "ConfigState": "saved"
@@ -1424,26 +1766,17 @@
     {
       "Class": "APISecurityTokenManager",
       "OpState": "down",
-      "AdminState": "disabled",
+      "AdminState": "enabled",
       "Name": "api-security-token-manager",
-      "EventCode": "0x00350015",
-      "ErrorCode": "Operational state down",
+      "EventCode": "0x00350022",
+      "ErrorCode": "The object has not processed any configuration",
       "ConfigState": "saved"
     },
     {
       "Class": "APIDebugProbe",
       "OpState": "down",
-      "AdminState": "disabled",
-      "Name": "api-debugprobe",
-      "EventCode": "0x0034000d",
-      "ErrorCode": "Object is disabled",
-      "ConfigState": "saved"
-    },
-    {
-      "Class": "GatewayPeeringManager",
-      "OpState": "down",
       "AdminState": "enabled",
-      "Name": "gateway-peering-manager",
+      "Name": "api-debugprobe",
       "EventCode": "0x00350022",
       "ErrorCode": "The object has not processed any configuration",
       "ConfigState": "saved"
