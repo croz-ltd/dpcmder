@@ -12,6 +12,11 @@ import (
 	"testing"
 )
 
+const (
+	testRestURL = "https://my_dp_host:5554"
+	testSomaURL = "https://my_dp_host:5550"
+)
+
 func clearRepo() {
 	Repo.dpFilestoreXmls = nil
 	Repo.invalidateCache = false
@@ -42,7 +47,7 @@ func TestGetInitialItem(t *testing.T) {
 	t.Run("Showing DataPower domains", func(t *testing.T) {
 		clearRepo()
 
-		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.RestUrl = testRestURL
 		Repo.dataPowerAppliance.name = "MyApplianceName"
 		ii, err := Repo.GetInitialItem()
 		assert.Equals(t, "GetInitialItem", err, nil)
@@ -59,7 +64,7 @@ func TestGetInitialItem(t *testing.T) {
 	t.Run("Showing DataPower domain filestores", func(t *testing.T) {
 		clearRepo()
 
-		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.RestUrl = testRestURL
 		Repo.dataPowerAppliance.Domain = "my_domain"
 		Repo.dataPowerAppliance.name = "MyApplianceName"
 		ii, err := Repo.GetInitialItem()
@@ -88,41 +93,41 @@ func TestGetTitle(t *testing.T) {
 	t.Run("List domains title", func(t *testing.T) {
 		clearRepo()
 
-		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.RestUrl = testRestURL
 		Repo.dataPowerAppliance.Username = "user"
 		Repo.dataPowerAppliance.name = "xxx"
 		itemToShow := model.ItemConfig{DpAppliance: "MyApplianceName"}
 		title := Repo.GetTitle(&itemToShow)
 		assert.Equals(t, "GetTitle", title,
-			"user @ https://my_dp_host:9999/rest/url - MyApplianceName () ")
+			"user @ https://my_dp_host:5554 - MyApplianceName () ")
 	})
 
 	t.Run("List filestores title", func(t *testing.T) {
 		clearRepo()
 
-		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
+		Repo.dataPowerAppliance.RestUrl = testRestURL
 		Repo.dataPowerAppliance.Username = "user"
 		Repo.dataPowerAppliance.name = "xxx"
-		Repo.dataPowerAppliance.Domain = "xxx"
+		Repo.dataPowerAppliance.Domain = "yyy"
 		itemToShow := model.ItemConfig{DpAppliance: "MyApplianceName",
 			DpDomain: "MyDomain"}
 		title := Repo.GetTitle(&itemToShow)
 		assert.Equals(t, "GetTitle", title,
-			"user @ https://my_dp_host:9999/rest/url - MyApplianceName (MyDomain) ")
+			"user @ https://my_dp_host:5554 - MyApplianceName (MyDomain) ")
 	})
 
 	t.Run("List files title", func(t *testing.T) {
 		clearRepo()
 
-		Repo.dataPowerAppliance.SomaUrl = "https://my_dp_host:9999/soma/url"
+		Repo.dataPowerAppliance.SomaUrl = testSomaURL
 		Repo.dataPowerAppliance.Username = "user"
 		Repo.dataPowerAppliance.name = "xxx"
-		Repo.dataPowerAppliance.Domain = "xxx"
+		Repo.dataPowerAppliance.Domain = "yyy"
 		itemToShow := model.ItemConfig{DpAppliance: "MyApplianceName",
-			DpDomain: "MyDomain", DpFilestore: "xxx", Path: "local:/config/etc"}
+			DpDomain: "MyDomain", DpFilestore: "zzz", Path: "local:/config/etc"}
 		title := Repo.GetTitle(&itemToShow)
 		assert.Equals(t, "GetTitle", title,
-			"user @ https://my_dp_host:9999/soma/url - MyApplianceName (MyDomain) local:/config/etc")
+			"user @ https://my_dp_host:5550 - MyApplianceName (MyDomain) local:/config/etc")
 	})
 }
 
@@ -131,15 +136,13 @@ func TestGetList(t *testing.T) {
 		clearRepo()
 
 		dpa := config.DataPowerAppliance{
-			RestUrl:  "https://my_dp_host:9999/rest/url",
+			RestUrl:  testRestURL,
 			Username: "user",
 			Domain:   "xxx",
 		}
 		Repo.ObjectConfigMode = true
-		Repo.dataPowerAppliance.RestUrl = "https://my_dp_host:9999/rest/url"
 		Repo.req = mockRequester{}
 
-		// Repo.dataPowerAppliance = dpApplicance{name: "xxx", dpa}
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
 			DpAppliance: "MyApplianceName",
 			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "local:/config/etc"}
@@ -148,30 +151,81 @@ func TestGetList(t *testing.T) {
 
 		assert.Equals(t, "GetList", err, nil)
 		assert.Equals(t, "GetList", len(itemList), 36)
-		parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClassList,
-			Path: "local:/config/etc", DpAppliance: "MyApplianceName",
-			DpDomain: "MyDomain", DpFilestore: "local:"}
-		assert.DeepEqual(t, "GetList", itemList[0],
-			model.Item{Name: "APIClientIdentification", Size: "1", Modified: "",
-				Selected: false,
-				Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
-					Name: "APIClientIdentification", Path: "APIClientIdentification",
-					DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
-					Parent: &parentItemConfig}})
-		assert.DeepEqual(t, "GetList", itemList[18],
-			model.Item{Name: "LogLabel", Size: "103", Modified: "",
-				Selected: false,
-				Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
-					Name: "LogLabel", Path: "LogLabel",
-					DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
-					Parent: &parentItemConfig}})
-		assert.DeepEqual(t, "GetList", itemList[34],
-			model.Item{Name: "XMLFirewallService", Size: "2", Modified: "*",
-				Selected: false,
-				Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
-					Name: "XMLFirewallService", Path: "XMLFirewallService",
-					DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
-					Parent: &parentItemConfig}})
+
+		if len(itemList) == 36 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClassList,
+				Path: "local:/config/etc", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "APIClientIdentification", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
+						Name: "APIClientIdentification", Path: "APIClientIdentification",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[18],
+				model.Item{Name: "LogLabel", Size: "103", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
+						Name: "LogLabel", Path: "LogLabel",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[34],
+				model.Item{Name: "XMLFirewallService", Size: "2", Modified: "*",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
+						Name: "XMLFirewallService", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("ObjectConfigMode/ObjectClassList SOMA", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.ObjectConfigMode = true
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "local:/config/etc"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 43)
+
+		if len(itemList) == 43 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpObjectClassList,
+				Path: "local:/config/etc", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "AAAJWTValidator", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
+						Name: "AAAJWTValidator", Path: "AAAJWTValidator",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[23],
+				model.Item{Name: "LogLabel", Size: "102", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
+						Name: "LogLabel", Path: "LogLabel",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[41],
+				model.Item{Name: "XMLFirewallService", Size: "8", Modified: "*",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpObjectClass,
+						Name: "XMLFirewallService", Path: "XMLFirewallService",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
 	})
 }
 

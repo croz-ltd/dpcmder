@@ -1,0 +1,1782 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-06T05:53:13-05:00</dp:timestamp>
+         <dp:status>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>Statistics</Class>
+               <OpState>down</OpState>
+               <AdminState>disabled</AdminState>
+               <Name>statistics</Name>
+               <EventCode>0x0034000d</EventCode>
+               <ErrorCode>Object is disabled</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-accept-service-providers</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>get_internal_js_xmlpolicy</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mTLS-test-xfw-policy</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>parse-cert-policy</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>HTTPUserAgent</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>URLMap</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-attempt-stream-all</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLManager</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLManager</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-attempt-stream</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLManager</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-wsrr</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__default-accept-service-providers-request__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__default-accept-service-providers-response__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__dp-policy-begin__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>get_internal_js_xmlpolicy_rule_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mTLS-test-xfw-policy_rule_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>parse-cert-policy_rule_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>Matching</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__default-accept-service-providers__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>Matching</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>match-all</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>modified</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall2</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall3</Name>
+               <EventCode>0x00b30002</EventCode>
+               <ErrorCode>Failed to install on port</ErrorCode>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall4</Name>
+               <EventCode>0x00b30002</EventCode>
+               <ErrorCode>Failed to install on port</ErrorCode>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>example-Firewall5</Name>
+               <EventCode>0x00b30002</EventCode>
+               <ErrorCode>Failed to install on port</ErrorCode>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>get_internal_js_xmlfw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mTLS-test-xfw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>XMLFirewallService</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>parse-cert</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoKey</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>172.17.0.2</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoKey</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>172.17.0.2-privkey</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoKey</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>test-cert</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>172.17.0.2</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>172.17.0.2-cert</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>172.17.0.2-sscert.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>AC_CAMERFIRMA_FOR_WEBSITES_-_2016.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>AC_CAMERFIRMA_FOR_WEBSITES_2018-cert.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>AC_CAMERFIRMA_FOR_WEBSITES_2018.crt</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>CHAMBERS_OF_COMMERCE_ROOT_-_2016.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ES.AC.CAMERFIRMA.FOR.WEBSITES-2016.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ES.AC.CAMERFIRMA.FOR.WEBSITES.2018.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.Actalis.Authentication.Root.CA.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.Actalis.EU.Qualified.Certificates.CA.G2.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.ArubaPEC.EU.Qualified.Certificates.CA.G2.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.InfoCert.Domain.Validation.SHA256-CA.3.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.InfoCert.Extended.Validation.SHA256-CA.3.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.InfoCert.Organization.Validation.CA.3.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>IT.InfoCert.Organization.Validation.SHA256-CA.3.pem</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoCertificate</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>test-cert</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoIdentCred</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>172.17.0.2-crypto-id</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CryptoValCred</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>rbi-cmc-test-valid-cred</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogTarget</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-log</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>aaa</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>all</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>apic-gw-service</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>apiconnect</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>apigw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>audit</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>auth</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>b2bgw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>b2bp</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>cert-monitor</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>cli</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>cloud-connector</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>cloud-gateway</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>cluster-service</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>cms</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>crypto</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>dfdl</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>evtlog</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>extlatency</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>fibre-channel</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>file</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>file-capture</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>file-poller</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ftp</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>gateway-peering</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>gatewayscript</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>gatewayscript-user</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>http</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>http-convert</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ip-multicast</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ipmi</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>iscsi</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>kerberos</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>latency</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ldap</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>llm</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ltpa</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>memory-report</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mgmt</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mime</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>monitor</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mpgw</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mq</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>multistep</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>netegrity</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>network</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>network-file</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>networkhsm-luna</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>oauth</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ocsp</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>odr</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>odr-connector-group</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>odrlib</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>parse</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>peer-group</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>product-insights</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>quiesce</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>quota-enforcement</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>rbm</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>rpcsec-gss</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>schema</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>secure-cloud-connector</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>secure-conversation</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>self-balancing</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>sftp</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>sgclient</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>slm</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>smtp</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>sql</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ssh</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ssl</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>system</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>tam</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>tenant</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>tfim</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>tibco-ems</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>uddi</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>uddisub</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>user</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>useragent</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>wasjms</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>wcc</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>web-token-service</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>webapp-firewall</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ws-proxy</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>wsm-agent</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>wsrr</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>wtx</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>wxs-grid</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xacml</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xc10-grid</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xformng</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xmlfilter</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xmlfirewall</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xmlparse</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xmlroute</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xquery</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xslcoproc</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xslproxy</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xslt</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>xsltmsg</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>LogLabel</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>zosnss</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>CompileOptionsPolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-attempt-stream</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>AAAPolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>tmp_aaa_policy</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__default-accept-service-providers-filter-action__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__default-accept-service-providers-results-action__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__dp-policy-call-action__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__dp-policy-init-xform-action__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__dp-policy-results-action__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>__dp-policy-traverse-xform-action__</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>get_internal_js_xmlpolicy_rule_0_gatewayscript_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>get_internal_js_xmlpolicy_rule_0_setvar_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mTLS-test-xfw-policy_rule_0_results_output_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>StylePolicyAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>parse-cert-policy_rule_0_gatewayscript_0</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>WSStylePolicy</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>WebServicesAgent</Class>
+               <OpState>down</OpState>
+               <AdminState>disabled</AdminState>
+               <Name>wsm-agent</Name>
+               <EventCode>0x0034000d</EventCode>
+               <ErrorCode>Object is disabled</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SLMAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>notify</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SLMAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>shape</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SLMAction</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>throttle</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>NFSDynamicMounts</Class>
+               <OpState>down</OpState>
+               <AdminState>disabled</AdminState>
+               <Name>nfs-dynamic-mounts</Name>
+               <EventCode>0x0034000d</EventCode>
+               <ErrorCode>Object is disabled</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>ProcessingMetadata</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ftp-usercert-metadata</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>ProcessingMetadata</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ftp-username-metadata</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>ProcessingMetadata</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>oauth-scope-metadata</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>ProcessingMetadata</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>ssh-password-metadata</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SMTPServerConnection</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SSLServerProfile</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>mTLS-test-xfw-ssl-server-profile</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>new</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>DomainAvailability</Class>
+               <OpState>down</OpState>
+               <AdminState>disabled</AdminState>
+               <Name>domain-availability</Name>
+               <EventCode>0x0034000d</EventCode>
+               <ErrorCode>Object is disabled</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>AAAJWTValidator</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>tmp_jwt_validator</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>PasswordAlias</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>test_password_map</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>DomainSettings</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>domain-settings</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>ControlList</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-accept-all</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>ControlList</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-reject-all</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-error-rule</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIRule</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-rule</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIConnectGatewayService</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>apic-gw-service</Name>
+               <EventCode>0x00350022</EventCode>
+               <ErrorCode>The object has not processed any configuration</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SSHServerProfile</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>sshserverprofile</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>SSHDomainClientProfile</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>sshdomainclientprofile</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIExecute</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-execute</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIContext</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-context</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIResult</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-result</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIRouting</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-route</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APISecurity</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-security</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIRateLimit</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-ratelimit</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIClientIdentification</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-client-identification</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APICORS</Class>
+               <OpState>up</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>default-api-cors</Name>
+               <EventCode>0x00000000</EventCode>
+               <ErrorCode/>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APISecurityTokenManager</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>api-security-token-manager</Name>
+               <EventCode>0x00350022</EventCode>
+               <ErrorCode>The object has not processed any configuration</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+            <ObjectStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Class>APIDebugProbe</Class>
+               <OpState>down</OpState>
+               <AdminState>enabled</AdminState>
+               <Name>api-debugprobe</Name>
+               <EventCode>0x00350022</EventCode>
+               <ErrorCode>The object has not processed any configuration</ErrorCode>
+               <ConfigState>saved</ConfigState>
+            </ObjectStatus>
+         </dp:status>
+      </dp:response>
+   </env:Body>
+</env:Envelope>
