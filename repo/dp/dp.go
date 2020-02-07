@@ -142,13 +142,18 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v), r.ObjectConfigMode: %t", itemToShow, r.ObjectConfigMode)
 
 	if r.ObjectConfigMode {
+		if itemToShow.DpAppliance == "" {
+			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpAppliance.", itemToShow)
+			return nil, errs.Errorf("Internal error showing object config mode - missing dp appliance.")
+		}
+
+		if itemToShow.DpDomain == "" {
+			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpDomain.", itemToShow)
+			return nil, errs.Errorf("Internal error showing object config mode - missing domain.")
+		}
+
 		switch itemToShow.Type {
 		case model.ItemDpObjectClassList:
-			// For DP configuration we doesn't need to have domain name (but can have it).
-			if itemToShow.DpDomain == "" {
-				logging.LogDebugf("repo/dp/GetList(%v) - can't find DpDomain.", itemToShow)
-				return nil, errs.Errorf("Internal error showing object config mode - missing domain.")
-			}
 			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listObjectClasses(itemToShow)
 		case model.ItemDpObjectClass:

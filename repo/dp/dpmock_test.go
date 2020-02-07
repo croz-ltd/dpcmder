@@ -19,10 +19,6 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 	case "https://my_dp_host:5554/mgmt/config/MyDomain/XMLFirewallService":
 		content, err = ioutil.ReadFile("testdata/object_xmlfwsvc_config_list.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
-		// var opTag string
-		// var opClass string
-		// var opObjClass string
-
 		r := regexp.MustCompile(`.*<man:([^ ]+) class="([^ ]+)"( object-class="([^ ]+)")?/>.*`)
 		matches := r.FindStringSubmatch(body)
 		opTag := matches[1]

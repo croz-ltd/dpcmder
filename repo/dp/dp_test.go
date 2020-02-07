@@ -132,6 +132,41 @@ func TestGetTitle(t *testing.T) {
 }
 
 func TestGetList(t *testing.T) {
+	t.Run("ObjectConfigMode wrong item type", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.ObjectConfigMode = true
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing object config mode - missing dp appliance."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing object config mode - missing domain."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		itemToShow.DpDomain = "MyDomain"
+		itemToShow.Type = model.ItemDirectory
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing object config mode - wrong view type."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+	})
+
 	t.Run("ObjectConfigMode/ObjectClassList REST", func(t *testing.T) {
 		clearRepo()
 
@@ -145,7 +180,9 @@ func TestGetList(t *testing.T) {
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
 			DpAppliance: "MyApplianceName",
-			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "Object classes"}
+			DpDomain:    "MyDomain",
+			DpFilestore: "local:",
+			Path:        "Object classes"}
 		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
 		itemList, err := Repo.GetList(&itemToShow)
 
@@ -178,6 +215,13 @@ func TestGetList(t *testing.T) {
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 		}
+
+		itemToShow.Type = model.ItemDirectory
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing object config mode - wrong view type."))
+		assert.Equals(t, "GetList", len(itemList), 0)
 	})
 
 	t.Run("ObjectConfigMode/ObjectClassList SOMA", func(t *testing.T) {
