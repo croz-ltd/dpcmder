@@ -384,6 +384,151 @@ func TestGetList(t *testing.T) {
 		}
 	})
 
+	t.Run("FilestoreMode/ApplianceList", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		for aplianceName := range config.Conf.DataPowerAppliances {
+			delete(config.Conf.DataPowerAppliances, aplianceName)
+		}
+
+		itemToShow := model.ItemConfig{Type: model.ItemNone}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("No appliances found, have to configure dpcmder with command line params first."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa1 := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "Dpa1Domain",
+		}
+		dpa2 := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+		}
+		config.Conf.DataPowerAppliances["dpa1"] = dpa1
+		config.Conf.DataPowerAppliances["dpa2"] = dpa2
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 2)
+
+		if len(itemList) == 2 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemNone}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "dpa1",
+					Config: &model.ItemConfig{Type: model.ItemDpConfiguration,
+						Name:        "dpa1",
+						DpAppliance: "dpa1", DpDomain: "Dpa1Domain",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "dpa2",
+					Config: &model.ItemConfig{Type: model.ItemDpConfiguration,
+						Name:          "dpa2",
+						DpAppliance:   "dpa2",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
+	t.Run("FilestoreMode/DomainList REST", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpConfiguration}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 3)
+
+		if len(itemList) == 3 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpConfiguration,
+				DpAppliance: "MyApplianceName"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "..", Config: nil})
+
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "default",
+					Config: &model.ItemConfig{Type: model.ItemDpDomain,
+						Name:        "default",
+						DpAppliance: "MyApplianceName", DpDomain: "default",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[2],
+				model.Item{Name: "test", Modified: "*",
+					Config: &model.ItemConfig{Type: model.ItemDpDomain,
+						Name:        "test",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
+	t.Run("FilestoreMode/DomainList SOAP", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpConfiguration}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 3)
+
+		if len(itemList) == 3 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpConfiguration,
+				DpAppliance: "MyApplianceName"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "..", Config: nil})
+
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "default",
+					Config: &model.ItemConfig{Type: model.ItemDpDomain,
+						Name:        "default",
+						DpAppliance: "MyApplianceName", DpDomain: "default",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[2],
+				model.Item{Name: "test", Modified: "*",
+					Config: &model.ItemConfig{Type: model.ItemDpDomain,
+						Name:        "test",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
 }
 
 func TestRemoveJSONKey(t *testing.T) {

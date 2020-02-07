@@ -1,0 +1,36 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/status/default/DomainStatus"
+    },
+    "doc": {
+      "href": "/mgmt/docs/status/DomainStatus"
+    }
+  },
+  "DomainStatus": [
+    {
+      "Domain": "default",
+      "SaveNeeded": "off",
+      "TraceEnabled": "off",
+      "DebugEnabled": "off",
+      "ProbeEnabled": "off",
+      "DiagEnabled": "off",
+      "CurrentCommand": "",
+      "QuiesceState": "",
+      "InterfaceState": "ok",
+      "FailsafeMode": "none"
+    },
+    {
+      "Domain": "test",
+      "SaveNeeded": "on",
+      "TraceEnabled": "off",
+      "DebugEnabled": "off",
+      "ProbeEnabled": "off",
+      "DiagEnabled": "off",
+      "CurrentCommand": "",
+      "QuiesceState": "",
+      "InterfaceState": "ok",
+      "FailsafeMode": "none"
+    }
+  ]
+}

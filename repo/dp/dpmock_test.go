@@ -18,6 +18,10 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		content, err = ioutil.ReadFile("testdata/object_class_status_list.json")
 	case "https://my_dp_host:5554/mgmt/config/MyDomain/XMLFirewallService":
 		content, err = ioutil.ReadFile("testdata/object_xmlfwsvc_config_list.json")
+	case "https://my_dp_host:5554/mgmt/config/default/Domain":
+		content, err = ioutil.ReadFile("testdata/domain_config_list.json")
+	case "https://my_dp_host:5554/mgmt/status/default/DomainStatus":
+		content, err = ioutil.ReadFile("testdata/domain_status_list.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
 		r := regexp.MustCompile(`.*<man:([^ ]+) class="([^ ]+)"( object-class="([^ ]+)")?/>.*`)
 		matches := r.FindStringSubmatch(body)
@@ -33,6 +37,10 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			content, err = ioutil.ReadFile("testdata/object_xmlfwsvc_status_list.xml")
 		case opTag == "get-config" && opClass == "XMLFirewallService" && opObjClass == "":
 			content, err = ioutil.ReadFile("testdata/object_xmlfwsvc_config_list.xml")
+		case opTag == "get-config" && opClass == "Domain" && opObjClass == "":
+			content, err = ioutil.ReadFile("testdata/domain_config_list.xml")
+		case opTag == "get-status" && opClass == "DomainStatus" && opObjClass == "":
+			content, err = ioutil.ReadFile("testdata/domain_status_list.xml")
 		default:
 			fmt.Printf("unrecognized SOMA request opTag: '%s', opClass: '%s', opObjClass: '%s'.\n",
 				opTag, opClass, opObjClass)

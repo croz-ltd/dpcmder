@@ -1,0 +1,71 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/config/default/Domain"
+    },
+    "doc": {
+      "href": "/mgmt/docs/config/Domain"
+    }
+  },
+  "Domain": [
+    {
+      "name": "default",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/default/Domain/default"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/Domain"
+        }
+      },
+      "mAdminState": "enabled",
+      "UserSummary": "Default System Domain",
+      "FileMap": {
+        "CopyFrom": "on",
+        "CopyTo": "on",
+        "Delete": "on",
+        "Display": "on",
+        "Exec": "on",
+        "Subdir": "on"
+      },
+      "MonitoringMap": {
+        "Audit": "off",
+        "Log": "off"
+      },
+      "ConfigMode": "local",
+      "ImportFormat": "ZIP",
+      "LocalIPRewrite": "on",
+      "MaxChkpoints": 3,
+      "ConfigPermissionsMode": "scope-domain"
+    },
+    {
+      "name": "test",
+      "_links": {
+        "self": {
+          "href": "/mgmt/config/default/Domain/test"
+        },
+        "doc": {
+          "href": "/mgmt/docs/config/Domain"
+        }
+      },
+      "mAdminState": "enabled",
+      "NeighborDomain": {
+        "value": "default",
+        "href": "/mgmt/config/default/Domain/default"
+      },
+      "FileMap": {
+        "CopyFrom": "on",
+        "CopyTo": "on",
+        "Delete": "on",
+        "Display": "on",
+        "Exec": "on",
+        "Subdir": "on"
+      },
+      "ConfigMode": "local",
+      "ImportFormat": "ZIP",
+      "LocalIPRewrite": "on",
+      "MaxChkpoints": 3,
+      "ConfigPermissionsMode": "scope-domain"
+    }
+  ]
+}

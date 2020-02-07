@@ -1,0 +1,33 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-07T04:51:05-05:00</dp:timestamp>
+         <dp:status>
+            <DomainStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Domain>default</Domain>
+               <SaveNeeded>off</SaveNeeded>
+               <TraceEnabled>off</TraceEnabled>
+               <DebugEnabled>off</DebugEnabled>
+               <ProbeEnabled>off</ProbeEnabled>
+               <DiagEnabled>off</DiagEnabled>
+               <CurrentCommand/>
+               <QuiesceState/>
+               <InterfaceState>ok</InterfaceState>
+               <FailsafeMode>none</FailsafeMode>
+            </DomainStatus>
+            <DomainStatus xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <Domain>test</Domain>
+               <SaveNeeded>on</SaveNeeded>
+               <TraceEnabled>off</TraceEnabled>
+               <DebugEnabled>off</DebugEnabled>
+               <ProbeEnabled>off</ProbeEnabled>
+               <DiagEnabled>off</DiagEnabled>
+               <CurrentCommand/>
+               <QuiesceState/>
+               <InterfaceState>ok</InterfaceState>
+               <FailsafeMode>none</FailsafeMode>
+            </DomainStatus>
+         </dp:status>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

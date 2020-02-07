@@ -1,0 +1,47 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-07T04:44:17-05:00</dp:timestamp>
+         <dp:config>
+            <Domain name="default" intrinsic="true" read-only="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <mAdminState read-only="true">enabled</mAdminState>
+               <UserSummary read-only="true">Default System Domain</UserSummary>
+               <FileMap read-only="true">
+                  <CopyFrom>on</CopyFrom>
+                  <CopyTo>on</CopyTo>
+                  <Delete>on</Delete>
+                  <Display>on</Display>
+                  <Exec>on</Exec>
+                  <Subdir>on</Subdir>
+               </FileMap>
+               <MonitoringMap read-only="true">
+                  <Audit>off</Audit>
+                  <Log>off</Log>
+               </MonitoringMap>
+               <ConfigMode read-only="true">local</ConfigMode>
+               <ImportFormat read-only="true">ZIP</ImportFormat>
+               <LocalIPRewrite read-only="true">on</LocalIPRewrite>
+               <MaxChkpoints read-only="true">3</MaxChkpoints>
+               <ConfigPermissionsMode read-only="true">scope-domain</ConfigPermissionsMode>
+            </Domain>
+            <Domain name="test" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <mAdminState>enabled</mAdminState>
+               <NeighborDomain class="Domain">default</NeighborDomain>
+               <FileMap>
+                  <CopyFrom>on</CopyFrom>
+                  <CopyTo>on</CopyTo>
+                  <Delete>on</Delete>
+                  <Display>on</Display>
+                  <Exec>on</Exec>
+                  <Subdir>on</Subdir>
+               </FileMap>
+               <ConfigMode>local</ConfigMode>
+               <ImportFormat>ZIP</ImportFormat>
+               <LocalIPRewrite>on</LocalIPRewrite>
+               <MaxChkpoints>3</MaxChkpoints>
+               <ConfigPermissionsMode>scope-domain</ConfigPermissionsMode>
+            </Domain>
+         </dp:config>
+      </dp:response>
+   </env:Body>
+</env:Envelope>
