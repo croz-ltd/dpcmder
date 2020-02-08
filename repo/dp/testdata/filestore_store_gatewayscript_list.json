@@ -1,0 +1,192 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/filestore/test/store/gatewayscript"
+    },
+    "doc": {
+      "href": "/mgmt/docs/filestore"
+    }
+  },
+  "filestore": {
+    "location": {
+      "name": "store:/gatewayscript",
+      "file": [
+        {
+          "name": "example-fibers-fibonacci.js",
+          "size": 1044,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-fibers-fibonacci.js"
+        },
+        {
+          "name": "example-oauthToken.js",
+          "size": 1071,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-oauthToken.js"
+        },
+        {
+          "name": "example-header.js",
+          "size": 1897,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-header.js"
+        },
+        {
+          "name": "example-context.js",
+          "size": 693,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-context.js"
+        },
+        {
+          "name": "example-contextvars.js",
+          "size": 972,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-contextvars.js"
+        },
+        {
+          "name": "example-ext-func-dp-gwscript.js",
+          "size": 1571,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-ext-func-dp-gwscript.js"
+        },
+        {
+          "name": "example-servicevars.js",
+          "size": 1030,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-servicevars.js"
+        },
+        {
+          "name": "example-xml-xslt.js",
+          "size": 1740,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-xml-xslt.js"
+        },
+        {
+          "name": "example-jws-sign-verify.js",
+          "size": 9717,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-jws-sign-verify.js"
+        },
+        {
+          "name": "example-jwe-encrypt-decrypt.js",
+          "size": 11487,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-jwe-encrypt-decrypt.js"
+        },
+        {
+          "name": "example-jwt-create.js",
+          "size": 1315,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-jwt-create.js"
+        },
+        {
+          "name": "example-ext-func-dp-gwscript.xsl",
+          "size": 1856,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-ext-func-dp-gwscript.xsl"
+        },
+        {
+          "name": "example-error.js",
+          "size": 1306,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-error.js"
+        },
+        {
+          "name": "example-fs.js",
+          "size": 5328,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-fs.js"
+        },
+        {
+          "name": "example-xml-xpath.js",
+          "size": 2763,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-xml-xpath.js"
+        },
+        {
+          "name": "example-jwt-validate.js",
+          "size": 1144,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-jwt-validate.js"
+        },
+        {
+          "name": "example-fibers-sync-xpath.js",
+          "size": 2150,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-fibers-sync-xpath.js"
+        },
+        {
+          "name": "example-generators-sync-xpath.js",
+          "size": 2947,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-generators-sync-xpath.js"
+        },
+        {
+          "name": "example-urlopen.js",
+          "size": 2144,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-urlopen.js"
+        },
+        {
+          "name": "example-healthcheck.js",
+          "size": 3170,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-healthcheck.js"
+        },
+        {
+          "name": "example-file-urlopen.js",
+          "size": 1653,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-file-urlopen.js"
+        },
+        {
+          "name": "example-b2b-routing.js",
+          "size": 2413,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-b2b-routing.js"
+        },
+        {
+          "name": "example-console.js",
+          "size": 1255,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-console.js"
+        },
+        {
+          "name": "example-generators-fibonacci.js",
+          "size": 1047,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-generators-fibonacci.js"
+        },
+        {
+          "name": "example-xml-dom.js",
+          "size": 2846,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-xml-dom.js"
+        },
+        {
+          "name": "example-script-defaults.js",
+          "size": 1779,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-script-defaults.js"
+        },
+        {
+          "name": "example-multistep.js",
+          "size": 1258,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-multistep.js"
+        },
+        {
+          "name": "example-urlopen-mq.js",
+          "size": 5451,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-urlopen-mq.js"
+        },
+        {
+          "name": "example-ratelimit.js",
+          "size": 1261,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/gatewayscript/example-ratelimit.js"
+        }
+      ],
+      "href": "/mgmt/filestore/test/store/gatewayscript"
+    }
+  }
+}

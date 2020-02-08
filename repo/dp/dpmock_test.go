@@ -27,6 +27,8 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		content, err = ioutil.ReadFile("testdata/filestore_list.json")
 	case "https://my_dp_host:5554/mgmt/filestore/test/store":
 		content, err = ioutil.ReadFile("testdata/filestore_store_list.json")
+	case "https://my_dp_host:5554/mgmt/filestore/test/store/gatewayscript":
+		content, err = ioutil.ReadFile("testdata/filestore_store_gatewayscript_list.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
 		var opTag string
 		var opClass string

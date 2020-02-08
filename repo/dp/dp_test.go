@@ -887,6 +887,118 @@ func TestGetList(t *testing.T) {
 		}
 	})
 
+	t.Run("FilestoreMode/DirList (for dir) REST", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDirectory,
+			DpDomain: "test", DpFilestore: "store:", Path: "store:/gatewayscript"}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 30)
+
+		if len(itemList) == 30 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDirectory,
+				DpAppliance: "MyApplianceName",
+				DpDomain:    "test",
+				DpFilestore: "store:",
+				Path:        "store:/gatewayscript"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "..", Config: nil})
+
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "example-b2b-routing.js",
+					Size: "2413", Modified: "2019-08-09 15:24:42",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name:        "example-b2b-routing.js",
+						Path:        "store:/gatewayscript/example-b2b-routing.js",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[29],
+				model.Item{Name: "example-xml-xslt.js",
+					Size: "1740", Modified: "2019-08-09 15:24:42",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name: "example-xml-xslt.js", Path: "store:/gatewayscript/example-xml-xslt.js",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
+	t.Run("FilestoreMode/DirList (for dir) SOMA", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDirectory,
+			DpDomain: "test", DpFilestore: "store:", Path: "store:/gatewayscript"}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 30)
+
+		if len(itemList) == 30 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDirectory,
+				DpAppliance: "MyApplianceName",
+				DpDomain:    "test",
+				DpFilestore: "store:",
+				Path:        "store:/gatewayscript"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "..", Config: nil})
+
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "example-b2b-routing.js",
+					Size: "2413", Modified: "2019-08-09 15:24:42",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name:        "example-b2b-routing.js",
+						Path:        "store:/gatewayscript/example-b2b-routing.js",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[29],
+				model.Item{Name: "example-xml-xslt.js",
+					Size: "1740", Modified: "2019-08-09 15:24:42",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name: "example-xml-xslt.js", Path: "store:/gatewayscript/example-xml-xslt.js",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
 }
 
 func TestRemoveJSONKey(t *testing.T) {
