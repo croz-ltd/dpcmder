@@ -229,9 +229,13 @@ func (r *dpRepo) GetFileByPath(dpDomain, filePath string) ([]byte, error) {
 
 		return resultBytes, nil
 	case config.DpInterfaceSoma:
-		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
-			"<dp:get-file name=\"" + filePath + "\"/></dp:request></soapenv:Body></soapenv:Envelope>"
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:get-file name="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, dpDomain, filePath)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
 			return nil, err
@@ -323,10 +327,13 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 	case config.DpInterfaceSoma:
 		switch fileType {
 		case model.ItemNone, model.ItemFile:
-			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
-				"<dp:set-file name=\"" + filePath + "\">" + base64.StdEncoding.EncodeToString(newFileContent) + "</dp:set-file>" +
-				"</dp:request></soapenv:Body></soapenv:Envelope>"
+			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:set-file name="%s">%s</man:set-file>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, dpDomain, filePath, base64.StdEncoding.EncodeToString(newFileContent))
 			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
 				return false, err
@@ -515,9 +522,13 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 			return false, errs.Error(errMsg)
 		case config.DpInterfaceSoma:
 			dirPath := r.GetFilePath(parentPath, dirName)
-			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
-				"<dp:do-action><CreateDir><Dir>" + dirPath + "</Dir></CreateDir></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
+			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:do-action><CreateDir><Dir>%s</Dir></CreateDir></man:do-action>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, dpDomain, dirPath)
 			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
 				return false, err
@@ -589,13 +600,21 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, 
 			var somaRequest string
 			switch fileType {
 			case model.ItemDirectory:
-				somaRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-					"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
-					"<dp:do-action><RemoveDir><Dir>" + filePath + "</Dir></RemoveDir></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
+				somaRequest = fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:do-action><RemoveDir><Dir>%s</Dir></RemoveDir></man:do-action>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, currentView.DpDomain, filePath)
 			case model.ItemFile:
-				somaRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-					"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + currentView.DpDomain + "\">" +
-					"<dp:do-action><DeleteFile><File>" + filePath + "</File></DeleteFile></dp:do-action></dp:request></soapenv:Body></soapenv:Envelope>"
+				somaRequest = fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:do-action><DeleteFile><File>%s</File></DeleteFile></man:do-action>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, currentView.DpDomain, filePath)
 			}
 			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
@@ -636,9 +655,13 @@ func (r *dpRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType, 
 				return true, nil
 			}
 		case config.DpInterfaceSoma:
-			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body>`+
-				`<dp:request xmlns:dp="http://www.datapower.com/schemas/management" domain="%s">`+
-				`<dp:del-config><%s name="%s"/></dp:del-config></dp:request></soapenv:Body></soapenv:Envelope>`,
+			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:del-config><%s name="%s"/></man:del-config>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`,
 				currentView.DpDomain, parentPath, fileName)
 			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
@@ -738,16 +761,16 @@ func (r *dpRepo) ExportAppliance(applianceConfigName, exportFileName string) ([]
 			backupRequestSomaDomains = backupRequestSomaDomains + fmt.Sprintf(`<man:domain name="%s"/>`, domain.name)
 		}
 		backupRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-	xmlns:man="http://www.datapower.com/schemas/management">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <man:request>
-         <man:do-backup format="ZIP" persisted="false">
-            <man:user-comment>Created by dpcmder - %s</man:user-comment>
-            %s
-         </man:do-backup>
-      </man:request>
-   </soapenv:Body>
+  xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request>
+			<man:do-backup format="ZIP" persisted="false">
+				<man:user-comment>Created by dpcmder - %s</man:user-comment>
+%s
+			</man:do-backup>
+		</man:request>
+	</soapenv:Body>
 </soapenv:Envelope>`, exportFileName, backupRequestSomaDomains)
 		backupResponseSoma, err := r.soma(backupRequestSoma)
 		if err != nil {
@@ -830,15 +853,15 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 		//    Backup contains domain export zip + export info and dp-aux files
 		backupRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <man:request>
-         <man:do-backup format="ZIP" persisted="false">
-            <man:user-comment>Created by dpcmder - %s</man:user-comment>
-            <man:domain name="%s"/>
-         </man:do-backup>
-      </man:request>
-   </soapenv:Body>
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request>
+			<man:do-backup format="ZIP" persisted="false">
+				<man:user-comment>Created by dpcmder - %s</man:user-comment>
+				<man:domain name="%s"/>
+			</man:do-backup>
+		</man:request>
+	</soapenv:Body>
 </soapenv:Envelope>`, exportFileName, domainName)
 		backupResponseSoma, err := r.soma(backupRequestSoma)
 		if err != nil {
@@ -923,14 +946,14 @@ func (r *dpRepo) GetObject(dpDomain, objectClass, objectName string, persisted b
 		return []byte(cleanedJSON), nil
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			xmlns:man="http://www.datapower.com/schemas/management">
-		   <soapenv:Header/>
-		   <soapenv:Body>
-		      <man:request domain="%s">
-		         <man:get-config class="%s" name="%s" persisted="%t"/>
-		      </man:request>
-		   </soapenv:Body>
-		</soapenv:Envelope>`,
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-config class="%s" name="%s" persisted="%t"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`,
 			dpDomain, objectClass, objectName, persisted)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
@@ -999,16 +1022,16 @@ func (r *dpRepo) SetObject(dpDomain, objectClass, objectName string, objectConte
 		return err
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			xmlns:man="http://www.datapower.com/schemas/management">
-		   <soapenv:Header/>
-		   <soapenv:Body>
-		      <man:request domain="%s">
-		         <man:set-config>
+xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:set-config>
 %s
-						 </man:set-config>
-		      </man:request>
-		   </soapenv:Body>
-		</soapenv:Envelope>`, dpDomain, objectContent)
+			</man:set-config>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, dpDomain, objectContent)
 		logging.LogDebugf("repo/dp/SetObject(), somaRequest: '%s'", somaRequest)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
@@ -1064,16 +1087,14 @@ func (r *dpRepo) SaveConfiguration(itemConfig *model.ItemConfig) error {
 		return errs.Error("DataPower REST management interface used - save configuration not available.")
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			xmlns:man="http://www.datapower.com/schemas/management">
-		   <soapenv:Header/>
-		   <soapenv:Body>
-		      <man:request domain="%s">
-		         <man:do-action>
-                <SaveConfig/>
-						 </man:do-action>
-		      </man:request>
-		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain)
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:do-action><SaveConfig/></man:do-action>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, itemConfig.DpDomain)
 		logging.LogDebugf("repo/dp/SaveConfiguration(), somaRequest: '%s'", somaRequest)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
@@ -1106,18 +1127,18 @@ func (r *dpRepo) CreateDomain(domainName string) error {
 		return errs.Errorf("Can't create domain using REST management interface.")
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			xmlns:man="http://www.datapower.com/schemas/management">
-		   <soapenv:Header/>
-		   <soapenv:Body>
-		      <man:request>
-		         <man:set-config>
-                <Domain name="%s">
-                   <NeighborDomain class="Domain">default</NeighborDomain>
-                </Domain>
-						 </man:set-config>
-		      </man:request>
-		   </soapenv:Body>
-		</soapenv:Envelope>`, domainName)
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request>
+			<man:set-config>
+				<Domain name="%s">
+					<NeighborDomain class="Domain">default</NeighborDomain>
+				</Domain>
+			</man:set-config>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, domainName)
 		logging.LogDebugf("repo/dp/CreateDomain(), somaRequest: '%s'", somaRequest)
 		somaResponse, err := r.soma(somaRequest)
 		if err != nil {
@@ -1313,10 +1334,13 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 
 		return items, nil
 	case config.DpInterfaceSoma:
-		somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-			"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + selectedItemConfig.DpDomain + "\">" +
-			"<dp:get-filestore layout-only=\"true\" no-subdirectories=\"true\"/></dp:request>" +
-			"</soapenv:Body></soapenv:Envelope>"
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:get-filestore layout-only="true" no-subdirectories="true"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, selectedItemConfig.DpDomain)
 		dpFilestoresXML, err := r.soma(somaRequest)
 		if err != nil {
 			return nil, err
@@ -1335,6 +1359,7 @@ func (r *dpRepo) listFilestores(selectedItemConfig *model.ItemConfig) (model.Ite
 				Name:        filestoreName,
 				DpAppliance: selectedItemConfig.DpAppliance,
 				DpDomain:    selectedItemConfig.DpDomain,
+				DpFilestore: filestoreName,
 				Path:        filestoreName,
 				Parent:      selectedItemConfig}
 			items[idx+1] = model.Item{Name: filestoreName, Config: &itemConfig}
@@ -1369,10 +1394,13 @@ func (r *dpRepo) fetchFilestoreIfNeeded(dpDomain, dpFilestoreLocation string, fo
 	if r.dataPowerAppliance.SomaUrl != "" {
 		// If we open filestore or open file but want to reload - refresh current filestore XML cache.
 		if forceReload || r.invalidateCache || r.dpFilestoreXmls[dpFilestoreLocation] == "" {
-			somaRequest := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body>" +
-				"<dp:request xmlns:dp=\"http://www.datapower.com/schemas/management\" domain=\"" + dpDomain + "\">" +
-				"<dp:get-filestore layout-only=\"false\" no-subdirectories=\"false\" location=\"" + dpFilestoreLocation + "\"/></dp:request>" +
-				"</soapenv:Body></soapenv:Envelope>"
+			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body>
+		<man:request xmlns:man="http://www.datapower.com/schemas/management" domain="%s">
+			<man:get-filestore layout-only="false" no-subdirectories="false" location="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, dpDomain, dpFilestoreLocation)
 			var err error
 			r.dpFilestoreXmls[dpFilestoreLocation], err = r.soma(somaRequest)
 			if err != nil {
@@ -1535,13 +1563,13 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-	xmlns:man="http://www.datapower.com/schemas/management">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <man:request domain="%s">
-         <man:get-status class="ObjectStatus"/>
-      </man:request>
-   </soapenv:Body>
+  xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+	  <man:request domain="%s">
+	    <man:get-status class="ObjectStatus"/>
+	  </man:request>
+	</soapenv:Body>
 </soapenv:Envelope>`, currentView.DpDomain)
 		var somaResponse string
 		somaResponse, err = r.soma(somaRequest)
@@ -1690,23 +1718,23 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		// example: WebGUI (Name (status): "web-mgmt", name (config): "WebGUI-Settings").
 		// Maybe these are cases where SOMA response has attribute intrinsic="true".
 		somaConfigRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			xmlns:man="http://www.datapower.com/schemas/management">
-		   <soapenv:Header/>
-		   <soapenv:Body>
-		      <man:request domain="%s">
-		         <man:get-config class="%s"/>
-		      </man:request>
-		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain, objectClassName)
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-config class="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, itemConfig.DpDomain, objectClassName)
 		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			xmlns:man="http://www.datapower.com/schemas/management">
-		   <soapenv:Header/>
-		   <soapenv:Body>
-		      <man:request domain="%s">
-		         <man:get-status class="ObjectStatus" object-class="%s"/>
-		      </man:request>
-		   </soapenv:Body>
-		</soapenv:Envelope>`, itemConfig.DpDomain, objectClassName)
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-status class="ObjectStatus" object-class="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, itemConfig.DpDomain, objectClassName)
 		somaConfigResponse, err := r.soma(somaConfigRequest)
 		if err != nil {
 			return nil, err
@@ -1843,12 +1871,12 @@ func (r *dpRepo) fetchDpDomains() ([]dpDomainInfo, error) {
 	case config.DpInterfaceSoma:
 		somaConfigRequest := `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <man:request domain="default">
-         <man:get-config class="Domain"/>
-      </man:request>
-   </soapenv:Body>
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="default">
+			<man:get-config class="Domain"/>
+		</man:request>
+	</soapenv:Body>
 </soapenv:Envelope>`
 		domainsConfigDoc, err := r.somaGetDoc(somaConfigRequest)
 		if err != nil {
@@ -1859,12 +1887,12 @@ func (r *dpRepo) fetchDpDomains() ([]dpDomainInfo, error) {
 
 		somaStatusRequest := `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <man:request domain="default">
-         <man:get-status class="DomainStatus"/>
-      </man:request>
-   </soapenv:Body>
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="default">
+			<man:get-status class="DomainStatus"/>
+		</man:request>
+	</soapenv:Body>
 </soapenv:Envelope>`
 		domainsStatusDoc, err := r.somaGetDoc(somaStatusRequest)
 		if err != nil {
@@ -2272,7 +2300,7 @@ func (r *dpRepo) restGetDoc(urlPath string) (*jsonquery.Node, error) {
 	}
 	doc, err := jsonquery.Parse(strings.NewReader(bodyString))
 	if err != nil {
-		logging.LogDebug("Error parsing response JSON.", err)
+		logging.LogDebugf("Error parsing response JSON, err: %v", err)
 		return nil, err
 	}
 
@@ -2301,9 +2329,13 @@ func (r *dpRepo) somaGetDoc(body string) (*xmlquery.Node, error) {
 	if err != nil {
 		return nil, err
 	}
+	if bodyString == "" {
+		logging.LogDebug("No response XML returned for SOMA call.")
+		return nil, errs.Error("No response XML returned for SOMA call.")
+	}
 	doc, err := xmlquery.Parse(strings.NewReader(bodyString))
 	if err != nil {
-		logging.LogDebug("Error parsing response XML.", err)
+		logging.LogDebugf("Error parsing response XML, err: %v", err)
 		return nil, err
 	}
 

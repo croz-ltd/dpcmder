@@ -1,0 +1,57 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-08T07:25:56-05:00</dp:timestamp>
+         <dp:filestore>
+            <location name="local:" read="true" write="true" show="true" exec="true" del="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="logtemp:" read="true" log="true" show="true" del="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>2</files>
+            </location>
+            <location name="logstore:" read="true" log="true" show="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="temporary:" read="true" write="true" show="true" exec="true" del="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="export:" read="true" show="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="config:" read="true" write="true" audit="true" log="true" show="true" exec="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>1</files>
+            </location>
+            <location name="cert:" write="true" audit="true" log="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="chkpoints:" read="true" write="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="policyframework:" read="true" write="true" show="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="pubcert:" read="true" log="true" show="true" reference="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="sharedcert:" audit="true" log="true" reference="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>0</directories>
+               <files>0</files>
+            </location>
+            <location name="store:" read="true" log="true" show="true" reference="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <directories>10</directories>
+               <files>180</files>
+            </location>
+         </dp:filestore>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

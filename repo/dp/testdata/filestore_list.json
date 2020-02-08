@@ -1,0 +1,62 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/filestore/test"
+    },
+    "doc": {
+      "href": "/mgmt/docs/filestore"
+    }
+  },
+  "filestore": {
+    "location": [
+      {
+        "name": "local:",
+        "href": "/mgmt/filestore/test/local"
+      },
+      {
+        "name": "logtemp:",
+        "href": "/mgmt/filestore/test/logtemp"
+      },
+      {
+        "name": "logstore:",
+        "href": "/mgmt/filestore/test/logstore"
+      },
+      {
+        "name": "temporary:",
+        "href": "/mgmt/filestore/test/temporary"
+      },
+      {
+        "name": "export:",
+        "href": "/mgmt/filestore/test/export"
+      },
+      {
+        "name": "config:",
+        "href": "/mgmt/filestore/test/config"
+      },
+      {
+        "name": "cert:",
+        "href": "/mgmt/filestore/test/cert"
+      },
+      {
+        "name": "chkpoints:",
+        "href": "/mgmt/filestore/test/chkpoints"
+      },
+      {
+        "name": "policyframework:",
+        "href": "/mgmt/filestore/test/policyframework"
+      },
+      {
+        "name": "pubcert:",
+        "href": "/mgmt/filestore/test/pubcert"
+      },
+      {
+        "name": "sharedcert:",
+        "href": "/mgmt/filestore/test/sharedcert"
+      },
+      {
+        "name": "store:",
+        "href": "/mgmt/filestore/test/store"
+      }
+    ]
+  }
+}
