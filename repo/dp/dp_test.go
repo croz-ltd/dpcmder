@@ -1013,6 +1013,20 @@ func TestGetList(t *testing.T) {
 
 }
 
+func TestInvalidateCache(t *testing.T) {
+	clearRepo()
+
+	Repo.dataPowerAppliance = dpApplicance{}
+	Repo.dataPowerAppliance.RestUrl = testRestURL
+
+	Repo.InvalidateCache()
+	assert.Equals(t, "InvalidateCache", Repo.invalidateCache, false)
+
+	Repo.dataPowerAppliance.SomaUrl = testSomaURL
+	Repo.InvalidateCache()
+	assert.Equals(t, "InvalidateCache", Repo.invalidateCache, true)
+}
+
 func TestRemoveJSONKey(t *testing.T) {
 	inputJSON := `{
   "keyok": "valok",
