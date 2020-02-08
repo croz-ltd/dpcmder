@@ -188,7 +188,7 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 		default:
 			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
 				itemToShow, r.ObjectConfigMode)
-			return model.ItemList{}, nil
+			return nil, errs.Errorf("Internal error showing filestore mode - wrong view type.")
 		}
 	}
 }

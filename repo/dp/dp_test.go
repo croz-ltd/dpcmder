@@ -999,6 +999,18 @@ func TestGetList(t *testing.T) {
 		}
 	})
 
+	t.Run("FilestoreMode/List Object type", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
+			DpDomain: "test", DpFilestore: "store:", Path: "store:/gatewayscript"}
+		_, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing filestore mode - wrong view type."))
+	})
+
 }
 
 func TestRemoveJSONKey(t *testing.T) {
