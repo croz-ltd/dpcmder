@@ -87,7 +87,7 @@ func TestItemDisplayString(t *testing.T) {
 
 	got := item.DisplayString()
 	want := "f       3000 2019-02-06 14:06:10 master"
-	assert.DeepEqual(t, "Item.GetDisplayableType()", want, got)
+	assert.DeepEqual(t, "Item.GetDisplayableType()", got, want)
 }
 func TestItemGetDisplayableType(t *testing.T) {
 	itemList := prepareAllTypesItemList()
@@ -97,7 +97,7 @@ func TestItemGetDisplayableType(t *testing.T) {
 	for idx := 0; idx < len(displayedType); idx++ {
 		got := itemList[idx].GetDisplayableType()
 		want := displayedType[idx]
-		assert.DeepEqual(t, "Item.GetDisplayableType()", want, got)
+		assert.DeepEqual(t, "Item.GetDisplayableType()", got, want)
 	}
 }
 func TestItemString(t *testing.T) {
@@ -138,7 +138,7 @@ func TestItemListLen(t *testing.T) {
 	itemList := prepareItemList()
 	gotLen := itemList.Len()
 	expectedLen := 10
-	assert.DeepEqual(t, "ItemList.Len()", expectedLen, gotLen)
+	assert.DeepEqual(t, "ItemList.Len()", gotLen, expectedLen)
 }
 func TestItemListLess(t *testing.T) {
 	itemList := prepareItemList()
@@ -160,7 +160,7 @@ func TestItemListLess(t *testing.T) {
 	for _, testRow := range testDataMatrix {
 		gotRes := itemList.Less(testRow.i, testRow.j)
 		expectedRes := testRow.res
-		assert.DeepEqual(t, "ItemList.Less()", expectedRes, gotRes)
+		assert.DeepEqual(t, "ItemList.Less()", gotRes, expectedRes)
 	}
 }
 func TestItemListSwap(t *testing.T) {
@@ -179,7 +179,7 @@ func TestItemListSwap(t *testing.T) {
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
 	t.Helper()
-	assert.DeepEqual(t, "Model.CurrItem()", want, got)
+	assert.DeepEqual(t, "Model.CurrItem()", got, want)
 }
 
 func TestModelSetCurrentView(t *testing.T) {
@@ -763,7 +763,7 @@ func TestModelIsSelectable(t *testing.T) {
 		model.SetCurrItemForSide(Left, itemName)
 		got := model.IsSelectable()
 		want := selectableExpected[idx]
-		assert.DeepEqual(t, fmt.Sprintf("Model.IsSelectable(), item: '%s'", itemName), want, got)
+		assert.DeepEqual(t, fmt.Sprintf("Model.IsSelectable(), item: '%s'", itemName), got, want)
 	}
 }
 
