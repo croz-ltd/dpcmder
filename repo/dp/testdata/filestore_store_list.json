@@ -1,0 +1,1132 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/filestore/test/store"
+    },
+    "doc": {
+      "href": "/mgmt/docs/filestore"
+    }
+  },
+  "filestore": {
+    "location": {
+      "name": "store:",
+      "file": [
+        {
+          "name": "pkcs7-get-signers.xsl",
+          "size": 7649,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-get-signers.xsl"
+        },
+        {
+          "name": "tspm-aaa-mc-retrieve-groups.xsl",
+          "size": 22859,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/tspm-aaa-mc-retrieve-groups.xsl"
+        },
+        {
+          "name": "sign-kerberos-hmac-wssec.xsl",
+          "size": 12036,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-kerberos-hmac-wssec.xsl"
+        },
+        {
+          "name": "caUnicenterReport.xsl",
+          "size": 12568,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenterReport.xsl"
+        },
+        {
+          "name": "verify.xsl",
+          "size": 6142,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/verify.xsl"
+        },
+        {
+          "name": "example_CreateJWTCustomClaims.js",
+          "size": 4763,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/example_CreateJWTCustomClaims.js"
+        },
+        {
+          "name": "set-wssec-encrypt-param.xsl",
+          "size": 125677,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-wssec-encrypt-param.xsl"
+        },
+        {
+          "name": "sld-resource-class-policy-enforcement.xsl",
+          "size": 4198,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sld-resource-class-policy-enforcement.xsl"
+        },
+        {
+          "name": "wssecurity-message-layout-filter.xsl",
+          "size": 2074,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wssecurity-message-layout-filter.xsl"
+        },
+        {
+          "name": "w2sGetFilterNodes.xsl",
+          "size": 7790,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sGetFilterNodes.xsl"
+        },
+        {
+          "name": "pkcs7-verify.xsl",
+          "size": 12528,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-verify.xsl"
+        },
+        {
+          "name": "log-cbe.wsdl",
+          "size": 2769,
+          "modified": "2019-08-09 15:25:23",
+          "href": "/mgmt/filestore/test/store/log-cbe.wsdl"
+        },
+        {
+          "name": "antivirus-clam.xsl",
+          "size": 2323,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/antivirus-clam.xsl"
+        },
+        {
+          "name": "netegrity-custom-saml-assert.xsl",
+          "size": 2274,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/netegrity-custom-saml-assert.xsl"
+        },
+        {
+          "name": "w2sCountSchemas.xsl",
+          "size": 1651,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sCountSchemas.xsl"
+        },
+        {
+          "name": "set-soap-receiver-param.xsl",
+          "size": 2209,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-soap-receiver-param.xsl"
+        },
+        {
+          "name": "reject-all-json.xq",
+          "size": 314,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/reject-all-json.xq"
+        },
+        {
+          "name": "soap-refine.xsl",
+          "size": 35422,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soap-refine.xsl"
+        },
+        {
+          "name": "sign-enveloping.xsl",
+          "size": 2602,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-enveloping.xsl"
+        },
+        {
+          "name": "filter-accept-service-providers.xsl",
+          "size": 768,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/filter-accept-service-providers.xsl"
+        },
+        {
+          "name": "example_CustomJWTValidation.js",
+          "size": 3736,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/example_CustomJWTValidation.js"
+        },
+        {
+          "name": "sign-swa.xsl",
+          "size": 2219,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-swa.xsl"
+        },
+        {
+          "name": "soapreq.xsl",
+          "size": 1980,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soapreq.xsl"
+        },
+        {
+          "name": "decrypt.xsl",
+          "size": 3575,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/decrypt.xsl"
+        },
+        {
+          "name": "w2sUtil.xsl",
+          "size": 15943,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sUtil.xsl"
+        },
+        {
+          "name": "custom-policy-check.xsl",
+          "size": 1867,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/custom-policy-check.xsl"
+        },
+        {
+          "name": "soaperror.xsl",
+          "size": 2738,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soaperror.xsl"
+        },
+        {
+          "name": "set-wssec-sign-param.xsl",
+          "size": 124285,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-wssec-sign-param.xsl"
+        },
+        {
+          "name": "sign-hmac-wssec.xsl",
+          "size": 39621,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-hmac-wssec.xsl"
+        },
+        {
+          "name": "identity-xml.xq",
+          "size": 281,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/identity-xml.xq"
+        },
+        {
+          "name": "healthcheck.json",
+          "size": 2,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/healthcheck.json"
+        },
+        {
+          "name": "caUnicenter31Report.xsl",
+          "size": 12042,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenter31Report.xsl"
+        },
+        {
+          "name": "sla-policy-enforcement-check.xsl",
+          "size": 4872,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sla-policy-enforcement-check.xsl"
+        },
+        {
+          "name": "sign-soap-enveloping.xsl",
+          "size": 3262,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-soap-enveloping.xsl"
+        },
+        {
+          "name": "log.xsl",
+          "size": 4055,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/log.xsl"
+        },
+        {
+          "name": "soap-encoding-1.1.xsd",
+          "size": 17341,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soap-encoding-1.1.xsd"
+        },
+        {
+          "name": "clam.xsl",
+          "size": 4351,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/clam.xsl"
+        },
+        {
+          "name": "webwasher.xsl",
+          "size": 5415,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/webwasher.xsl"
+        },
+        {
+          "name": "filter-reject-all.xsl",
+          "size": 647,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/filter-reject-all.xsl"
+        },
+        {
+          "name": "sign-wssec-common.xsl",
+          "size": 5592,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-wssec-common.xsl"
+        },
+        {
+          "name": "xml-mgmt-2004.wsdl",
+          "size": 2582,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-2004.wsdl"
+        },
+        {
+          "name": "mediation-util.xsl",
+          "size": 5072,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-util.xsl"
+        },
+        {
+          "name": "example_CustomJWTValidation.xsl",
+          "size": 2517,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/example_CustomJWTValidation.xsl"
+        },
+        {
+          "name": "set-saml-decrypt-verify-param.xsl",
+          "size": 2804,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-saml-decrypt-verify-param.xsl"
+        },
+        {
+          "name": "mediation-route-vars.xsl",
+          "size": 2391,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-route-vars.xsl"
+        },
+        {
+          "name": "set-rsa-encrypt-param.xsl",
+          "size": 7794,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-rsa-encrypt-param.xsl"
+        },
+        {
+          "name": "policy-enforce-utility.xsl",
+          "size": 7195,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/policy-enforce-utility.xsl"
+        },
+        {
+          "name": "xml-mgmt-2004.xsd",
+          "size": 5209,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-2004.xsd"
+        },
+        {
+          "name": "set-key.xsl",
+          "size": 2627,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-key.xsl"
+        },
+        {
+          "name": "antivirus-trendmicro.xsl",
+          "size": 2654,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/antivirus-trendmicro.xsl"
+        },
+        {
+          "name": "log-soap.xsd",
+          "size": 3411,
+          "modified": "2019-08-09 15:25:23",
+          "href": "/mgmt/filestore/test/store/log-soap.xsd"
+        },
+        {
+          "name": "app-mgmt-protocol.wsdl",
+          "size": 20950,
+          "modified": "2019-08-09 15:25:56",
+          "href": "/mgmt/filestore/test/store/app-mgmt-protocol.wsdl"
+        },
+        {
+          "name": "sign-wssec.xsl",
+          "size": 2005,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-wssec.xsl"
+        },
+        {
+          "name": "sla-setcontext.xsl",
+          "size": 9283,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sla-setcontext.xsl"
+        },
+        {
+          "name": "xml-mgmt-2004-types.xsd",
+          "size": 5375,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-2004-types.xsd"
+        },
+        {
+          "name": "Form-Generate-HTML.xsl",
+          "size": 9231,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/Form-Generate-HTML.xsl"
+        },
+        {
+          "name": "antivirus.xsl",
+          "size": 28875,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/antivirus.xsl"
+        },
+        {
+          "name": "app-mgmt-protocol-v2.wsdl",
+          "size": 28749,
+          "modified": "2019-08-09 15:25:56",
+          "href": "/mgmt/filestore/test/store/app-mgmt-protocol-v2.wsdl"
+        },
+        {
+          "name": "ProcessingMetadata.html",
+          "size": 70099,
+          "modified": "2019-08-09 16:08:57",
+          "href": "/mgmt/filestore/test/store/ProcessingMetadata.html"
+        },
+        {
+          "name": "RBMInfo.xml",
+          "size": 2346,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/RBMInfo.xml"
+        },
+        {
+          "name": "set-verify-param.xsl",
+          "size": 56547,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-verify-param.xsl"
+        },
+        {
+          "name": "mediation-msgvar.xsl",
+          "size": 4531,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-msgvar.xsl"
+        },
+        {
+          "name": "identity-json.xq",
+          "size": 437,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/identity-json.xq"
+        },
+        {
+          "name": "antivirus-symantec.xsl",
+          "size": 2713,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/antivirus-symantec.xsl"
+        },
+        {
+          "name": "caUnicenterCheckRelationships.xml",
+          "size": 312,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenterCheckRelationships.xml"
+        },
+        {
+          "name": "pkcs7-sign.xsl",
+          "size": 16092,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-sign.xsl"
+        },
+        {
+          "name": "sign-soap-enveloped.xsl",
+          "size": 3720,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-soap-enveloped.xsl"
+        },
+        {
+          "name": "log-cbe.xsd",
+          "size": 6949,
+          "modified": "2019-08-09 15:25:23",
+          "href": "/mgmt/filestore/test/store/log-cbe.xsd"
+        },
+        {
+          "name": "w2sResolveSOAPEncHrefs.xsl",
+          "size": 6395,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sResolveSOAPEncHrefs.xsl"
+        },
+        {
+          "name": "jsonx.xsd",
+          "size": 3409,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/jsonx.xsd"
+        },
+        {
+          "name": "LogoutPage.htm",
+          "size": 480,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/LogoutPage.htm"
+        },
+        {
+          "name": "caUnicenter31Filter.xsl",
+          "size": 11099,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenter31Filter.xsl"
+        },
+        {
+          "name": "app-mgmt-protocol.xsd",
+          "size": 21695,
+          "modified": "2019-08-09 15:25:56",
+          "href": "/mgmt/filestore/test/store/app-mgmt-protocol.xsd"
+        },
+        {
+          "name": "xml-mgmt-2004-objects.xsd",
+          "size": 106771,
+          "modified": "2019-08-09 15:54:56",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-2004-objects.xsd"
+        },
+        {
+          "name": "encrypt-soap.xsl",
+          "size": 4656,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/encrypt-soap.xsl"
+        },
+        {
+          "name": "prettyprint.xsl",
+          "size": 2405,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/prettyprint.xsl"
+        },
+        {
+          "name": "netegrity-custom-saml-sign.xsl",
+          "size": 2316,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/netegrity-custom-saml-sign.xsl"
+        },
+        {
+          "name": "caUnicenterFilter.xsl",
+          "size": 10569,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenterFilter.xsl"
+        },
+        {
+          "name": "utilities.xsl",
+          "size": 38901,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/utilities.xsl"
+        },
+        {
+          "name": "pkcs7-convert-output.ffd",
+          "size": 1425,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-convert-output.ffd"
+        },
+        {
+          "name": "ErrorPage.htm",
+          "size": 708,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/ErrorPage.htm"
+        },
+        {
+          "name": "soaprsp.xsl",
+          "size": 1980,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soaprsp.xsl"
+        },
+        {
+          "name": "mediation-routing.xsl",
+          "size": 5563,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-routing.xsl"
+        },
+        {
+          "name": "pkcs7-convert-input.ffd",
+          "size": 647,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-convert-input.ffd"
+        },
+        {
+          "name": "wsdlToSchema.xsl",
+          "size": 1014,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wsdlToSchema.xsl"
+        },
+        {
+          "name": "sign-hmac-soapsec.xsl",
+          "size": 3845,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-hmac-soapsec.xsl"
+        },
+        {
+          "name": "log-soap.wsdl",
+          "size": 2600,
+          "modified": "2019-08-09 15:25:23",
+          "href": "/mgmt/filestore/test/store/log-soap.wsdl"
+        },
+        {
+          "name": "wsdl-extract-fault.xsl",
+          "size": 1448,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wsdl-extract-fault.xsl"
+        },
+        {
+          "name": "soapfilter.xsl",
+          "size": 781,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soapfilter.xsl"
+        },
+        {
+          "name": "call-xkms.xsl",
+          "size": 5033,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/call-xkms.xsl"
+        },
+        {
+          "name": "wsdlFilterStub.xsl",
+          "size": 2276,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wsdlFilterStub.xsl"
+        },
+        {
+          "name": "aaa-xacml-binding-sample.xsl",
+          "size": 34641,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/aaa-xacml-binding-sample.xsl"
+        },
+        {
+          "name": "caUnicenter31GetConfig.xml",
+          "size": 1527,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenter31GetConfig.xml"
+        },
+        {
+          "name": "wsdlServeLocal.xsl",
+          "size": 2449,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wsdlServeLocal.xsl"
+        },
+        {
+          "name": "required-elements-filter.xsl",
+          "size": 1755,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/required-elements-filter.xsl"
+        },
+        {
+          "name": "tspm-aaa-xacml-binding-rtss.xsl",
+          "size": 42815,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/tspm-aaa-xacml-binding-rtss.xsl"
+        },
+        {
+          "name": "Virus-Scan-Attachments.xsl",
+          "size": 4262,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/Virus-Scan-Attachments.xsl"
+        },
+        {
+          "name": "conformance-fixup-bsp-r3221.xsl",
+          "size": 6975,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/conformance-fixup-bsp-r3221.xsl"
+        },
+        {
+          "name": "encrypt.xsl",
+          "size": 7421,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/encrypt.xsl"
+        },
+        {
+          "name": "mtom.xsl",
+          "size": 1638,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mtom.xsl"
+        },
+        {
+          "name": "AAAInfo.xsd",
+          "size": 18692,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/AAAInfo.xsd"
+        },
+        {
+          "name": "xml-mgmt-base.xsd",
+          "size": 9971,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-base.xsd"
+        },
+        {
+          "name": "verify-hmac.xsl",
+          "size": 6624,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/verify-hmac.xsl"
+        },
+        {
+          "name": "mediation-slmresult.xsl",
+          "size": 3217,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-slmresult.xsl"
+        },
+        {
+          "name": "strip-security-header.xsl",
+          "size": 850,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/strip-security-header.xsl"
+        },
+        {
+          "name": "set-soap-sender-param.xsl",
+          "size": 2388,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-soap-sender-param.xsl"
+        },
+        {
+          "name": "sign-soapsec.xsl",
+          "size": 3452,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-soapsec.xsl"
+        },
+        {
+          "name": "set-wssec-common-param.xsl",
+          "size": 9027,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-wssec-common-param.xsl"
+        },
+        {
+          "name": "jsonx2json.xsl",
+          "size": 2497,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/jsonx2json.xsl"
+        },
+        {
+          "name": "tspm71-receive-updates.xsl",
+          "size": 26015,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/tspm71-receive-updates.xsl"
+        },
+        {
+          "name": "pkcs7-decrypt.xsl",
+          "size": 6602,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-decrypt.xsl"
+        },
+        {
+          "name": "example_CustomJWTGenerator.js",
+          "size": 11654,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/example_CustomJWTGenerator.js"
+        },
+        {
+          "name": "iop-mgmt-aaa.xml",
+          "size": 4972,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/iop-mgmt-aaa.xml"
+        },
+        {
+          "name": "tspm-receive-updates.xsl",
+          "size": 23371,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/tspm-receive-updates.xsl"
+        },
+        {
+          "name": "sign-enveloped.xsl",
+          "size": 12378,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-enveloped.xsl"
+        },
+        {
+          "name": "pkcs7-encrypt.xsl",
+          "size": 9418,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/pkcs7-encrypt.xsl"
+        },
+        {
+          "name": "xml-mgmt-ops.xsd",
+          "size": 20932,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-ops.xsd"
+        },
+        {
+          "name": "tspm-aaa-mc-map-saml-groups.xsl",
+          "size": 10430,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/tspm-aaa-mc-map-saml-groups.xsl"
+        },
+        {
+          "name": "mediation-notify.xsl",
+          "size": 1485,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-notify.xsl"
+        },
+        {
+          "name": "SQL-Injection-Filter.xsl",
+          "size": 14862,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/SQL-Injection-Filter.xsl"
+        },
+        {
+          "name": "mq-header.xsl",
+          "size": 35436,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mq-header.xsl"
+        },
+        {
+          "name": "xml-mgmt.xsd",
+          "size": 2680152,
+          "modified": "2019-08-09 15:55:06",
+          "href": "/mgmt/filestore/test/store/xml-mgmt.xsd"
+        },
+        {
+          "name": "get-user.xsl",
+          "size": 2179,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/get-user.xsl"
+        },
+        {
+          "name": "wssec-utilities.xsl",
+          "size": 25492,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wssec-utilities.xsl"
+        },
+        {
+          "name": "set-keypair.xsl",
+          "size": 4190,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-keypair.xsl"
+        },
+        {
+          "name": "set-soap-common-param.xsl",
+          "size": 5711,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-soap-common-param.xsl"
+        },
+        {
+          "name": "SQL-Injection-Patterns.xml",
+          "size": 4414,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/SQL-Injection-Patterns.xml"
+        },
+        {
+          "name": "conformance-filter.xsl",
+          "size": 2757,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/conformance-filter.xsl"
+        },
+        {
+          "name": "app-mgmt-protocol-v2.xsd",
+          "size": 31217,
+          "modified": "2019-08-09 15:25:56",
+          "href": "/mgmt/filestore/test/store/app-mgmt-protocol-v2.xsd"
+        },
+        {
+          "name": "AAAInfo.xml",
+          "size": 2731,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/AAAInfo.xml"
+        },
+        {
+          "name": "policy-sign-hmac-wssec.xsl",
+          "size": 5104,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/policy-sign-hmac-wssec.xsl"
+        },
+        {
+          "name": "strip-wssec-signature.xsl",
+          "size": 4264,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/strip-wssec-signature.xsl"
+        },
+        {
+          "name": "identity.xsl",
+          "size": 790,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/identity.xsl"
+        },
+        {
+          "name": "Sample-Injection-Patterns.xml",
+          "size": 7018,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/Sample-Injection-Patterns.xml"
+        },
+        {
+          "name": "sla-credential-class-policy-enforcement.xsl",
+          "size": 3759,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sla-credential-class-policy-enforcement.xsl"
+        },
+        {
+          "name": "XSS-Patterns.xml",
+          "size": 1086,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/XSS-Patterns.xml"
+        },
+        {
+          "name": "OAuth-Generate-HTML.xsl",
+          "size": 9898,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/OAuth-Generate-HTML.xsl"
+        },
+        {
+          "name": "sign-hmac-enveloped.xsl",
+          "size": 2540,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-hmac-enveloped.xsl"
+        },
+        {
+          "name": "verify-kerberos-hmac-wssec.xsl",
+          "size": 3853,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/verify-kerberos-hmac-wssec.xsl"
+        },
+        {
+          "name": "w2sMakeSubSchema.xsl",
+          "size": 25392,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sMakeSubSchema.xsl"
+        },
+        {
+          "name": "wsdlIntercept.xsl",
+          "size": 2202,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/wsdlIntercept.xsl"
+        },
+        {
+          "name": "b2b-routing.xsl",
+          "size": 2792,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/b2b-routing.xsl"
+        },
+        {
+          "name": "LoginPage.htm",
+          "size": 2881,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/LoginPage.htm"
+        },
+        {
+          "name": "xml-mgmt-b2b.xsd",
+          "size": 7274,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt-b2b.xsd"
+        },
+        {
+          "name": "mediation-log.xsl",
+          "size": 1422,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-log.xsl"
+        },
+        {
+          "name": "identity.js",
+          "size": 374,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/identity.js"
+        },
+        {
+          "name": "policy-sign-wssec.xsl",
+          "size": 10751,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/policy-sign-wssec.xsl"
+        },
+        {
+          "name": "accessfile.xsl",
+          "size": 1636,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/accessfile.xsl"
+        },
+        {
+          "name": "healthcheck.xml",
+          "size": 334,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/healthcheck.xml"
+        },
+        {
+          "name": "caUnicenterGetRelationships.xml",
+          "size": 225,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenterGetRelationships.xml"
+        },
+        {
+          "name": "filter-accept-all.xsl",
+          "size": 628,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/filter-accept-all.xsl"
+        },
+        {
+          "name": "app-mgmt-protocol-v3.xsd",
+          "size": 42641,
+          "modified": "2019-08-09 15:25:56",
+          "href": "/mgmt/filestore/test/store/app-mgmt-protocol-v3.xsd"
+        },
+        {
+          "name": "jsonx2json-reverse-solidus.xsl",
+          "size": 2561,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/jsonx2json-reverse-solidus.xsl"
+        },
+        {
+          "name": "healthcheck.xsl",
+          "size": 2185,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/healthcheck.xsl"
+        },
+        {
+          "name": "w2sMakeContainerSchema.xsl",
+          "size": 26110,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sMakeContainerSchema.xsl"
+        },
+        {
+          "name": "set-recipient.xsl",
+          "size": 3525,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/set-recipient.xsl"
+        },
+        {
+          "name": "sign-soapsec-swa.xsl",
+          "size": 3549,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-soapsec-swa.xsl"
+        },
+        {
+          "name": "buffer-attachments.xsl",
+          "size": 1335,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/buffer-attachments.xsl"
+        },
+        {
+          "name": "mediation-reject.xsl",
+          "size": 622,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-reject.xsl"
+        },
+        {
+          "name": "mediation-wsrr-available-endpoints.xsl",
+          "size": 16465,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-wsrr-available-endpoints.xsl"
+        },
+        {
+          "name": "example_CustomJWTDecryptVerify.js",
+          "size": 5282,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/example_CustomJWTDecryptVerify.js"
+        },
+        {
+          "name": "ODCInfo.xsd",
+          "size": 5655,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/ODCInfo.xsd"
+        },
+        {
+          "name": "w2sRpcUtil.xsl",
+          "size": 30934,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/w2sRpcUtil.xsl"
+        },
+        {
+          "name": "mediation-true.xsl",
+          "size": 857,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/mediation-true.xsl"
+        },
+        {
+          "name": "conformance-xform.xsl",
+          "size": 2753,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/conformance-xform.xsl"
+        },
+        {
+          "name": "encrypt-wssec.xsl",
+          "size": 5835,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/encrypt-wssec.xsl"
+        },
+        {
+          "name": "antivirus-webwasher.xsl",
+          "size": 2684,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/antivirus-webwasher.xsl"
+        },
+        {
+          "name": "caUnicenterRelationships.xsl",
+          "size": 1198,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/caUnicenterRelationships.xsl"
+        },
+        {
+          "name": "identity-all.xsl",
+          "size": 662,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/identity-all.xsl"
+        },
+        {
+          "name": "example_CreateJWTCustomClaims.xsl",
+          "size": 3735,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/example_CreateJWTCustomClaims.xsl"
+        },
+        {
+          "name": "symantec.xsl",
+          "size": 5049,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/symantec.xsl"
+        },
+        {
+          "name": "xml-mgmt.wsdl",
+          "size": 2423,
+          "modified": "2019-08-09 15:25:58",
+          "href": "/mgmt/filestore/test/store/xml-mgmt.wsdl"
+        },
+        {
+          "name": "healthcheck.js",
+          "size": 1155,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/healthcheck.js"
+        },
+        {
+          "name": "getWSDLSoapOperations.xsl",
+          "size": 2023,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/getWSDLSoapOperations.xsl"
+        },
+        {
+          "name": "app-mgmt-protocol-v3.wsdl",
+          "size": 36030,
+          "modified": "2019-08-09 15:25:56",
+          "href": "/mgmt/filestore/test/store/app-mgmt-protocol-v3.wsdl"
+        },
+        {
+          "name": "aaa-make-saml.xsl",
+          "size": 2903,
+          "modified": "2019-08-09 15:24:41",
+          "href": "/mgmt/filestore/test/store/aaa-make-saml.xsl"
+        },
+        {
+          "name": "soap-mediation.xsl",
+          "size": 13101,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/soap-mediation.xsl"
+        },
+        {
+          "name": "replay-filter.xsl",
+          "size": 2873,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/replay-filter.xsl"
+        },
+        {
+          "name": "sign-hmac-soap-enveloped.xsl",
+          "size": 3261,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sign-hmac-soap-enveloped.xsl"
+        },
+        {
+          "name": "sla-getcontext.xsl",
+          "size": 4582,
+          "modified": "2019-08-09 15:24:42",
+          "href": "/mgmt/filestore/test/store/sla-getcontext.xsl"
+        }
+      ],
+      "directory": [
+        {
+          "name": "store:/gatewayscript",
+          "href": "/mgmt/filestore/test/store/gatewayscript"
+        },
+        {
+          "name": "store:/msgcat",
+          "href": "/mgmt/filestore/test/store/msgcat"
+        },
+        {
+          "name": "store:/schemas",
+          "href": "/mgmt/filestore/test/store/schemas"
+        },
+        {
+          "name": "store:/profiles",
+          "href": "/mgmt/filestore/test/store/profiles"
+        },
+        {
+          "name": "store:/js",
+          "href": "/mgmt/filestore/test/store/js"
+        },
+        {
+          "name": "store:/RAS",
+          "href": "/mgmt/filestore/test/store/RAS"
+        },
+        {
+          "name": "store:/policies",
+          "href": "/mgmt/filestore/test/store/policies"
+        },
+        {
+          "name": "store:/wsm-formatters",
+          "href": "/mgmt/filestore/test/store/wsm-formatters"
+        }
+      ],
+      "href": "/mgmt/filestore/test/store"
+    }
+  }
+}

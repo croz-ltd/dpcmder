@@ -25,6 +25,8 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		content, err = ioutil.ReadFile("testdata/domain_status_list.json")
 	case "https://my_dp_host:5554/mgmt/filestore/test":
 		content, err = ioutil.ReadFile("testdata/filestore_list.json")
+	case "https://my_dp_host:5554/mgmt/filestore/test/store":
+		content, err = ioutil.ReadFile("testdata/filestore_store_list.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
 		var opTag string
 		var opClass string
@@ -53,8 +55,8 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			return "", errs.Error("dpmock_test: Unrecognized body of SOMA request")
 			// <man:get-filestore layout-only="true" no-subdirectories="true"/>
 		}
-		// fmt.Printf(" opTag: '%s', opClass: '%s', opObjClass: '%s'.\n",
-		// 	opTag, opClass, opObjClass)
+		// fmt.Printf(" opTag: '%s', opClass: '%s', opObjClass: '%s', opLayoutOnly: '%s'.\n",
+		// 	opTag, opClass, opObjClass, opLayoutOnly)
 		switch {
 		case opTag == "get-status" && opClass == "ObjectStatus" && opObjClass == "":
 			content, err = ioutil.ReadFile("testdata/object_class_status_list.xml")
@@ -68,6 +70,8 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			content, err = ioutil.ReadFile("testdata/domain_status_list.xml")
 		case opTag == "get-filestore" && opLayoutOnly == "true":
 			content, err = ioutil.ReadFile("testdata/filestore_layout_list.xml")
+		case opTag == "get-filestore" && opLayoutOnly == "false":
+			content, err = ioutil.ReadFile("testdata/filestore_all_list.xml")
 		default:
 			fmt.Printf("dpmock_test: Unrecognized SOMA request opTag: '%s', opClass: '%s', opObjClass: '%s'.\n",
 				opTag, opClass, opObjClass)

@@ -18,7 +18,7 @@ const (
 )
 
 func clearRepo() {
-	Repo.dpFilestoreXmls = nil
+	Repo.dpFilestoreXmls = make(map[string]string)
 	Repo.invalidateCache = false
 	Repo.dataPowerAppliance = dpApplicance{}
 	Repo.ObjectConfigMode = false
@@ -756,6 +756,132 @@ func TestGetList(t *testing.T) {
 						Name: "temporary:", Path: "temporary:",
 						DpAppliance: "MyApplianceName", DpDomain: "test",
 						DpFilestore:   "temporary:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
+	t.Run("FilestoreMode/DirList (for filestore) REST", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpFilestore,
+			DpDomain: "test", DpFilestore: "store:", Path: "store:"}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 189)
+
+		if len(itemList) == 189 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
+				DpAppliance: "MyApplianceName",
+				DpDomain:    "test",
+				DpFilestore: "store:",
+				Path:        "store:"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "..", Config: nil})
+
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "gatewayscript",
+					Config: &model.ItemConfig{Type: model.ItemDirectory,
+						Name: "gatewayscript", Path: "store:/gatewayscript",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[12],
+				model.Item{Name: "AAAInfo.xsd",
+					Size: "18692", Modified: "2019-08-09 15:24:41",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name: "AAAInfo.xsd", Path: "store:/AAAInfo.xsd",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[188],
+				model.Item{Name: "XSS-Patterns.xml",
+					Size: "1086", Modified: "2019-08-09 15:24:41",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name: "XSS-Patterns.xml", Path: "store:/XSS-Patterns.xml",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+		}
+	})
+
+	t.Run("FilestoreMode/DirList (for filestore) SOMA", func(t *testing.T) {
+		clearRepo()
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpFilestore,
+			DpDomain: "test", DpFilestore: "store:", Path: "store:"}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 191)
+
+		if len(itemList) == 191 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpFilestore,
+				DpAppliance: "MyApplianceName",
+				DpDomain:    "test",
+				DpFilestore: "store:",
+				Path:        "store:"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "..", Config: nil})
+
+			assert.DeepEqual(t, "GetList", itemList[2],
+				model.Item{Name: "gatewayscript",
+					Config: &model.ItemConfig{Type: model.ItemDirectory,
+						Name: "gatewayscript", Path: "store:/gatewayscript",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[14],
+				model.Item{Name: "AAAInfo.xsd",
+					Size: "18692", Modified: "2019-08-09 15:24:41",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name: "AAAInfo.xsd", Path: "store:/AAAInfo.xsd",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
+						DpObjectState: model.ItemDpObjectState{},
+						Parent:        &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[190],
+				model.Item{Name: "XSS-Patterns.xml",
+					Size: "1086", Modified: "2019-08-09 15:24:41",
+					Config: &model.ItemConfig{Type: model.ItemFile,
+						Name: "XSS-Patterns.xml", Path: "store:/XSS-Patterns.xml",
+						DpAppliance: "MyApplianceName", DpDomain: "test",
+						DpFilestore:   "store:",
 						DpObjectState: model.ItemDpObjectState{},
 						Parent:        &parentItemConfig}})
 		}

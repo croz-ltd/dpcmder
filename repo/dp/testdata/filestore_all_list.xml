@@ -1,0 +1,2465 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-08T07:58:29-05:00</dp:timestamp>
+         <dp:filestore>
+            <location name="local:" read="true" write="true" show="true" exec="true" del="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="logtemp:" read="true" log="true" show="true" del="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <file name="default-log">
+                  <size>12190</size>
+                  <modified>2020-01-10 13:23:07</modified>
+               </file>
+               <file name="default-log-xml">
+                  <size>51588</size>
+                  <modified>2020-01-10 13:23:07</modified>
+               </file>
+            </location>
+            <location name="logstore:" read="true" log="true" show="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="temporary:" read="true" write="true" show="true" exec="true" del="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="export:" read="true" show="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="config:" read="true" write="true" audit="true" log="true" show="true" exec="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <file name="test.cfg">
+                  <size>13946</size>
+                  <modified>2020-01-03 12:34:20</modified>
+               </file>
+            </location>
+            <location name="cert:" write="true" audit="true" log="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="chkpoints:" read="true" write="true" del="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="policyframework:" read="true" write="true" show="true" dir="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="pubcert:" read="true" log="true" show="true" reference="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="sharedcert:" audit="true" log="true" reference="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope"/>
+            <location name="store:" read="true" log="true" show="true" reference="true" list="true" xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <file name="pkcs7-get-signers.xsl">
+                  <size>7649</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="tspm-aaa-mc-retrieve-groups.xsl">
+                  <size>22859</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-kerberos-hmac-wssec.xsl">
+                  <size>12036</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="caUnicenterReport.xsl">
+                  <size>12568</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="verify.xsl">
+                  <size>6142</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="example_CreateJWTCustomClaims.js">
+                  <size>4763</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-wssec-encrypt-param.xsl">
+                  <size>125677</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sld-resource-class-policy-enforcement.xsl">
+                  <size>4198</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="wssecurity-message-layout-filter.xsl">
+                  <size>2074</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="w2sGetFilterNodes.xsl">
+                  <size>7790</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="pkcs7-verify.xsl">
+                  <size>12528</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="log-cbe.wsdl">
+                  <size>2769</size>
+                  <modified>2019-08-09 15:25:23</modified>
+               </file>
+               <file name="antivirus-clam.xsl">
+                  <size>2323</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="netegrity-custom-saml-assert.xsl">
+                  <size>2274</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="w2sCountSchemas.xsl">
+                  <size>1651</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-soap-receiver-param.xsl">
+                  <size>2209</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="reject-all-json.xq">
+                  <size>314</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="soap-refine.xsl">
+                  <size>35422</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-enveloping.xsl">
+                  <size>2602</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="filter-accept-service-providers.xsl">
+                  <size>768</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="example_CustomJWTValidation.js">
+                  <size>3736</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-swa.xsl">
+                  <size>2219</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="soapreq.xsl">
+                  <size>1980</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="decrypt.xsl">
+                  <size>3575</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="w2sUtil.xsl">
+                  <size>15943</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <directory name="store:/gatewayscript" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="example-fibers-fibonacci.js">
+                     <size>1044</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-oauthToken.js">
+                     <size>1071</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-header.js">
+                     <size>1897</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-context.js">
+                     <size>693</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-contextvars.js">
+                     <size>972</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-ext-func-dp-gwscript.js">
+                     <size>1571</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-servicevars.js">
+                     <size>1030</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-xml-xslt.js">
+                     <size>1740</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-jws-sign-verify.js">
+                     <size>9717</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-jwe-encrypt-decrypt.js">
+                     <size>11487</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-jwt-create.js">
+                     <size>1315</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-ext-func-dp-gwscript.xsl">
+                     <size>1856</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-error.js">
+                     <size>1306</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-fs.js">
+                     <size>5328</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-xml-xpath.js">
+                     <size>2763</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-jwt-validate.js">
+                     <size>1144</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-fibers-sync-xpath.js">
+                     <size>2150</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-generators-sync-xpath.js">
+                     <size>2947</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-urlopen.js">
+                     <size>2144</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-healthcheck.js">
+                     <size>3170</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-file-urlopen.js">
+                     <size>1653</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-b2b-routing.js">
+                     <size>2413</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-console.js">
+                     <size>1255</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-generators-fibonacci.js">
+                     <size>1047</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-xml-dom.js">
+                     <size>2846</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-script-defaults.js">
+                     <size>1779</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-multistep.js">
+                     <size>1258</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-urlopen-mq.js">
+                     <size>5451</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="example-ratelimit.js">
+                     <size>1261</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+               </directory>
+               <file name="custom-policy-check.xsl">
+                  <size>1867</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="soaperror.xsl">
+                  <size>2738</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-wssec-sign-param.xsl">
+                  <size>124285</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-hmac-wssec.xsl">
+                  <size>39621</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="identity-xml.xq">
+                  <size>281</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="healthcheck.json">
+                  <size>2</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="caUnicenter31Report.xsl">
+                  <size>12042</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sla-policy-enforcement-check.xsl">
+                  <size>4872</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-soap-enveloping.xsl">
+                  <size>3262</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="log.xsl">
+                  <size>4055</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="soap-encoding-1.1.xsd">
+                  <size>17341</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="clam.xsl">
+                  <size>4351</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="webwasher.xsl">
+                  <size>5415</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="filter-reject-all.xsl">
+                  <size>647</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-wssec-common.xsl">
+                  <size>5592</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="xml-mgmt-2004.wsdl">
+                  <size>2582</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="mediation-util.xsl">
+                  <size>5072</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="example_CustomJWTValidation.xsl">
+                  <size>2517</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-saml-decrypt-verify-param.xsl">
+                  <size>2804</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-route-vars.xsl">
+                  <size>2391</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-rsa-encrypt-param.xsl">
+                  <size>7794</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="policy-enforce-utility.xsl">
+                  <size>7195</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="xml-mgmt-2004.xsd">
+                  <size>5209</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="set-key.xsl">
+                  <size>2627</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="antivirus-trendmicro.xsl">
+                  <size>2654</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="log-soap.xsd">
+                  <size>3411</size>
+                  <modified>2019-08-09 15:25:23</modified>
+               </file>
+               <file name="app-mgmt-protocol.wsdl">
+                  <size>20950</size>
+                  <modified>2019-08-09 15:25:56</modified>
+               </file>
+               <file name="sign-wssec.xsl">
+                  <size>2005</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sla-setcontext.xsl">
+                  <size>9283</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="xml-mgmt-2004-types.xsd">
+                  <size>5375</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="Form-Generate-HTML.xsl">
+                  <size>9231</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="antivirus.xsl">
+                  <size>28875</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <directory name="store:/msgcat" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="log-catalog.xsd">
+                     <size>4470</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="default5-en.xml">
+                     <size>1228705</size>
+                     <modified>2019-08-09 15:55:11</modified>
+                  </file>
+                  <file name="defaultC-en.xml">
+                     <size>33204</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultN-en.xml">
+                     <size>2079609</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultA-en.xml">
+                     <size>180019</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="defaultL-en.xml">
+                     <size>79171</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="default2-en.xml">
+                     <size>621909</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultF-en.xml">
+                     <size>10650</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="default4-en.xml">
+                     <size>122128</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="default8-en.xml">
+                     <size>13697</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="result-catalog.xsd">
+                     <size>3659</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="defaultE-en.xml">
+                     <size>90095</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="default3-en.xml">
+                     <size>104378</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="defaultK-en.xml">
+                     <size>5410</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="default7-en.xml">
+                     <size>45557</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="default1-en.xml">
+                     <size>112000</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="defaultI-en.xml">
+                     <size>4064</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultH-en.xml">
+                     <size>7038</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultD-en.xml">
+                     <size>141845</size>
+                     <modified>2019-08-09 15:55:08</modified>
+                  </file>
+                  <file name="defaultB-en.xml">
+                     <size>618409</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultM-en.xml">
+                     <size>1619003</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="default6-en.xml">
+                     <size>809403</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultG-en.xml">
+                     <size>39876</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="defaultJ-en.xml">
+                     <size>46505</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+                  <file name="im-trace_en.xml">
+                     <size>19686</size>
+                     <modified>2019-08-09 15:51:55</modified>
+                  </file>
+                  <file name="default.jar">
+                     <size>5143816</size>
+                     <modified>2019-08-09 15:52:46</modified>
+                  </file>
+                  <file name="default9-en.xml">
+                     <size>392591</size>
+                     <modified>2019-08-09 15:55:09</modified>
+                  </file>
+               </directory>
+               <file name="app-mgmt-protocol-v2.wsdl">
+                  <size>28749</size>
+                  <modified>2019-08-09 15:25:56</modified>
+               </file>
+               <file name="ProcessingMetadata.html">
+                  <size>70099</size>
+                  <modified>2019-08-09 16:08:57</modified>
+               </file>
+               <directory name="store:/schemas" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="anything.xsd">
+                     <size>528</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.2-2002-12.xsd">
+                     <size>5496</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-conformance-report-partial.xsd">
+                     <size>2785</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wsrm-1.1-schema-200702.xsd">
+                     <size>11551</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="caching-policies.xsd">
+                     <size>2873</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-mediationpolicy-1.7-2012-08.xsd">
+                     <size>7618</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.2-2002-06.xsd">
+                     <size>4590</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="cs-xacml-schema-policy-01.xsd">
+                     <size>12633</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xacml-1.0-context.xsd">
+                     <size>7976</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wsmc-1.0-schema-200702.xsd">
+                     <size>3315</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wssecurity-secext-draft12.xsd">
+                     <size>9408</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="sstc-saml-schema-protocol-1.1-cs.xsd">
+                     <size>7012</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope.xsd">
+                     <size>1074</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wssecurity-secext-draft13.xsd">
+                     <size>10895</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-mediationpolicy-1.8-2013-11.xsd">
+                     <size>9976</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-trust-2005-12.xsd">
+                     <size>24349</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.2-2001-06.xsd">
+                     <size>3591</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-mediationpolicy-1.6-2011-02.xsd">
+                     <size>4572</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-wsm-agent-append.xsd">
+                     <size>19218</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-policy-2002-12.xsd">
+                     <size>9742</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="saml-schema-assertion-2.0.xsd">
+                     <size>17149</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="addressing.xsd">
+                     <size>6413</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-trust-2005-02.xsd">
+                     <size>19130</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="oasis-wss-wssecurity-secext-1.1.xsd">
+                     <size>4823</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="slmoutput.xsd">
+                     <size>6315</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xmldsig-filter2.xsd">
+                     <size>1244</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-secureconversation-2005-02.xsd">
+                     <size>5939</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-encoding-1.2.xsd">
+                     <size>17418</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="saml-schema-protocol-2.0.xsd">
+                     <size>17882</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.1.xsd">
+                     <size>5811</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.2.xsd">
+                     <size>5525</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-secureconversation-2005-12.xsd">
+                     <size>6086</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xhtml1-transitional.dtd">
+                     <size>32111</size>
+                     <modified>2019-08-09 15:25:58</modified>
+                  </file>
+                  <file name="sstc-saml-schema-assertion-1.1-cs.xsd">
+                     <size>9796</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wssecurity-utility-draft12.xsd">
+                     <size>10118</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-cli-template.xsd">
+                     <size>3802</size>
+                     <modified>2019-08-09 15:25:56</modified>
+                  </file>
+                  <file name="dp-conformance-report.xsd">
+                     <size>3298</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-encoding.xsd">
+                     <size>18426</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="XMLSchema.dtd">
+                     <size>16075</size>
+                     <modified>2019-08-09 15:25:58</modified>
+                  </file>
+                  <file name="xlink.xsd">
+                     <size>1538</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="exc-c14n.xsd">
+                     <size>1135</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="datatypes.dtd">
+                     <size>6357</size>
+                     <modified>2019-08-09 15:25:58</modified>
+                  </file>
+                  <file name="ws-mediationpolicy-1.9-2014-05.xsd">
+                     <size>11490</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.2-2001-12.xsd">
+                     <size>3561</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-secureconversation-2004-04.xsd">
+                     <size>5634</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-config-conformance-report.xsd">
+                     <size>3010</size>
+                     <modified>2019-08-09 15:25:58</modified>
+                  </file>
+                  <file name="all-standard-schemas.xsd">
+                     <size>5693</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="oasis-200401-wss-wssecurity-utility-1.0.xsd">
+                     <size>6370</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="msg-header-3_0.xsd">
+                     <size>8994</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="sidecar-messages.xsd">
+                     <size>2319</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-trust-2004-04.xsd">
+                     <size>18696</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xml.xsd">
+                     <size>3422</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-envelope-1.2-2001-09.xsd">
+                     <size>3559</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="cpp-cpa-2_0.xsd">
+                     <size>24768</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-policy.xsd">
+                     <size>5301</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wssecurity-utility-draft13.xsd">
+                     <size>6769</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-user-interface.xsd">
+                     <size>5293</size>
+                     <modified>2019-08-09 15:25:58</modified>
+                  </file>
+                  <file name="xenc-schema.xsd">
+                     <size>5575</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="oasis-200401-wss-wssecurity-secext-1.0.xsd">
+                     <size>11384</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xacml-2.0-policy.xsd">
+                     <size>17756</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-addressing-2004-03.xsd">
+                     <size>6054</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xmldsig-core-schema.xsd">
+                     <size>10383</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="filelist.xsd">
+                     <size>1988</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="rv.xsd">
+                     <size>3669</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="msg-header-2_0.xsd">
+                     <size>10675</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xacml-2.0-context.xsd">
+                     <size>8294</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="all-ws-rx-schemas.xsd">
+                     <size>755</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="ws-addr-2005-08.xsd">
+                     <size>5567</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="xop.xsd">
+                     <size>511</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="soap-rpc.xsd">
+                     <size>1116</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+               </directory>
+               <directory name="store:/profiles" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="dp-cfg-bp.xsl">
+                     <size>16441</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-wsi-bsp-1.0.xsl">
+                     <size>50455</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="dp-wsi-bp.xsl">
+                     <size>6956</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+               </directory>
+               <file name="RBMInfo.xml">
+                  <size>2346</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="set-verify-param.xsl">
+                  <size>56547</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-msgvar.xsl">
+                  <size>4531</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="identity-json.xq">
+                  <size>437</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <directory name="store:/js" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="jose-decrypt.js">
+                     <size>8569</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="jose-encrypt.js">
+                     <size>5880</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="jose-sign.js">
+                     <size>6101</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="jose-verify.js">
+                     <size>10234</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+               </directory>
+               <file name="antivirus-symantec.xsl">
+                  <size>2713</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="caUnicenterCheckRelationships.xml">
+                  <size>312</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="pkcs7-sign.xsl">
+                  <size>16092</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-soap-enveloped.xsl">
+                  <size>3720</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <directory name="store:/meta" audit="true" log="true" reference="true">
+                  <file name="decrypt.xsl">
+                     <size>11762</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+                  <file name="sign-wssec.xsl">
+                     <size>10770</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+                  <file name="XPathRoutingMap.xsl">
+                     <size>7602</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+                  <file name="encrypt.xsl">
+                     <size>12722</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+                  <file name="SchemaExceptionMap.xsl">
+                     <size>6306</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+                  <file name="DocumentCryptoMap.xsl">
+                     <size>5522</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+                  <file name="encrypt-wssec.xsl">
+                     <size>21554</size>
+                     <modified>2019-08-09 16:16:25</modified>
+                  </file>
+               </directory>
+               <directory name="store:/dp" audit="true" log="true" reference="true">
+                  <file name="wsrm-back-request.xsl">
+                     <size>2098</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="ws-addressing.dtd">
+                     <size>253</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="netegrity-custom-saml-make-assert.xsl">
+                     <size>2802</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="license.xml">
+                     <size>3106</size>
+                     <modified>2019-08-09 15:24:32</modified>
+                  </file>
+                  <file name="PureApplicationDeployment.xsl">
+                     <size>52770</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsrm-back-response.xsl">
+                     <size>6098</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="verify.xsl">
+                     <size>71346</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="b2b-binary.xsl">
+                     <size>1602</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="required-encrypted-element.xsl">
+                     <size>25234</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="make-saml-query.xsl">
+                     <size>16002</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="parse-ebms2.xsl">
+                     <size>23586</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="unpack-ebms2.xsl">
+                     <size>7266</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="crypto-library.xsl">
+                     <size>39042</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsm-eventing.xsl">
+                     <size>16642</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wssec-kerberos.xsl">
+                     <size>5394</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="wssecurity-message-layout-filter.xsl">
+                     <size>14610</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="aaa-pp-tivoli.xsl">
+                     <size>5938</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="b2b-edi.xsl">
+                     <size>1650</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="license.xml.dg">
+                     <size>2864</size>
+                     <modified>2019-08-09 15:24:32</modified>
+                  </file>
+                  <file name="make-saml2-query.xsl">
+                     <size>7890</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="x12-generic.mts">
+                     <size>96732</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="generate-ebms2.xsl">
+                     <size>6626</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="policy-enforce-init.xsl">
+                     <size>6674</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="compress-ebms3.xsl">
+                     <size>6114</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="slmpolicy.xsl">
+                     <size>40754</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="license.xml.ims">
+                     <size>2859</size>
+                     <modified>2019-08-09 15:24:32</modified>
+                  </file>
+                  <file name="jsonml.xsl">
+                     <size>6594</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="create-ebms2-request.xsl">
+                     <size>20530</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="b2b-initial.xsl">
+                     <size>2658</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="decrypt.xsl">
+                     <size>14914</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="strip-wsa.xsl">
+                     <size>14594</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="compress.js">
+                     <size>1199</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wsp-check-timestamp.xsl">
+                     <size>4322</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="encrypt-ebms3.xsl">
+                     <size>4578</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="b2b-doc-type.xsl">
+                     <size>1426</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="sign-hmac.xsl">
+                     <size>19154</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="set-secpol-param.xsl">
+                     <size>14946</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="rejection-with-reason.xsl">
+                     <size>1922</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="html-form-parsing.xsl">
+                     <size>17618</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="create-ebms3-response.xsl">
+                     <size>8802</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsrr-init-subscription.xsl">
+                     <size>88850</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="wsrr-xmlmgmt.xsl">
+                     <size>7570</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="form-library.xsl">
+                     <size>49122</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsa-front-rewrite.xsl">
+                     <size>4322</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsm-rewriteformatter.xsl">
+                     <size>3042</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="wsrr-url-opener.xsl">
+                     <size>13810</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="b2b-report-aaa-error.xsl">
+                     <size>1490</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="conformance-check-bsp10.xsl">
+                     <size>136802</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="verify-saml.xsl">
+                     <size>1282</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="apim.custom.xsl">
+                     <size>11922</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="dsig-library.xsl">
+                     <size>17074</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsrm-source-control-message.xsl">
+                     <size>4258</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="unpack-ebms3.xsl">
+                     <size>9730</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="make-usernametoken.xsl">
+                     <size>28802</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="add-x509-token-ebms3.xsl">
+                     <size>5778</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="sign-ebms3.xsl">
+                     <size>6802</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <directory name="store:/dp/interop" audit="true" log="true" reference="true">
+                     <file name="dp-interop-protocol.wsdl">
+                        <size>441</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="dp-xslt-interop-protocol.wsdl">
+                        <size>8127</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="dp-tx-interop-protocol.wsdl">
+                        <size>8252</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="err-control.xsl">
+                        <size>1871</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <directory name="store:/dp/interop/tx-test" audit="true" log="true" reference="true">
+                        <file name="reportTXTestError.xsl">
+                           <size>5290</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="createTraceAndLog.xsl">
+                           <size>2625</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="finishTXTest.xsl">
+                           <size>4172</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="prepareTXInputs.xsl">
+                           <size>2261</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="prepareTXMap.xsl">
+                           <size>2766</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                     </directory>
+                     <directory name="store:/dp/interop/xslt-test" audit="true" log="true" reference="true">
+                        <file name="evaluate-xpath.xsl">
+                           <size>2276</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="preprocess-ffd.xsl">
+                           <size>3134</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="preprocess-xslt.xsl">
+                           <size>4810</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="postprocess.xsl">
+                           <size>5301</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="preprocess-schema.xsl">
+                           <size>2756</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="flush-probe.xsl">
+                           <size>711</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="preprocess-xpath.xsl">
+                           <size>1192</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="map-proxy.xsl">
+                           <size>5982</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                     </directory>
+                  </directory>
+                  <file name="aaa-oauth.xsl">
+                     <size>6754</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="transport-check.xsl">
+                     <size>7410</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="xenc-library.xsl">
+                     <size>2882</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="generate-ebms3.xsl">
+                     <size>6722</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="b2b-xml.xsl">
+                     <size>6162</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="aaa-tfim.xsl">
+                     <size>67282</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="policy-common.xsl">
+                     <size>3058</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="conformance-check-bp10.xsl">
+                     <size>22130</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsm-ev-push.xsl">
+                     <size>10594</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="oasis-wsdm.dtd">
+                     <size>518</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <directory name="store:/dp/msgcat" audit="true" log="true" reference="true">
+                     <file name="secure-cloud-connector.xml.xsl">
+                        <size>2048</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="xslt.xml.xsl">
+                        <size>32317</size>
+                        <modified>2019-08-09 15:52:06</modified>
+                     </file>
+                     <file name="cliShellHelpStatic.xml.xsl">
+                        <size>547972</size>
+                        <modified>2019-08-09 15:53:13</modified>
+                     </file>
+                     <file name="all.xml.xsl">
+                        <size>1168</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="third-party.xml.xsl">
+                        <size>13125</size>
+                        <modified>2019-08-09 15:53:09</modified>
+                     </file>
+                     <file name="crypto.xml.xsl">
+                        <size>197616</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="akamai.xml.xsl">
+                        <size>1790</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="webgui.xml.xsl">
+                        <size>17073</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="tamcli.xml.xsl">
+                        <size>2439</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="api.xml.xsl">
+                        <size>57160</size>
+                        <modified>2019-08-09 15:52:08</modified>
+                     </file>
+                     <file name="xsljit.xml.xsl">
+                        <size>170505</size>
+                        <modified>2019-08-09 15:52:08</modified>
+                     </file>
+                     <file name="llm.xml.xsl">
+                        <size>22693</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="sidecar.xml.xsl">
+                        <size>4881</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="dfdl.xml.xsl">
+                        <size>77570</size>
+                        <modified>2019-08-09 15:52:08</modified>
+                     </file>
+                     <file name="mstep.xml.xsl">
+                        <size>36786</size>
+                        <modified>2019-08-09 15:52:06</modified>
+                     </file>
+                     <file name="system.xml.xsl">
+                        <size>32629</size>
+                        <modified>2019-08-09 15:52:06</modified>
+                     </file>
+                     <file name="mplane.xml.xsl">
+                        <size>340590</size>
+                        <modified>2019-08-09 15:52:09</modified>
+                     </file>
+                     <file name="wsiap10.xml.xsl">
+                        <size>4385</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="cliShellHelp.xml.xsl">
+                        <size>665667</size>
+                        <modified>2019-08-09 15:53:14</modified>
+                     </file>
+                     <file name="audit.xml.xsl">
+                        <size>12571</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="dplane.xml.xsl">
+                        <size>340210</size>
+                        <modified>2019-08-09 15:52:09</modified>
+                     </file>
+                     <file name="gwd.xml.xsl">
+                        <size>104168</size>
+                        <modified>2019-08-09 15:52:08</modified>
+                     </file>
+                     <file name="xformng.xml.xsl">
+                        <size>41066</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="b2b.xml.xsl">
+                        <size>43465</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="dpgs.xml.xsl">
+                        <size>22778</size>
+                        <modified>2019-08-09 15:52:06</modified>
+                     </file>
+                     <file name="mqappliance.xml.xsl">
+                        <size>2504</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                     <file name="wsibp11.xml.xsl">
+                        <size>14255</size>
+                        <modified>2019-08-09 15:52:07</modified>
+                     </file>
+                  </directory>
+                  <file name="wsrr-init-savedsearch.xsl">
+                     <size>18034</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="edi-info.xsd">
+                     <size>1245</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wsm-postformatter.xsl">
+                     <size>4754</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="decrypt-ebms.xsl">
+                     <size>12498</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="uddiSubscriptionListener.xsl">
+                     <size>6818</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="oauth-cache.xsl">
+                     <size>14850</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="policy-enforce-end.xsl">
+                     <size>1554</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsm-itcamsoa.xsl">
+                     <size>12626</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="aaapolicy.xsl">
+                     <size>480834</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsa-annotate-response.xsl">
+                     <size>3922</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="add-usernameToken-ebms3.xsl">
+                     <size>3410</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="edifact-generic.mts">
+                     <size>74885</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="license.xml.appopt">
+                     <size>2862</size>
+                     <modified>2019-08-09 15:24:32</modified>
+                  </file>
+                  <file name="edi-info.xml">
+                     <size>9002</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="b2b-report-edi-parse-error.xsl">
+                     <size>2434</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="PRE-x.tt">
+                     <size>10070300</size>
+                     <modified>2019-08-09 15:52:31</modified>
+                  </file>
+                  <file name="utilities.xsl">
+                     <size>4818</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="xacml-pdp.xsl">
+                     <size>6546</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="decompress-ebms3.xsl">
+                     <size>8242</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsm-enumerate.xsl">
+                     <size>32898</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="conformance-assert-bp10-claim.xsl">
+                     <size>6434</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="make-saml-assertion.xsl">
+                     <size>25426</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="decrypt-node.xsl">
+                     <size>59666</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="add-x509-supporting-token.xsl">
+                     <size>4930</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wssec-saml.xsl">
+                     <size>27282</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="create-ebms2-response.xsl">
+                     <size>14866</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="verify-ebms.xsl">
+                     <size>7442</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="G-fix-trix.tt">
+                     <size>1739983</size>
+                     <modified>2019-08-09 15:52:32</modified>
+                  </file>
+                  <file name="uddiSubscriptionRefresh.xsl">
+                     <size>5138</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="b2b-report-edi-data-error.xsl">
+                     <size>1506</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="ws-sx-utils.xsl">
+                     <size>46322</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="conformance-utilities.xsl">
+                     <size>33202</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="xacml-obligation.xsl">
+                     <size>3314</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="required-elements-filter.xsl">
+                     <size>3794</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="encrypt.xsl">
+                     <size>22546</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="mtom.xsl">
+                     <size>21058</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="verify-hmac.xsl">
+                     <size>994</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="conformance-check-bp11.xsl">
+                     <size>21138</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="aaa-authz-zosnss.xsl">
+                     <size>5794</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="xacml-pep.xsl">
+                     <size>24770</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="aaa-netegrity.xsl">
+                     <size>46082</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="dp-wsmgmt.dtd">
+                     <size>1414</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="make-icrxtoken.xsl">
+                     <size>13042</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="identity.xq">
+                     <size>321</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="b2b-query-sql-injection-patterns.xml">
+                     <size>6859</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="create-ebms3-request.xsl">
+                     <size>17490</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsa-annotate-request.xsl">
+                     <size>4146</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="uddiSubscription.xsl">
+                     <size>30066</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="license.xml.sql">
+                     <size>2864</size>
+                     <modified>2019-08-09 15:24:32</modified>
+                  </file>
+                  <file name="license.xml.b2b">
+                     <size>2859</size>
+                     <modified>2019-08-09 15:24:32</modified>
+                  </file>
+                  <file name="b2b-partners.xsl">
+                     <size>3810</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="make-ltpatoken.xsl">
+                     <size>13602</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsm-getformatter.xsl">
+                     <size>5330</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="ws-trust-policy.xsl">
+                     <size>9442</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="verify-ebms3.xsl">
+                     <size>10690</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="aaa-library.xsl">
+                     <size>25842</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsm-transfer.xsl">
+                     <size>8898</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="aaa-cleartrust.xsl">
+                     <size>16658</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="conformance-check-ap10.xsl">
+                     <size>23602</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="session-library.xsl">
+                     <size>13282</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="ws-trust-library.xsl">
+                     <size>61138</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="saml-library.xsl">
+                     <size>80338</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="system-library.xsl">
+                     <size>1810</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="policy-store-sct.xsl">
+                     <size>3746</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="aaa-authz-tivoli.xsl">
+                     <size>12834</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsm-library.xsl">
+                     <size>9026</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="uddi-client.xsl">
+                     <size>30642</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="oauth-library.xsl">
+                     <size>508338</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsp-mapping-kerberos.xsl">
+                     <size>10034</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="decrypt-ebms3.xsl">
+                     <size>15666</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsm-extract.xsl">
+                     <size>3858</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="ws-management.dtd">
+                     <size>2604</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="aaa-tfim-oauth.xsl">
+                     <size>27426</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="conformance-logger.xsl">
+                     <size>16530</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="sign.xsl">
+                     <size>69730</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="b2b-query-sql-injection-filter.xsl">
+                     <size>11330</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsrm-utilities.xsl">
+                     <size>22994</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="edi-info.mts">
+                     <size>19153</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wssec-library.xsl">
+                     <size>30930</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="wsdm-muws.xsl">
+                     <size>3154</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="require-signature-element.xsl">
+                     <size>27026</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="check-signed-entire-header-body.xsl">
+                     <size>7538</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="encrypt-ebms.xsl">
+                     <size>2962</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsrr-utils.xsl">
+                     <size>23650</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="policy-enforce-traverse.xsl">
+                     <size>10402</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="webgui-set-headers.js">
+                     <size>226</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="utf-8.xsl">
+                     <size>914</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="aaa-xacml-context.xsl">
+                     <size>2578</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+                  <file name="wsrm-destination-control-message.xsl">
+                     <size>22210</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="policyDomainStatus.xsl">
+                     <size>7058</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsrm-front-response.xsl">
+                     <size>6146</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="saml-idp.xsl">
+                     <size>16834</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="preparse-ebms3.xsl">
+                     <size>6002</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsm-catalog.xml">
+                     <size>3717</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <file name="wsrm-front-request.xsl">
+                     <size>5890</size>
+                     <modified>2019-08-09 16:16:23</modified>
+                  </file>
+                  <file name="wsdm-wsrp.xsl">
+                     <size>52162</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="parse-ebms3.xsl">
+                     <size>28274</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="sign-ebms.xsl">
+                     <size>6210</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="secureconv-policy.xsl">
+                     <size>29954</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="replay-filter.xsl">
+                     <size>3890</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="wsm-dispatch.xsl">
+                     <size>6370</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="kerberos-library.xsl">
+                     <size>33730</size>
+                     <modified>2019-08-09 16:16:22</modified>
+                  </file>
+                  <file name="conformance-common.xsl">
+                     <size>19794</size>
+                     <modified>2019-08-09 16:16:21</modified>
+                  </file>
+               </directory>
+               <file name="log-cbe.xsd">
+                  <size>6949</size>
+                  <modified>2019-08-09 15:25:23</modified>
+               </file>
+               <directory name="store:/RAS" read="true" log="true" show="true" reference="true" list="true">
+                  <directory name="store:/RAS/errorreport" read="true" log="true" show="true" reference="true" list="true"/>
+                  <directory name="store:/RAS/dpmon" read="true" log="true" show="true" reference="true" list="true"/>
+                  <directory name="store:/RAS/lldiag" read="true" log="true" show="true" reference="true" list="true"/>
+               </directory>
+               <file name="w2sResolveSOAPEncHrefs.xsl">
+                  <size>6395</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="jsonx.xsd">
+                  <size>3409</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="LogoutPage.htm">
+                  <size>480</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="caUnicenter31Filter.xsl">
+                  <size>11099</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="app-mgmt-protocol.xsd">
+                  <size>21695</size>
+                  <modified>2019-08-09 15:25:56</modified>
+               </file>
+               <file name="xml-mgmt-2004-objects.xsd">
+                  <size>106771</size>
+                  <modified>2019-08-09 15:54:56</modified>
+               </file>
+               <file name="encrypt-soap.xsl">
+                  <size>4656</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="prettyprint.xsl">
+                  <size>2405</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="netegrity-custom-saml-sign.xsl">
+                  <size>2316</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="caUnicenterFilter.xsl">
+                  <size>10569</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="utilities.xsl">
+                  <size>38901</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="pkcs7-convert-output.ffd">
+                  <size>1425</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="ErrorPage.htm">
+                  <size>708</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="soaprsp.xsl">
+                  <size>1980</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-routing.xsl">
+                  <size>5563</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="pkcs7-convert-input.ffd">
+                  <size>647</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="wsdlToSchema.xsl">
+                  <size>1014</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-hmac-soapsec.xsl">
+                  <size>3845</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="log-soap.wsdl">
+                  <size>2600</size>
+                  <modified>2019-08-09 15:25:23</modified>
+               </file>
+               <file name="wsdl-extract-fault.xsl">
+                  <size>1448</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="soapfilter.xsl">
+                  <size>781</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="call-xkms.xsl">
+                  <size>5033</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="wsdlFilterStub.xsl">
+                  <size>2276</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="aaa-xacml-binding-sample.xsl">
+                  <size>34641</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <directory name="store:/policies" read="true" log="true" show="true" reference="true" list="true">
+                  <directory name="store:/policies/mappings" audit="true" log="true" reference="true">
+                     <file name="wsp-rmp1.1.xsl">
+                        <size>8162</size>
+                        <modified>2019-08-09 16:16:24</modified>
+                     </file>
+                     <file name="wsp-mediation-policy.xsl">
+                        <size>200514</size>
+                        <modified>2019-08-09 16:16:24</modified>
+                     </file>
+                     <file name="policy-framework.xsl">
+                        <size>3826</size>
+                        <modified>2019-08-09 16:16:24</modified>
+                     </file>
+                     <file name="wsp-dp-conformance.xsl">
+                        <size>13874</size>
+                        <modified>2019-08-09 16:16:24</modified>
+                     </file>
+                     <file name="wsp-sp.xsl">
+                        <size>480450</size>
+                        <modified>2019-08-09 16:16:24</modified>
+                     </file>
+                  </directory>
+                  <directory name="store:/policies/templates" read="true" log="true" show="true" reference="true" list="true">
+                     <file name="wsp-sp-1-1-encrypted-parts-body.xml">
+                        <size>984</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-saml-support.xml">
+                        <size>1610</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-usernametoken.xml">
+                        <size>1755</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-sign-parts.xml">
+                        <size>968</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-conformance-bp1.1.xml">
+                        <size>20587</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-asym-binding.xml">
+                        <size>5149</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-was-wssecurity-username-default.xml">
+                        <size>3641</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-sym-binding-complex.xml">
+                        <size>4293</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-usernametoken-to-recipient.xml">
+                        <size>1777</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-sym-binding.xml">
+                        <size>4336</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-usernametoken10.xml">
+                        <size>1287</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-conformance-bsp1.0.xml">
+                        <size>22339</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <directory name="store:/policies/templates/bea" read="true" log="true" show="true" reference="true" list="true">
+                        <file name="wsp-sp-1-1-bea-saml2.0-bearer-https.xml">
+                           <size>1648</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-1-bea-x509-basic256.xml">
+                           <size>2319</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-1-bea-usernametoken-digest-x509-basic256.xml">
+                           <size>2497</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-1-bea-usernametoken-plain-x509-basic256.xml">
+                           <size>2485</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                     </directory>
+                     <directory name="store:/policies/templates/dotnet" read="true" log="true" show="true" reference="true" list="true">
+                        <file name="wsp-sp-1-1-wsHttpBinding.xml">
+                           <size>30045</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-1-wsFederationHttpBinding.xml">
+                           <size>19898</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-2-ws2007HttpBinding.xml">
+                           <size>30075</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-2-dotnet-kerberos.xml">
+                           <size>5013</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-1-BasicHttpBinding.xml">
+                           <size>9136</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                        <file name="wsp-sp-1-2-ws2007FederationHttpBinding.xml">
+                           <size>20103</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                     </directory>
+                     <file name="wsp-sp-1-1-was-wssecurity-default.xml">
+                        <size>2768</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-qos-token-bucket-queue.xml">
+                        <size>1748</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-rm-1-1-inorder.xml">
+                        <size>1216</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-encrypted-parts-body.xml">
+                        <size>964</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-x509.xml">
+                        <size>1271</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-sign-parts.xml">
+                        <size>955</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <directory name="store:/policies/templates/was" read="true" log="true" show="true" reference="true" list="true">
+                        <file name="wsp-sp-1-2-was7-kerberos.xml">
+                           <size>14014</size>
+                           <modified>2019-08-09 15:24:42</modified>
+                        </file>
+                     </directory>
+                     <file name="wsp-mp-1-6-message-version-translation.xml">
+                        <size>3323</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-conformance-ap1.0.xml">
+                        <size>6252</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-x509.xml">
+                        <size>1257</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-was-wssecureconversation.xml">
+                        <size>12642</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-route-during-maintenance.xml">
+                        <size>2371</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-qos-errorcount-route.xml">
+                        <size>1891</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-sym-binding.xml">
+                        <size>3692</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-qos-queue-messages.xml">
+                        <size>1442</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-secureconversation.xml">
+                        <size>1269</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-rm-1-1-was-default.xml">
+                        <size>1173</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-qos-reject-messages.xml">
+                        <size>1424</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-asym-binding.xml">
+                        <size>4352</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-route.xml">
+                        <size>1594</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-encrypted-parts-header.xml">
+                        <size>1059</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-message-validate.xml">
+                        <size>2212</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-sign-encrypt-order.xml">
+                        <size>4601</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-mp-1-6-route-after-date.xml">
+                        <size>1919</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-required-parts.xml">
+                        <size>1088</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-conformance-bp1.0.xml">
+                        <size>18723</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-required-parts.xml">
+                        <size>1088</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-1-usernametoken.xml">
+                        <size>1649</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-transport.xml">
+                        <size>3587</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-saml-support.xml">
+                        <size>1597</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-encrypted-parts-header.xml">
+                        <size>1037</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="wsp-sp-1-2-usernametoken10.xml">
+                        <size>1285</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                  </directory>
+                  <directory name="store:/policies/custom" read="true" log="true" show="true" reference="true" list="true">
+                     <file name="example.xsl">
+                        <size>5468</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                     <file name="jk-example.xsl">
+                        <size>35611</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                  </directory>
+               </directory>
+               <file name="caUnicenter31GetConfig.xml">
+                  <size>1527</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="wsdlServeLocal.xsl">
+                  <size>2449</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="required-elements-filter.xsl">
+                  <size>1755</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="tspm-aaa-xacml-binding-rtss.xsl">
+                  <size>42815</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="Virus-Scan-Attachments.xsl">
+                  <size>4262</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="conformance-fixup-bsp-r3221.xsl">
+                  <size>6975</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="encrypt.xsl">
+                  <size>7421</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mtom.xsl">
+                  <size>1638</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="AAAInfo.xsd">
+                  <size>18692</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="xml-mgmt-base.xsd">
+                  <size>9971</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="verify-hmac.xsl">
+                  <size>6624</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-slmresult.xsl">
+                  <size>3217</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="strip-security-header.xsl">
+                  <size>850</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-soap-sender-param.xsl">
+                  <size>2388</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-soapsec.xsl">
+                  <size>3452</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-wssec-common-param.xsl">
+                  <size>9027</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="jsonx2json.xsl">
+                  <size>2497</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="tspm71-receive-updates.xsl">
+                  <size>26015</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="pkcs7-decrypt.xsl">
+                  <size>6602</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="example_CustomJWTGenerator.js">
+                  <size>11654</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="iop-mgmt-aaa.xml">
+                  <size>4972</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="tspm-receive-updates.xsl">
+                  <size>23371</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-enveloped.xsl">
+                  <size>12378</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="pkcs7-encrypt.xsl">
+                  <size>9418</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="xml-mgmt-ops.xsd">
+                  <size>20932</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="tspm-aaa-mc-map-saml-groups.xsl">
+                  <size>10430</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-notify.xsl">
+                  <size>1485</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="SQL-Injection-Filter.xsl">
+                  <size>14862</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="mq-header.xsl">
+                  <size>35436</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="xml-mgmt.xsd">
+                  <size>2680152</size>
+                  <modified>2019-08-09 15:55:06</modified>
+               </file>
+               <file name="get-user.xsl">
+                  <size>2179</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="wssec-utilities.xsl">
+                  <size>25492</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-keypair.xsl">
+                  <size>4190</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-soap-common-param.xsl">
+                  <size>5711</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="SQL-Injection-Patterns.xml">
+                  <size>4414</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="conformance-filter.xsl">
+                  <size>2757</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="app-mgmt-protocol-v2.xsd">
+                  <size>31217</size>
+                  <modified>2019-08-09 15:25:56</modified>
+               </file>
+               <file name="AAAInfo.xml">
+                  <size>2731</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="policy-sign-hmac-wssec.xsl">
+                  <size>5104</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="strip-wssec-signature.xsl">
+                  <size>4264</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="identity.xsl">
+                  <size>790</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="Sample-Injection-Patterns.xml">
+                  <size>7018</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="sla-credential-class-policy-enforcement.xsl">
+                  <size>3759</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="XSS-Patterns.xml">
+                  <size>1086</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="OAuth-Generate-HTML.xsl">
+                  <size>9898</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="sign-hmac-enveloped.xsl">
+                  <size>2540</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="verify-kerberos-hmac-wssec.xsl">
+                  <size>3853</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="w2sMakeSubSchema.xsl">
+                  <size>25392</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="wsdlIntercept.xsl">
+                  <size>2202</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="b2b-routing.xsl">
+                  <size>2792</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="LoginPage.htm">
+                  <size>2881</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="xml-mgmt-b2b.xsd">
+                  <size>7274</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="mediation-log.xsl">
+                  <size>1422</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="identity.js">
+                  <size>374</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="policy-sign-wssec.xsl">
+                  <size>10751</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="accessfile.xsl">
+                  <size>1636</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="healthcheck.xml">
+                  <size>334</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="caUnicenterGetRelationships.xml">
+                  <size>225</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="filter-accept-all.xsl">
+                  <size>628</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="app-mgmt-protocol-v3.xsd">
+                  <size>42641</size>
+                  <modified>2019-08-09 15:25:56</modified>
+               </file>
+               <file name="jsonx2json-reverse-solidus.xsl">
+                  <size>2561</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <directory name="store:/wsm-formatters" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="itcamsoa.xsl">
+                     <size>13152</size>
+                     <modified>2019-08-09 15:24:42</modified>
+                  </file>
+                  <directory name="store:/wsm-formatters/templates" read="true" log="true" show="true" reference="true" list="true">
+                     <file name="example-template.xsl">
+                        <size>431</size>
+                        <modified>2019-08-09 15:24:42</modified>
+                     </file>
+                  </directory>
+               </directory>
+               <file name="healthcheck.xsl">
+                  <size>2185</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="w2sMakeContainerSchema.xsl">
+                  <size>26110</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="set-recipient.xsl">
+                  <size>3525</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-soapsec-swa.xsl">
+                  <size>3549</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="buffer-attachments.xsl">
+                  <size>1335</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="mediation-reject.xsl">
+                  <size>622</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-wsrr-available-endpoints.xsl">
+                  <size>16465</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="example_CustomJWTDecryptVerify.js">
+                  <size>5282</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="ODCInfo.xsd">
+                  <size>5655</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="w2sRpcUtil.xsl">
+                  <size>30934</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="mediation-true.xsl">
+                  <size>857</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="conformance-xform.xsl">
+                  <size>2753</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="encrypt-wssec.xsl">
+                  <size>5835</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="antivirus-webwasher.xsl">
+                  <size>2684</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="caUnicenterRelationships.xsl">
+                  <size>1198</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="identity-all.xsl">
+                  <size>662</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="example_CreateJWTCustomClaims.xsl">
+                  <size>3735</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="symantec.xsl">
+                  <size>5049</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="xml-mgmt.wsdl">
+                  <size>2423</size>
+                  <modified>2019-08-09 15:25:58</modified>
+               </file>
+               <file name="healthcheck.js">
+                  <size>1155</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="getWSDLSoapOperations.xsl">
+                  <size>2023</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="app-mgmt-protocol-v3.wsdl">
+                  <size>36030</size>
+                  <modified>2019-08-09 15:25:56</modified>
+               </file>
+               <file name="aaa-make-saml.xsl">
+                  <size>2903</size>
+                  <modified>2019-08-09 15:24:41</modified>
+               </file>
+               <file name="soap-mediation.xsl">
+                  <size>13101</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="replay-filter.xsl">
+                  <size>2873</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sign-hmac-soap-enveloped.xsl">
+                  <size>3261</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+               <file name="sla-getcontext.xsl">
+                  <size>4582</size>
+                  <modified>2019-08-09 15:24:42</modified>
+               </file>
+            </location>
+         </dp:filestore>
+      </dp:response>
+   </env:Body>
+</env:Envelope>
