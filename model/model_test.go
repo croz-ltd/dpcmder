@@ -155,6 +155,8 @@ func TestItemListLess(t *testing.T) {
 		{2, 4, false},
 		{3, 4, true},
 		{4, 3, false},
+		{0, 9, false},
+		{9, 0, true},
 	}
 
 	for _, testRow := range testDataMatrix {
@@ -176,6 +178,15 @@ func TestItemListSwap(t *testing.T) {
 
 // Model methods tests
 
+func TestModelSetTitle(t *testing.T) {
+	m := Model{}
+	m.SetTitle(Left, "Test Left Title")
+	m.SetTitle(Right, "Test Right Title")
+
+	assert.Equals(t, "SetTitle", m.title[Left], "Test Left Title")
+	assert.Equals(t, "SetTitle", m.title[Right], "Test Right Title")
+}
+
 func checkCurrItem(t *testing.T, model Model, want Item, msg string) {
 	got := *model.CurrItem()
 	t.Helper()
@@ -187,9 +198,7 @@ func TestModelSetCurrentView(t *testing.T) {
 
 	checkTitle := func(side Side, wantedTitle string) {
 		t.Helper()
-		if model.Title(side) != wantedTitle {
-			t.Errorf("Model Title(%v) should be '%s' but is '%s'.", side, wantedTitle, model.Title(side))
-		}
+		assert.Equals(t, "checkTitle", model.Title(side), wantedTitle)
 	}
 	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig) {
 		t.Helper()
@@ -210,6 +219,92 @@ func TestModelSetCurrentView(t *testing.T) {
 	checkTitle(Right, "Right Title")
 	checkViewConfig(Left, itemConfig1)
 	checkViewConfig(Right, itemConfig2)
+}
+
+func TestModelAddNextView(t *testing.T) {
+	model := Model{}
+
+	checkViewConfig := func(side Side, wantedViewConfig *ItemConfig,
+		wantedViewHistoryIdx, wantedViewHistorySize int) {
+		t.Helper()
+		gotViewConfig := model.ViewConfig(side)
+		if gotViewConfig != wantedViewConfig {
+			t.Errorf("Model ViewConfig(%v) should be '%s' but is '%s'.", side, wantedViewConfig, gotViewConfig)
+		}
+		gotViewHistorySize := model.ViewConfigHistorySize(side)
+		if gotViewHistorySize != wantedViewHistorySize {
+			t.Errorf("Model ViewConfigHistorySize(%v) should be %d but is %d.", side, wantedViewHistorySize, gotViewHistorySize)
+		}
+		gotViewHistoryIdx := model.ViewConfigHistorySelectedIdx(side)
+		if gotViewHistorySize != wantedViewHistorySize {
+			t.Errorf("Model ViewConfigHistorySelectedIdx(%v) should be %d but is %d.", side, wantedViewHistoryIdx, gotViewHistoryIdx)
+		}
+	}
+
+	// View history while there is no current view - no change
+	checkViewConfig(Left, nil, 0, 0)
+	checkViewConfig(Right, nil, 0, 0)
+
+	// Prepare 3 views for both sides
+	itemConfig1a := &ItemConfig{Path: "/path/1a"}
+	itemConfig1b := &ItemConfig{Path: "/path/1b"}
+	itemConfig1c := &ItemConfig{Path: "/path/1c"}
+	itemConfig2a := &ItemConfig{Path: "/path/2a"}
+	itemConfig2b := &ItemConfig{Path: "/path/2b"}
+	itemConfig2c := &ItemConfig{Path: "/path/2c"}
+
+	// View history while there is only 1 view
+	model.AddNextView(Left, itemConfig1a, "")
+	model.AddNextView(Right, itemConfig2a, "")
+	checkViewConfig(Left, itemConfig1a, 0, 1)
+	checkViewConfig(Right, itemConfig2a, 0, 1)
+
+	// View history when we add 2nd view
+	model.AddNextView(Left, itemConfig1b, "")
+	model.AddNextView(Right, itemConfig2b, "")
+	checkViewConfig(Left, itemConfig1b, 1, 2)
+	checkViewConfig(Right, itemConfig2b, 1, 2)
+
+	// View history when we add 3rd view
+	model.AddNextView(Left, itemConfig1c, "")
+	model.AddNextView(Right, itemConfig2c, "")
+	checkViewConfig(Left, itemConfig1c, 2, 3)
+	checkViewConfig(Right, itemConfig2c, 2, 3)
+
+	// View history when we add existing previous view -
+	// history size doesn't increase, history index goes one place back.
+	model.AddNextView(Left, itemConfig1b, "")
+	model.AddNextView(Right, itemConfig2b, "")
+	checkViewConfig(Left, itemConfig1b, 1, 3)
+	checkViewConfig(Right, itemConfig2b, 1, 3)
+
+	// View history when we add existing previous view -
+	// history size doesn't increase, history index goes one place back.
+	model.AddNextView(Left, itemConfig1a, "")
+	model.AddNextView(Right, itemConfig2a, "")
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
+
+	// View history when we add existing next view -
+	// history size doesn't increase, history index goes one place forward.
+	model.AddNextView(Left, itemConfig1b, "")
+	model.AddNextView(Right, itemConfig2b, "")
+	checkViewConfig(Left, itemConfig1b, 1, 3)
+	checkViewConfig(Right, itemConfig2b, 1, 3)
+
+	// View history when we add existing previous view -
+	// history size doesn't increase, history index goes one place back.
+	model.AddNextView(Left, itemConfig1a, "")
+	model.AddNextView(Right, itemConfig2a, "")
+	checkViewConfig(Left, itemConfig1a, 0, 3)
+	checkViewConfig(Right, itemConfig2a, 0, 3)
+
+	// View history when we add (not immediately next) view -
+	// history after the old current view is replaced with added view.
+	model.AddNextView(Left, itemConfig1c, "")
+	model.AddNextView(Right, itemConfig2c, "")
+	checkViewConfig(Left, itemConfig1c, 1, 2)
+	checkViewConfig(Right, itemConfig2c, 1, 2)
 }
 
 func TestModelNavCurrentViewBackFw(t *testing.T) {
@@ -235,18 +330,11 @@ func TestModelNavCurrentViewBackFw(t *testing.T) {
 	// View history navigation while there is no current view - no change
 	checkViewConfig(Left, nil, 0, 0)
 	checkViewConfig(Right, nil, 0, 0)
-	assert.Equals(t, "History size left", model.ViewConfigHistorySize(Left), 0)
-	assert.Equals(t, "History size right", model.ViewConfigHistorySize(Right), 0)
 
 	model.NavCurrentViewBack(Left)
 	model.NavCurrentViewBack(Right)
 	checkViewConfig(Left, nil, 0, 0)
 	checkViewConfig(Right, nil, 0, 0)
-	assert.Equals(t, "History size left", model.ViewConfigHistorySize(Left), 0)
-	assert.Equals(t, "History size right", model.ViewConfigHistorySize(Right), 0)
-
-	assert.Equals(t, "History idx left", model.ViewConfigHistorySelectedIdx(Left), 0)
-	assert.Equals(t, "History idx right", model.ViewConfigHistorySelectedIdx(Right), 0)
 
 	model.NavCurrentViewForward(Left)
 	model.NavCurrentViewForward(Right)
@@ -644,6 +732,9 @@ func TestModelSetCurrItemForSide(t *testing.T) {
 	model := Model{}
 	side := model.CurrSide()
 
+	// Empty model returns nil current item
+	assert.Equals(t, "CurrItemForSide", model.CurrItemForSide(Left), (*Item)(nil))
+
 	model.ItemMaxRows = 4
 	items := prepareItemList()
 	model.SetItems(side, items)
@@ -655,6 +746,9 @@ func TestModelSetCurrItemForSide(t *testing.T) {
 	checkCurrentRow(t, model, side, 3, false)
 
 	checkCurrItem(t, model, items[6], "")
+
+	// Non empty model returns current item
+	assert.Equals(t, "CurrItemForSide", model.CurrItemForSide(Left), &items[6])
 }
 
 func TestModelSetCurrItemForSideAndConfig(t *testing.T) {
