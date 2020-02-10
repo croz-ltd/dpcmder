@@ -8,6 +8,7 @@ import (
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/assert"
 	"github.com/croz-ltd/dpcmder/utils/errs"
+	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -1025,6 +1026,65 @@ func TestInvalidateCache(t *testing.T) {
 	Repo.dataPowerAppliance.SomaUrl = testSomaURL
 	Repo.InvalidateCache()
 	assert.Equals(t, "InvalidateCache", Repo.invalidateCache, true)
+}
+
+func TestGetFile(t *testing.T) {
+	currentView := model.ItemConfig{Type: model.ItemDpObjectClassList,
+		DpAppliance: "MyApplianceName", DpDomain: "test", DpFilestore: "store:",
+		Path: "store:/gatewayscript"}
+
+	t.Run("GetFile/existingFile no REST/SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesGot, err := Repo.GetFile(&currentView, "non-existing-file.js")
+		assert.Equals(t, "GetFile", err, errs.Error("DataPower management interface not set."))
+		assert.Nil(t, "GetFile", fileBytesGot)
+	})
+
+	t.Run("GetFile/existingFile REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesWant, err := ioutil.ReadFile("testdata/example-context.js")
+		assert.Nil(t, "GetFile", err)
+		assert.NotNil(t, "GetFile/Setup", fileBytesWant)
+		fileBytesGot, err := Repo.GetFile(&currentView, "example-context.js")
+		assert.Nil(t, "GetFile", err)
+		assert.Equals(t, "GetFile", fileBytesGot, fileBytesWant)
+	})
+
+	t.Run("GetFile/nonExistingFile REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesGot, err := Repo.GetFile(&currentView, "non-existing-file.js")
+		assert.NotNil(t, "GetFile", err)
+		assert.Equals(t, "GetFile", err, errs.Error("Unexpected JSON, can't find '/file'."))
+		assert.Nil(t, "GetFile", fileBytesGot)
+	})
+
+	t.Run("GetFile/existingFile SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesWant, err := ioutil.ReadFile("testdata/example-context.js")
+		assert.Nil(t, "GetFile", err)
+		assert.NotNil(t, "GetFile/Setup", fileBytesWant)
+		fileBytesGot, err := Repo.GetFile(&currentView, "example-context.js")
+		assert.Nil(t, "GetFile", err)
+		assert.Equals(t, "GetFile", fileBytesGot, fileBytesWant)
+	})
+
+	t.Run("GetFile/nonExistingFile SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesGot, err := Repo.GetFile(&currentView, "non-existing-file.js")
+		assert.NotNil(t, "GetFile", err)
+		assert.Equals(t, "GetFile", err, errs.Error("Can't find file 'store:/gatewayscript/non-existing-file.js' from SOMA response."))
+		assert.Nil(t, "GetFile", fileBytesGot)
+	})
 }
 
 func TestRemoveJSONKey(t *testing.T) {

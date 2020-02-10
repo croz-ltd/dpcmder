@@ -204,6 +204,7 @@ func (r *dpRepo) GetFile(currentView *model.ItemConfig, fileName string) ([]byte
 	logging.LogDebugf("repo/dp/GetFile(%v, '%s')", currentView, fileName)
 	parentPath := currentView.Path
 	filePath := paths.GetDpPath(parentPath, fileName)
+	r.dataPowerAppliance = getDpAppliance(currentView)
 
 	return r.GetFileByPath(currentView.DpDomain, filePath)
 }
