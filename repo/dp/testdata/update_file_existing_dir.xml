@@ -1,0 +1,8 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-10T05:55:21-05:00</dp:timestamp>
+         <dp:result>Authentication failure</dp:result>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

@@ -1,0 +1,16 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/filestore/test/local/upload/test-existing-dir"
+    },
+    "doc": {
+      "href": "/mgmt/docs/filestore"
+    }
+  },
+  "filestore": {
+    "location": {
+      "name": "local:/upload/test-existing-dir",
+      "href": "/mgmt/filestore/test/local/upload/test-existing-dir"
+    }
+  }
+}

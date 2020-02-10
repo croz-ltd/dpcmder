@@ -1,0 +1,8 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-10T05:51:08-05:00</dp:timestamp>
+         <dp:result>OK</dp:result>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

@@ -1,0 +1,11 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/filestore/test/local/upload/test-existing-file.txt"
+    },
+    "doc": {
+      "href": "/mgmt/docs/filestore"
+    }
+  },
+  "file": "SGVsbG8gV29ybGQh"
+}

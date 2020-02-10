@@ -1,0 +1,14 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/filestore/test/local/upload"
+    },
+    "doc": {
+      "href": "/mgmt/docs/filestore"
+    },
+    "location": {
+      "href": "/mgmt/filestore/test/local/upload/test-new-file.txt"
+    }
+  },
+  "result": "File was created."
+}

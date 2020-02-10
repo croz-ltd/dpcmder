@@ -10,7 +10,7 @@ import (
 type mockRequester struct{}
 
 func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body string) (string, error) {
-	// fmt.Println(urlFullPath)
+	// fmt.Printf("%s %s\n", method, urlFullPath)
 	var content []byte
 	var err error
 
@@ -33,6 +33,26 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		content, err = ioutil.ReadFile("testdata/get_file_gatewayscript_example_context.js")
 	case "https://my_dp_host:5554/mgmt/filestore/test/store/gatewayscript/non-existing-file.js":
 		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-new-file.txt":
+		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-existing-file.txt":
+		switch method {
+		case "GET":
+			content, err = ioutil.ReadFile("testdata/get_file_local_existing.json")
+		case "PUT":
+			content, err = ioutil.ReadFile("testdata/update_existing_file.json")
+		default:
+			return "", errs.Errorf("dpmock_test: Unrecognized method '%s'", method)
+		}
+	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload":
+		switch method {
+		case "POST":
+			content, err = ioutil.ReadFile("testdata/update_new_file.json")
+		default:
+			return "", errs.Errorf("dpmock_test: Unrecognized method '%s'", method)
+		}
+	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-existing-dir":
+		content, err = ioutil.ReadFile("testdata/get_file_local_existing_dir.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
 		var opTag string
 		var opClass string
@@ -58,7 +78,7 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		}
 
 		if len(matches) == 0 {
-			r = regexp.MustCompile(`.*<man:(get-file) name="([^ ]+)".*`)
+			r = regexp.MustCompile(`.*<man:([gs]et-file) name="([^ ]+)".*`)
 			matches = r.FindStringSubmatch(body)
 			if len(matches) == 3 {
 				opTag = matches[1]
@@ -91,12 +111,16 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			content, err = ioutil.ReadFile("testdata/get_file_gatewayscript_example_context.xml")
 		case opTag == "get-file" && opFilePath == "store:/gatewayscript/non-existing-file.js":
 			content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+		case opTag == "set-file" && opFilePath == "local:/upload/test-new-file.txt":
+			content, err = ioutil.ReadFile("testdata/update_file.xml")
+		case opTag == "set-file" && opFilePath == "local:/upload/test-existing-dir":
+			content, err = ioutil.ReadFile("testdata/update_file_existing_dir.xml")
 		default:
-			fmt.Printf("dpmock_test: Unrecognized SOMA request opTag: '%s', opClass: '%s', opObjClass: '%s'.\n",
-				opTag, opClass, opObjClass)
+			fmt.Printf("dpmock_test: Unrecognized SOMA request opTag: '%s', "+
+				"opClass: '%s', opObjClass: '%s', opLayoutOnly: '%s', opFilePath: '%s'.\n",
+				opTag, opClass, opObjClass, opLayoutOnly, opFilePath)
 		}
 
-		// <man:get-status class="ObjectStatus" object-class="%s"/>
 	default:
 		fmt.Printf("dpmock_test: Unrecognized urlFullPath '%s'.\n", urlFullPath)
 	}

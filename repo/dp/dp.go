@@ -271,6 +271,7 @@ func (r *dpRepo) UpdateFile(currentView *model.ItemConfig, fileName string, newF
 	logging.LogDebugf("repo/dp/UpdateFile(%s, '%s', ...)\n", currentView, fileName)
 	parentPath := currentView.Path
 	filePath := paths.GetDpPath(parentPath, fileName)
+	r.dataPowerAppliance = getDpAppliance(currentView)
 	return r.UpdateFileByPath(currentView.DpDomain, filePath, newFileContent)
 }
 func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []byte) (bool, error) {

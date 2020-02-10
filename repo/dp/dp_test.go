@@ -1033,7 +1033,7 @@ func TestGetFile(t *testing.T) {
 		DpAppliance: "MyApplianceName", DpDomain: "test", DpFilestore: "store:",
 		Path: "store:/gatewayscript"}
 
-	t.Run("GetFile/existingFile no REST/SOMA", func(t *testing.T) {
+	t.Run("GetFile no REST/SOMA", func(t *testing.T) {
 		dpa := config.DataPowerAppliance{}
 		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
 
@@ -1085,6 +1085,69 @@ func TestGetFile(t *testing.T) {
 		assert.Equals(t, "GetFile", err, errs.Error("Can't find file 'store:/gatewayscript/non-existing-file.js' from SOMA response."))
 		assert.Nil(t, "GetFile", fileBytesGot)
 	})
+}
+
+func TestUpdateFile(t *testing.T) {
+	currentView := model.ItemConfig{Type: model.ItemDpObjectClassList,
+		DpAppliance: "MyApplianceName", DpDomain: "test", DpFilestore: "local:",
+		Path: "local:/upload"}
+
+	t.Run("UpdateFile no REST/SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		res, err := Repo.UpdateFile(&currentView, "test-file.txt", []byte("Hello World!"))
+		assert.Equals(t, "UpdateFile", err, errs.Error("DataPower management interface not set."))
+		assert.False(t, "UpdateFile", res)
+	})
+
+	t.Run("UpdateFile/newFile REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		res, err := Repo.UpdateFile(&currentView, "test-new-file.txt", []byte("Hello World!"))
+		assert.Nil(t, "UpdateFile", err)
+		assert.True(t, "UpdateFile", res)
+	})
+
+	t.Run("UpdateFile/existingFile REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		res, err := Repo.UpdateFile(&currentView, "test-existing-file.txt", []byte("Hello World!"))
+		assert.Nil(t, "UpdateFile", err)
+		assert.True(t, "UpdateFile", res)
+	})
+
+	t.Run("UpdateFile/existingDir REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		res, err := Repo.UpdateFile(&currentView, "test-existing-dir", []byte("Hello World!"))
+		assert.Equals(t, "UpdateFile", err,
+			errs.Error("Can't upload file 'local:/upload/test-existing-dir', directory with same name exists."))
+		assert.False(t, "UpdateFile", res)
+	})
+
+	t.Run("UpdateFile SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		res, err := Repo.UpdateFile(&currentView, "test-new-file.txt", []byte("Hello World!"))
+		assert.Nil(t, "UpdateFile", err)
+		assert.True(t, "UpdateFile", res)
+	})
+
+	t.Run("UpdateFile/existingDir SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		res, err := Repo.UpdateFile(&currentView, "test-existing-dir", []byte("Hello World!"))
+		assert.Equals(t, "UpdateFile", err,
+			errs.Error("Can't upload file 'local:/upload/test-existing-dir', directory with same name exists."))
+		assert.False(t, "UpdateFile", res)
+	})
+
 }
 
 func TestRemoveJSONKey(t *testing.T) {
