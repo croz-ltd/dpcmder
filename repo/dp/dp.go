@@ -382,6 +382,7 @@ func (r *dpRepo) UpdateFileByPath(dpDomain, filePath string, newFileContent []by
 func (r *dpRepo) GetFileType(viewConfig *model.ItemConfig, parentPath, fileName string) (model.ItemType, error) {
 	logging.LogDebug(fmt.Sprintf("repo/dp/getFileType(%v, '%s', '%s')\n", viewConfig, parentPath, fileName))
 	dpDomain := viewConfig.DpDomain
+	r.dataPowerAppliance = getDpAppliance(viewConfig)
 
 	return r.GetFileTypeByPath(dpDomain, parentPath, fileName)
 }

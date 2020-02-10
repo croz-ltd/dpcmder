@@ -1150,6 +1150,93 @@ func TestUpdateFile(t *testing.T) {
 
 }
 
+func TestGetFileType(t *testing.T) {
+	currentView := model.ItemConfig{Type: model.ItemDpObjectClassList,
+		DpAppliance: "MyApplianceName", DpDomain: "test", DpFilestore: "local:",
+		Path: "local:/types"}
+
+	t.Run("GetFileType no REST/SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "local:", "test-file.txt")
+		assert.Equals(t, "GetFileType", err, errs.Error("DataPower management interface not set."))
+		assert.Equals(t, "GetFileType", itemType, model.ItemNone)
+	})
+
+	t.Run("GetFileType/ItemNone REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "store:/gatewayscript", "non-existing-file.js")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemNone)
+	})
+
+	t.Run("GetFileType/ItemFile REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "local:/upload", "test-existing-file.txt")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemFile)
+	})
+
+	t.Run("GetFileType/ItemDirectory REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "local:/upload", "test-existing-dir")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemDirectory)
+	})
+
+	t.Run("GetFileType/ItemDpFilestore REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "", "store:")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemDpFilestore)
+	})
+
+	t.Run("GetFileType/ItemNone SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "store:/gatewayscript", "non-existing-file.js")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemNone)
+	})
+
+	t.Run("GetFileType/ItemFile SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "local:/upload", "test-existing-file.txt")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemFile)
+	})
+
+	t.Run("GetFileType/ItemDirectory SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "local:/upload", "test-existing-dir")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemDirectory)
+	})
+
+	t.Run("GetFileType/ItemDpFilestore SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "", "store:")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemDpFilestore)
+	})
+}
+
 func TestRemoveJSONKey(t *testing.T) {
 	inputJSON := `{
   "keyok": "valok",
