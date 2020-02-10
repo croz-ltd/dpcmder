@@ -2,6 +2,7 @@
 package assert
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -9,8 +10,25 @@ import (
 // Equals compares given objects and fails test if objects are not equal.
 func Equals(t *testing.T, testName, got, want interface{}) {
 	t.Helper()
-	if got != want {
+	switch {
+	case (got == nil) != (want == nil):
 		t.Errorf("%s\nshould be: '%#v'\nbut was:   '%#v'.", testName, want, got)
+	// case gotByte, gotOk := got.([]byte):
+	default:
+		gotBytes, gotOk := got.([]byte)
+		wantBytes, wantOk := got.([]byte)
+		switch {
+		case gotOk && wantOk:
+			if bytes.Compare(gotBytes, wantBytes) != 0 {
+				t.Errorf("%s\nshould be: '%#v'\nbut was:   '%#v'.", testName, want, got)
+			}
+		case gotOk != wantOk:
+			t.Errorf("%s\nshould be: '%#v'\nbut was:   '%#v'.", testName, want, got)
+		default:
+			if got != want {
+				t.Errorf("%s\nshould be: '%#v'\nbut was:   '%#v'.", testName, want, got)
+			}
+		}
 	}
 }
 
@@ -19,5 +37,29 @@ func DeepEqual(t *testing.T, testName, got, want interface{}) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("%s\nshould be: '%v'\nbut was:   '%v'.", testName, want, got)
+	}
+}
+
+// Nil fails test if given object is not null.
+func Nil(t *testing.T, testName, got interface{}) {
+	t.Helper()
+	switch got.(type) {
+	case []byte:
+		gotBytes, _ := got.([]byte)
+		if gotBytes != nil {
+			t.Errorf("%s\nwas not nil: '%#v'.", testName, got)
+		}
+	default:
+		if got != nil {
+			t.Errorf("%s\nwas not nil: '%#v'.", testName, got)
+		}
+	}
+}
+
+// NotNil fails test if given object is null.
+func NotNil(t *testing.T, testName, got interface{}) {
+	t.Helper()
+	if got == nil {
+		t.Errorf("%s\nwas nil: '%#v'.", testName, got)
 	}
 }
