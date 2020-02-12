@@ -138,7 +138,7 @@ func (ic ItemConfig) String() string {
 }
 
 // Equals method returns true if other object is refering to same ItemConfig.
-func (ic *ItemConfig) Equals(other *ItemConfig) bool {
+func (ic ItemConfig) Equals(other *ItemConfig) bool {
 	if other == nil {
 		return false
 	}
@@ -164,13 +164,13 @@ func (item Item) String() string {
 }
 
 // DisplayString method returns formatted string representing how item will be shown.
-func (item *Item) DisplayString() string {
+func (item Item) DisplayString() string {
 	return fmt.Sprintf("%s %10s %19s %s",
 		item.GetDisplayableType(), item.Size, item.Modified, item.Name)
 }
 
 // GetDisplayableType retuns single character string representation of Item type.
-func (item *Item) GetDisplayableType() string {
+func (item Item) GetDisplayableType() string {
 	return string(item.Config.Type)
 }
 
