@@ -72,7 +72,7 @@ GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder
 After building binary it can be compressed using excellent
 [UPX](https://upx.github.io/) command:
 ```sh
-upx --brute release/*
+upx --lzma release/*
 ```
 
 ## Diff command ('d' key)
