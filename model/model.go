@@ -208,6 +208,7 @@ func (items ItemList) Swap(i, j int) {
 
 // SetItems changes list of items for given side.
 func (m *Model) SetItems(side Side, items []Item) {
+	m.currFirstRowItemIdx[side] = 0
 	m.allItems[side] = items
 	m.items[side] = items
 	m.applyFilter(side)
