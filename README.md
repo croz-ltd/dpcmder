@@ -159,9 +159,9 @@ and realized it is so slow it is almost unusable. I wanted to have:
 - the application which would work fast
 - the application which would be simple to use (and similar to Midnight Commander and/or Total Commander)
 
-I evaluated a few technologies to implement this. After checking Node.js pkg and
-Golang which both enabled me to build executables for all target platforms on my
-Linux machine. In the end I decided to go with the Go as it produced smaller
+I evaluated a few technologies to implement this. I checked Node.js pkg and
+Golang, which both enabled me to build executables for all target platforms on
+my Linux machine. In the end I decided to go with the Go as it produced smaller
 executables and felt more appropriate for TUI development.
 
 One issue which is still left partially unsolved is handling keypresses for some
