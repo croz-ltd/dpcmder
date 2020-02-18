@@ -23,7 +23,7 @@ func TestGetDpPath(t *testing.T) {
 	for _, testCase := range testDataMatrix {
 		newPath := GetDpPath(testCase[0], testCase[1])
 		if newPath != testCase[2] {
-			t.Errorf("for GetFilePath('%s', '%s'): got '%s', want '%s'", testCase[0], testCase[1], newPath, testCase[2])
+			t.Errorf("for GetDpPath('%s', '%s'): got '%s', want '%s'", testCase[0], testCase[1], newPath, testCase[2])
 		}
 	}
 }

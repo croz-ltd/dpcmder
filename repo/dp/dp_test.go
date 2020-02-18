@@ -1267,6 +1267,29 @@ func TestGetFileType(t *testing.T) {
 	})
 }
 
+func TestGetFilePath(t *testing.T) {
+	testDataMatrix := [][]string{
+		{"local:/dir1/dir2", "myfile", "local:/dir1/dir2/myfile"},
+		{"local:", "myfile", "local:/myfile"},
+		{"local:/dir1/dir2", "..", "local:/dir1"},
+		{"local:/dir1/dir2", ".", "local:/dir1/dir2"},
+		{"local:/dir1", "..", "local:"},
+		{"local:", "..", "local:"},
+		{"local:", ".", "local:"},
+		{"local/dir1/dir2", ".", "local:/dir1/dir2"},
+		{"local/dir1", "dir2", "local:/dir1/dir2"},
+		{"local", "dir1", "local:/dir1"},
+		{"local", "", "local:"},
+		{"local", ".", "local:"},
+	}
+	for _, testCase := range testDataMatrix {
+		newPath := Repo.GetFilePath(testCase[0], testCase[1])
+		if newPath != testCase[2] {
+			t.Errorf("for GetFilePath('%s', '%s'): got '%s', want '%s'", testCase[0], testCase[1], newPath, testCase[2])
+		}
+	}
+}
+
 func TestRemoveJSONKey(t *testing.T) {
 	inputJSON := `{
   "keyok": "valok",
