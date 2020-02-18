@@ -2,6 +2,7 @@ package dp
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"github.com/clbanning/mxj"
 	"github.com/croz-ltd/dpcmder/config"
@@ -967,9 +968,9 @@ func TestGetList(t *testing.T) {
 		itemList, err = Repo.GetList(&itemToShow)
 
 		assert.Equals(t, "GetList", err, nil)
-		assert.Equals(t, "GetList", len(itemList), 30)
+		assert.Equals(t, "GetList", len(itemList), 31)
 
-		if len(itemList) == 30 {
+		if len(itemList) == 31 {
 			parentItemConfig := model.ItemConfig{Type: model.ItemDirectory,
 				DpAppliance: "MyApplianceName",
 				DpDomain:    "test",
@@ -978,7 +979,7 @@ func TestGetList(t *testing.T) {
 			assert.DeepEqual(t, "GetList", itemList[0],
 				model.Item{Name: "..", Config: nil})
 
-			assert.DeepEqual(t, "GetList", itemList[1],
+			assert.DeepEqual(t, "GetList", itemList[2],
 				model.Item{Name: "example-b2b-routing.js",
 					Size: "2413", Modified: "2019-08-09 15:24:42",
 					Config: &model.ItemConfig{Type: model.ItemFile,
@@ -988,7 +989,7 @@ func TestGetList(t *testing.T) {
 						DpFilestore:   "store:",
 						DpObjectState: model.ItemDpObjectState{},
 						Parent:        &parentItemConfig}})
-			assert.DeepEqual(t, "GetList", itemList[29],
+			assert.DeepEqual(t, "GetList", itemList[30],
 				model.Item{Name: "example-xml-xslt.js",
 					Size: "1740", Modified: "2019-08-09 15:24:42",
 					Config: &model.ItemConfig{Type: model.ItemFile,
@@ -1064,6 +1065,16 @@ func TestGetFile(t *testing.T) {
 		assert.Nil(t, "GetFile", fileBytesGot)
 	})
 
+	t.Run("GetFile/fileWithNonB64 REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesGot, err := Repo.GetFile(&currentView, "b64-err-file.txt")
+		assert.NotNil(t, "GetFile", err)
+		assert.DeepEqual(t, "GetFile", err, base64.CorruptInputError(3))
+		assert.Nil(t, "GetFile", fileBytesGot)
+	})
+
 	t.Run("GetFile/existingFile SOMA", func(t *testing.T) {
 		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
 		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
@@ -1083,6 +1094,16 @@ func TestGetFile(t *testing.T) {
 		fileBytesGot, err := Repo.GetFile(&currentView, "non-existing-file.js")
 		assert.NotNil(t, "GetFile", err)
 		assert.Equals(t, "GetFile", err, errs.Error("Can't find file 'store:/gatewayscript/non-existing-file.js' from SOMA response."))
+		assert.Nil(t, "GetFile", fileBytesGot)
+	})
+
+	t.Run("GetFile/fileWithNonB64 SOMA", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		fileBytesGot, err := Repo.GetFile(&currentView, "b64-err-file.txt")
+		assert.NotNil(t, "GetFile", err)
+		assert.DeepEqual(t, "GetFile", err, base64.CorruptInputError(3))
 		assert.Nil(t, "GetFile", fileBytesGot)
 	})
 }

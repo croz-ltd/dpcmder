@@ -35,6 +35,8 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
 	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-new-file.txt":
 		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+	case "https://my_dp_host:5554/mgmt/filestore/test/store/gatewayscript/b64-err-file.txt":
+		content, err = ioutil.ReadFile("testdata/get_file_local_b64err.json")
 	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-existing-file.txt":
 		switch method {
 		case "GET":
@@ -110,7 +112,9 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		case opTag == "get-file" && opFilePath == "store:/gatewayscript/example-context.js":
 			content, err = ioutil.ReadFile("testdata/get_file_gatewayscript_example_context.xml")
 		case opTag == "get-file" && opFilePath == "store:/gatewayscript/non-existing-file.js":
-			content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+			content, err = ioutil.ReadFile("testdata/non_existing_resource.xml")
+		case opTag == "get-file" && opFilePath == "store:/gatewayscript/b64-err-file.txt":
+			content, err = ioutil.ReadFile("testdata/get_file_gatewayscript_nonb64.xml")
 		case opTag == "set-file" && opFilePath == "local:/upload/test-new-file.txt":
 			content, err = ioutil.ReadFile("testdata/update_file.xml")
 		case opTag == "set-file" && opFilePath == "local:/upload/test-existing-dir":

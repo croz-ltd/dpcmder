@@ -138,6 +138,10 @@
                   <modified>2019-08-09 15:24:42</modified>
                </file>
                <directory name="store:/gatewayscript" read="true" log="true" show="true" reference="true" list="true">
+                  <file name="b64-err-file.txt">
+                     <size>1000</size>
+                     <modified>2222-11-22 22:22:22</modified>
+                  </file>
                   <file name="example-fibers-fibonacci.js">
                      <size>1044</size>
                      <modified>2019-08-09 15:24:42</modified>

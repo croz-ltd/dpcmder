@@ -1,0 +1,8 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-02-10T05:03:35-05:00</dp:timestamp>
+         <dp:file name="store:/gatewayscript/b64-err-file.txt">Non base64 encoded</dp:file>
+      </dp:response>
+   </env:Body>
+</env:Envelope>
