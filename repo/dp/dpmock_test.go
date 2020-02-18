@@ -33,6 +33,11 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		content, err = ioutil.ReadFile("testdata/get_file_gatewayscript_example_context.js")
 	case "https://my_dp_host:5554/mgmt/filestore/test/store/gatewayscript/non-existing-file.js":
 		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+	case "https://my_dp_host:5554/mgmt/filestore/test/store/gatewayscript/non-existing-file-404.js":
+		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
+		if err == nil {
+			err = errs.UnexpectedHTTPResponse{StatusCode: 404, Status: "Not Found"}
+		}
 	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-new-file.txt":
 		content, err = ioutil.ReadFile("testdata/non_existing_resource.json")
 	case "https://my_dp_host:5554/mgmt/filestore/test/store/gatewayscript/b64-err-file.txt":

@@ -1221,6 +1221,15 @@ func TestGetFileType(t *testing.T) {
 		assert.Equals(t, "GetFileType", itemType, model.ItemDpFilestore)
 	})
 
+	t.Run("GetFileType/nonExistingFile404 REST", func(t *testing.T) {
+		dpa := config.DataPowerAppliance{RestUrl: testRestURL}
+		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
+
+		itemType, err := Repo.GetFileType(&currentView, "store:/gatewayscript", "non-existing-file-404.js")
+		assert.Nil(t, "GetFileType", err)
+		assert.Equals(t, "GetFileType", itemType, model.ItemNone)
+	})
+
 	t.Run("GetFileType/ItemNone SOMA", func(t *testing.T) {
 		dpa := config.DataPowerAppliance{SomaUrl: testSomaURL}
 		config.Conf.DataPowerAppliances[currentView.DpAppliance] = dpa
