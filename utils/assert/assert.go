@@ -16,7 +16,7 @@ func Equals(t *testing.T, testName string, got, want interface{}) {
 	// case gotByte, gotOk := got.([]byte):
 	default:
 		gotBytes, gotOk := got.([]byte)
-		wantBytes, wantOk := got.([]byte)
+		wantBytes, wantOk := want.([]byte)
 		switch {
 		case gotOk && wantOk:
 			if bytes.Compare(gotBytes, wantBytes) != 0 {
