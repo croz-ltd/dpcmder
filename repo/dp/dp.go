@@ -891,7 +891,6 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 		for idx, file := range backupZipReader.File {
 			logging.LogDebugf("repo/dp/ExportDomain() - file[%d] : '%s'.", idx, file.Name)
 			if file.Name == domainName+".zip" {
-				domainBackupBytes := make([]byte, file.UncompressedSize64)
 				domainReader, err := file.Open()
 				if err != nil {
 					logging.LogDebug("repo/dp/ExportDomain() - Error opening domain from backup archive for reading.", err)
@@ -899,6 +898,7 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 				}
 				defer domainReader.Close()
 
+				domainBackupBytes := make([]byte, file.UncompressedSize64)
 				bytesRead, err := domainReader.Read(domainBackupBytes)
 				if err != nil {
 					logging.LogDebug("repo/dp/ExportDomain() - Error reading domain from backup archive.", err)
@@ -918,6 +918,317 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 	default:
 		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
 	}
+}
+
+// GetObjectPolicy parses DataPower export to show service policy
+// with all rules, matches & actions.
+func (r *dpRepo) GetObjectPolicy(domainName, objectClassName, objectName string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetObjectPolicy('%s', '%s', '%s')",
+		domainName, objectClassName, objectName)
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		// 1. Start export (send export request)
+		exportRequestJSON := fmt.Sprintf(`{"Export":
+		  {
+		    "Format":"ZIP",
+		    "UserComment":"Created by dpcmder.",
+		    "AllFiles":"off",
+		    "Persisted":"off",
+		    "IncludeInternalFiles":"off",
+				"Object":
+		      [
+		        {
+		          "class":"%s",
+		          "name":"%s",
+		          "ref-objects":"on",
+		          "ref-files":"off",
+		          "include-debug":"off"
+		        }
+		      ]
+		  }
+		}`, objectClassName, objectName)
+		locationURL, _, err := r.restPostForResult(
+			"/mgmt/actionqueue/"+domainName,
+			exportRequestJSON,
+			"/Export/status",
+			"Action request accepted.",
+			"/_links/location/href")
+		if err != nil {
+			return nil, err
+		}
+
+		timeStart := time.Now()
+		for {
+			// 2. Check for current status of export request
+			status, exportResponseJSON, err := r.restGetForOneResult(locationURL, "/status")
+			logging.LogDebugf("repo/dp/GetObjectPolicy() status: '%s'", status)
+			if err != nil {
+				return nil, err
+			}
+
+			switch status {
+			case "started":
+				if time.Since(timeStart) > 120*time.Second {
+					logging.LogDebugf("repo/dp/GetObjectPolicy() waiting for export since %v, giving up.\n last exportResponseJSON: '%s'", timeStart, exportResponseJSON)
+					return nil, errs.Errorf("Export didn't finish since %v, giving up.", timeStart)
+				}
+				time.Sleep(1 * time.Second)
+			case "completed":
+				// 3. When export is completed get base64 result file from it
+				logging.LogDebugf("repo/dp/GetObjectPolicy() export fetched after %d.", time.Since(timeStart))
+				fileB64, err := parseJSONFindOne(exportResponseJSON, "/result/file")
+				if err != nil {
+					return nil, err
+				}
+				fileBytes, err := base64.StdEncoding.DecodeString(fileB64)
+				if err != nil {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Error decoding b64 encoded export file.", err)
+					return nil, err
+				}
+
+				// 4. Extract export.xml from zip archive
+				exportBytesReader := bytes.NewReader(fileBytes)
+				exportZipReader, err := zip.NewReader(exportBytesReader, int64(len(fileBytes)))
+				if err != nil {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Error unzipping export archive.", err)
+					return nil, err
+				}
+				if len(exportZipReader.File) != 1 {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Unexpected number of compressed files (%d).",
+						len(exportZipReader.File))
+					return nil, errs.Errorf("Unexpected number of compressed files (%d)", len(exportZipReader.File))
+				}
+
+				exportXMLFile := exportZipReader.File[0]
+				exportXMLReader, err := exportXMLFile.Open()
+				if err != nil {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Error opening export.xml from export archive for reading.", err)
+					return nil, err
+				}
+				defer exportXMLReader.Close()
+
+				exportXMLBytes := make([]byte, exportXMLFile.UncompressedSize64)
+				bytesRead, err := io.ReadFull(exportXMLReader, exportXMLBytes)
+				if err == io.EOF {
+					err = nil
+				}
+				if err != nil {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Error reading export.xml from export archive.", err)
+					return nil, err
+				}
+
+
+				if uint64(bytesRead) != exportXMLFile.UncompressedSize64 {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Wrong number of bytes read for export.xml from export archive.", err)
+					return nil, errs.Errorf("Error reading export.xml from DataPower export archive.")
+				}
+
+				return getObjectRulesFromExportXML(exportXMLBytes, objectClassName, objectName)
+			default:
+				return nil, errs.Errorf("Unexpected response from server ('%s').", status)
+			}
+		}
+	case config.DpInterfaceSoma:
+		// 1. Fetch export of domain
+		//    Backup contains domain export zip + export info and dp-aux files
+		exportRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <man:request domain="%s">
+         <man:do-export format="ZIP" all-files="false"
+              persisted="false" deployment-policy="no-internal-files">
+            <man:user-comment>do-export</man:user-comment>
+            <man:object class="%s" name="%s"
+                ref-objects="true" ref-files="false" include-debug="false"/>
+         </man:do-export>
+      </man:request>
+   </soapenv:Body>
+</soapenv:Envelope>`, domainName, objectClassName, objectName)
+		exportResponseSoma, err := r.soma(exportRequestSoma)
+		if err != nil {
+			return nil, err
+		}
+		exportFileB64, err := parseSOMAFindOne(exportResponseSoma, "//*[local-name()='file']")
+		if err != nil {
+			return nil, err
+		}
+
+		exportBytes, err := base64.StdEncoding.DecodeString(exportFileB64)
+		if err != nil {
+			logging.LogDebug("repo/dp/GetObjectPolicy() - Error decoding base64 file.", err)
+			return nil, err
+		}
+
+		// 2. Extract just export.xml file
+		exportBytesReader := bytes.NewReader(exportBytes)
+		exportZipReader, err := zip.NewReader(exportBytesReader, int64(len(exportBytes)))
+		if err != nil {
+			logging.LogDebug("repo/dp/GetObjectPolicy() - Error unzipping backup archive.", err)
+			return nil, err
+		}
+		for idx, file := range exportZipReader.File {
+			logging.LogDebugf("repo/dp/GetObjectPolicy() - file[%d] : '%s'.", idx, file.Name)
+			if file.Name == "export.xml" {
+				exportXMLReader, err := file.Open()
+				if err != nil {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Error opening export.xml from export archive for reading.", err)
+					return nil, err
+				}
+				defer exportXMLReader.Close()
+
+				exportXMLBytes := make([]byte, file.UncompressedSize64)
+				bytesRead, err := io.ReadFull(exportXMLReader, exportXMLBytes)
+
+				if err == io.EOF {
+					err = nil
+				}
+				if err != nil {
+					logging.LogDebug("repo/dp/GetObjectPolicy() - Error reading export.xml from export archive.", err)
+					return nil, err
+				}
+
+				if uint64(bytesRead) != file.UncompressedSize64 {
+					logging.LogDebugf("repo/dp/GetObjectPolicy() - Wrong number of bytes (%d/%d) read for export.xml from export archive, err: %v",
+					bytesRead, file.UncompressedSize64, err)
+					return nil, errs.Errorf("Error reading export.xml from DataPower export archive.")
+				}
+
+				return getObjectRulesFromExportXML(exportXMLBytes, objectClassName, objectName)
+			}
+		}
+
+		return nil, errs.Errorf("Export failed, domain '%s' not found in DataPower backup.", domainName)
+	default:
+		return nil, errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+	}
+}
+
+// getObjectRulesFromExportXML parses export.xml bytes and returns nicely
+// formatted info about service (matches, rules, actions).
+func getObjectRulesFromExportXML(exportXMLBytes []byte, objectClassName, objectName string) ([]byte, error) {
+	doc, err := xmlquery.Parse(bytes.NewReader(exportXMLBytes))
+	if err != nil {
+		logging.LogDebug("Error parsing DataPower export.xml.", err)
+		return nil, err
+	}
+
+	// getSubnodeInnerText returns text inside XML node or "" if node doesn't exist.
+	getSubnodeInnerText := func(node *xmlquery.Node, elemName string) string {
+		subNode := node.SelectElement(elemName)
+		if subNode != nil {
+			return subNode.InnerText()
+		}
+		return ""
+	}
+
+	// createConfigQuery returns query used to search element in configuration
+	// node. Used when we want to search for objects referenced from another object.
+	createConfigQuery := func(subNode *xmlquery.Node) string {
+		subNodeName := subNode.InnerText()
+		subNodeClass := subNode.SelectAttr("class")
+		configQuery := fmt.Sprintf("/%s[@name='%s']", subNodeClass, subNodeName)
+
+		return configQuery
+	}
+
+	configQuery := "/datapower-configuration/configuration"
+	configNode := xmlquery.FindOne(doc, configQuery)
+	if configNode == nil {
+		logging.LogDebugf("Can't find '%s' in export.xml", configNode)
+		return nil, nil
+	}
+
+	svcQuery := fmt.Sprintf("/%s[@name='%s']", objectClassName, objectName)
+	svcNode := xmlquery.FindOne(configNode, svcQuery)
+	if svcNode == nil {
+		logging.LogDebugf("Can't find '%s' in configuration in export.xml", svcQuery)
+		return nil, nil
+	}
+
+	// svcPolicyNode := svcNode.SelectElement("StylePolicy")
+	svcPolicyName := getSubnodeInnerText(svcNode, "StylePolicy")
+
+	result := fmt.Sprintf("%s (%s)\nStylePolicy (%s)\n",
+		objectClassName, objectName,
+		svcPolicyName)
+
+	stylePolicyQuery := fmt.Sprintf("/StylePolicy[@name='%s']", svcPolicyName)
+	stylePolicyNode := xmlquery.FindOne(configNode, stylePolicyQuery)
+	if stylePolicyNode == nil {
+		logging.LogDebugf("Can't find '%s' policy in export.xml", stylePolicyQuery)
+		return nil, nil
+	}
+
+	policyMapNodes := stylePolicyNode.SelectElements("PolicyMaps")
+	for _, policyMapNode := range policyMapNodes {
+		policyMatchNode := policyMapNode.SelectElement("Match")
+		matchQuery := createConfigQuery(policyMatchNode)
+		matchNode := xmlquery.FindOne(configNode, matchQuery)
+		if matchNode == nil {
+			logging.LogDebugf("Can't find '%s' match in export.xml", matchQuery)
+			return nil, nil
+		}
+
+		mrNodes := matchNode.SelectElements("MatchRules")
+		mrTxt := ""
+		for _, mrNode := range mrNodes {
+			mrType := getSubnodeInnerText(mrNode, "Type")
+			if mrTxt != "" {
+				mrTxt = mrTxt + " "
+			}
+			mrTxt = mrTxt + mrType + "("
+			switch mrType {
+			case "url", "fullyqualifiedurl":
+				mrTxt = mrTxt + getSubnodeInnerText(mrNode, "Url")
+			case "http":
+				mrTxt = mrTxt + getSubnodeInnerText(mrNode, "HttpTag") + ": " + getSubnodeInnerText(mrNode, "HttpValue")
+			case "xpath":
+				mrTxt = mrTxt + getSubnodeInnerText(mrNode, "XPATHExpression")
+			case "errorcode":
+				mrTxt = mrTxt + getSubnodeInnerText(mrNode, "errorcode")
+			default:
+				mrTxt = mrTxt + mrNode.InnerText()
+			}
+			mrTxt = mrTxt + ")"
+		}
+
+		policyRuleNode := policyMapNode.SelectElement("Rule")
+		ruleQuery := createConfigQuery(policyRuleNode)
+		ruleNode := xmlquery.FindOne(configNode, ruleQuery)
+		if ruleNode == nil {
+			logging.LogDebugf("Can't find '%s' rule in export.xml", ruleQuery)
+			return nil, nil
+		}
+
+		ruleActionNodes := ruleNode.SelectElements("Actions")
+		actionsTxt := ""
+		for _, ruleActionNode := range ruleActionNodes {
+			actionQuery := createConfigQuery(ruleActionNode)
+			actionNode := xmlquery.FindOne(configNode, actionQuery)
+			if actionNode == nil {
+				logging.LogDebugf("Can't find '%s' action in export.xml", actionQuery)
+				return nil, nil
+			}
+
+
+			actionsTxt = fmt.Sprintf("%s    Action (%s -> %s -> %s): %s(%s%s)\n", actionsTxt,
+				getSubnodeInnerText(actionNode, "Input"),
+				actionNode.SelectAttr("name"),
+				getSubnodeInnerText(actionNode, "Output"),
+				getSubnodeInnerText(actionNode, "Type"),
+				getSubnodeInnerText(actionNode, "Transform"),
+				getSubnodeInnerText(actionNode, "GatewayScriptLocation"))
+		}
+
+		result = fmt.Sprintf("%s  Match (%s): [%s]\n  Rule (%s):\n%s\n", result,
+			matchNode.SelectAttr("name"),
+			mrTxt,
+			ruleNode.SelectAttr("name"),
+			actionsTxt)
+	}
+
+	return []byte(result), nil
 }
 
 // GetObject fetches DataPower object configuration. If persisted flag is true

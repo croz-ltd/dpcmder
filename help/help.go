@@ -73,6 +73,9 @@ S                    - save running DataPower configuration (SOMA only)
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
 ?                    - show status information for the current DataPower object
+P                    - show DataPower policy for the current DataPower service object
+                       exports the current DataPower object, analyzes it and
+                       shows matches, rules and actions for the object
 h                    - show help
 q                    - quit
 any-other-char       - show help (+ hex value of the key pressed visible in the status bar)
@@ -107,6 +110,8 @@ Some new features added are SOMA-only. For example, with REST you can't compare
 persisted DataPower object configuration to saved configuration.
 
 TODO:
+- expand DataPower service info (svc name / match+rule+actions) to handle
+  non service objects
 - add domain/appliance import?
 - add creation of new DataPower objects
   (should be able to show/create all classes of objects, even ones without

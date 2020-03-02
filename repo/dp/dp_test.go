@@ -1267,6 +1267,48 @@ func TestGetFileType(t *testing.T) {
 	})
 }
 
+func TestGetObjectPolicy(t *testing.T) {
+	t.Run("GetObjectPolicy no REST/SOMA", func(t *testing.T) {
+		clearRepo()
+
+		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
+		assert.Equals(t, "GetObjectPolicy", err, errs.Error("DataPower management interface Unknown not supported."))
+		assert.Equals(t, "GetObjectPolicy", policyBytes, []byte(nil))
+	})
+
+	t.Run("GetObjectPolicy REST", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.RestUrl = testRestURL
+
+		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
+		assert.Nil(t, "GetObjectPolicy", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/export-svc-policy.txt")
+		assert.Nil(t, "GetObjectPolicy error reading expected policy info", err)
+		assert.Equals(t, "GetObjectPolicy", string(policyBytes), string(expectedPolicyBytes))
+	})
+
+	t.Run("GetObjectPolicy SOMA", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.SomaUrl = testSomaURL
+
+		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
+		assert.Nil(t, "GetObjectPolicy", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/export-svc-policy.txt")
+		assert.Nil(t, "GetObjectPolicy error reading expected policy info", err)
+		assert.Equals(t, "GetObjectPolicy", string(policyBytes), string(expectedPolicyBytes))
+	})
+}
+
+func TestGetObjectRulesFromExportXML(t *testing.T) {
+	exportXMLBytes, err := ioutil.ReadFile("testdata/export.xml")
+	assert.Nil(t, "getObjectRulesFromExportXML reading export.xml", err)
+	policyBytes, err := getObjectRulesFromExportXML(exportXMLBytes, "XMLFirewallService", "parse-cert")
+	assert.Nil(t, "getObjectRulesFromExportXML", err)
+	expectedPolicyBytes, err := ioutil.ReadFile("testdata/export-svc-policy.txt")
+	assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+	assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+}
+
 func TestGetFilePath(t *testing.T) {
 	testDataMatrix := [][]string{
 		{"local:/dir1/dir2", "myfile", "local:/dir1/dir2/myfile"},

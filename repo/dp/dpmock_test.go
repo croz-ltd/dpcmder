@@ -60,6 +60,15 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		}
 	case "https://my_dp_host:5554/mgmt/filestore/test/local/upload/test-existing-dir":
 		content, err = ioutil.ReadFile("testdata/get_file_local_existing_dir.json")
+	case "https://my_dp_host:5554/mgmt/actionqueue/tmp":
+		switch method {
+		case "POST":
+			content, err = ioutil.ReadFile("testdata/export-svc-post-response.json")
+		default:
+			return "", errs.Errorf("dpmock_test: Unrecognized method '%s'", method)
+		}
+	case "https://my_dp_host:5554/mgmt/actionqueue/tmp/pending/Export-20200228T061406Z-2":
+		content, err = ioutil.ReadFile("testdata/export-svc-pending-get.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
 		var opTag string
 		var opClass string
@@ -94,6 +103,14 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		}
 
 		if len(matches) == 0 {
+			r = regexp.MustCompile(`.*<man:(do-export) .*`)
+			matches = r.FindStringSubmatch(body)
+			if len(matches) == 2 {
+				opTag = matches[1]
+			}
+		}
+
+		if len(matches) == 0 {
 			fmt.Printf("dpmock_test: Unrecognized body of SOMA request:\n'%s'\n", body)
 			return "", errs.Error("dpmock_test: Unrecognized body of SOMA request")
 		}
@@ -124,6 +141,8 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			content, err = ioutil.ReadFile("testdata/update_file.xml")
 		case opTag == "set-file" && opFilePath == "local:/upload/test-existing-dir":
 			content, err = ioutil.ReadFile("testdata/update_file_existing_dir.xml")
+		case opTag == "do-export":
+			content, err = ioutil.ReadFile("testdata/export.soap")
 		default:
 			fmt.Printf("dpmock_test: Unrecognized SOMA request opTag: '%s', "+
 				"opClass: '%s', opObjClass: '%s', opLayoutOnly: '%s', opFilePath: '%s'.\n",
@@ -131,7 +150,7 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		}
 
 	default:
-		fmt.Printf("dpmock_test: Unrecognized urlFullPath '%s'.\n", urlFullPath)
+		fmt.Printf("dpmock_test: Unrecognized urlFullPath '%s' (%s).\n", urlFullPath, method)
 	}
 
 	return string(content), err

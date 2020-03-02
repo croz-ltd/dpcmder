@@ -1,0 +1,16 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/actionqueue/tmp"
+    },
+    "doc": {
+      "href": "/mgmt/docs/actionqueue"
+    },
+    "location": {
+      "href": "/mgmt/actionqueue/tmp/pending/Export-20200228T061406Z-2"
+    }
+  },
+  "Export": {
+    "status": "Action request accepted."
+  }
+}

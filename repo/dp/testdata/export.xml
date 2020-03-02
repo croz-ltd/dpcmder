@@ -1,0 +1,343 @@
+<?xml version="1.0"?>
+<datapower-configuration version="3">
+  <export-details>
+    <description>Exported Configuration</description>
+    <user>admin</user>
+    <domain>tmp</domain>
+    <comment>comments</comment>
+    <product-id>software</product-id>
+    <product>IDG</product>
+    <display-product>IDG</display-product>
+    <model>IBM DataPower Gateway</model>
+    <display-model>IBM DataPower Gateway</display-model>
+    <device-name>e163fbc6ed88</device-name>
+    <serial-number>0000001</serial-number>
+    <firmware-version>IDG.2018.4.1.3</firmware-version>
+    <display-firmware-version>IDG.2018.4.1.3</display-firmware-version>
+    <firmware-build>306649</firmware-build>
+    <delivery-type>LTS</delivery-type>
+    <firmware-timestamp>2019/02/26 21:50:50</firmware-timestamp>
+    <current-date>2020-03-02</current-date>
+    <current-time>02:55:22 EST</current-time>
+    <reset-date>2020-02-29</reset-date>
+    <reset-time>07:49:15 EST</reset-time>
+    <login-message/>
+    <custom-ui-file/>
+  </export-details>
+  <interface-data>
+    <interface name="eth0" type="Ethernet" vers="ipv4" ip-addr="172.17.0.2"/>
+  </interface-data>
+  <configuration domain="tmp">
+    <HTTPUserAgent xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="default" intrinsic="true">
+      <mAdminState>enabled</mAdminState>
+      <UserSummary>Default User Agent</UserSummary>
+      <MaxRedirects>8</MaxRedirects>
+      <Timeout>300</Timeout>
+    </HTTPUserAgent>
+    <XMLManager xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="default" intrinsic="true">
+      <mAdminState>enabled</mAdminState>
+      <UserSummary>Default XML-Manager</UserSummary>
+      <CacheSize>256</CacheSize>
+      <SHA1Caching>on</SHA1Caching>
+      <StaticDocumentCalls>on</StaticDocumentCalls>
+      <SearchResults>on</SearchResults>
+      <SupportTxWarn>off</SupportTxWarn>
+      <Memoization>on</Memoization>
+      <ParserLimitsBytesScanned>4194304</ParserLimitsBytesScanned>
+      <ParserLimitsElementDepth>512</ParserLimitsElementDepth>
+      <ParserLimitsAttributeCount>128</ParserLimitsAttributeCount>
+      <ParserLimitsMaxNodeSize>33554432</ParserLimitsMaxNodeSize>
+      <ParserLimitsForbidExternalReferences>on</ParserLimitsForbidExternalReferences>
+      <ParserLimitsExternalReferences>forbid</ParserLimitsExternalReferences>
+      <ParserLimitsMaxPrefixes>1024</ParserLimitsMaxPrefixes>
+      <ParserLimitsMaxNamespaces>1024</ParserLimitsMaxNamespaces>
+      <ParserLimitsMaxLocalNames>60000</ParserLimitsMaxLocalNames>
+      <DocCacheMaxDocs>5000</DocCacheMaxDocs>
+      <DocCacheSize>0</DocCacheSize>
+      <DocMaxWrites>32768</DocMaxWrites>
+      <UserAgent class="HTTPUserAgent">default</UserAgent>
+    </XMLManager>
+    <Matching xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="match-cert">
+      <mAdminState>enabled</mAdminState>
+      <MatchRules>
+        <Type>url</Type>
+        <HttpTag/>
+        <HttpValue/>
+        <Url>/CERT</Url>
+        <ErrorCode/>
+        <XPATHExpression/>
+        <Method>default</Method>
+        <CustomMethod/>
+      </MatchRules>
+      <MatchRules>
+        <Type>url</Type>
+        <HttpTag/>
+        <HttpValue/>
+        <Url>/cert</Url>
+        <ErrorCode/>
+        <XPATHExpression/>
+        <Method>default</Method>
+        <CustomMethod/>
+      </MatchRules>
+      <MatchRules>
+        <Type>http</Type>
+        <HttpTag>X-Type</HttpTag>
+        <HttpValue>CERT</HttpValue>
+        <Url/>
+        <ErrorCode/>
+        <XPATHExpression/>
+        <Method>default</Method>
+        <CustomMethod/>
+      </MatchRules>
+      <MatchRules>
+        <Type>fullyqualifiedurl</Type>
+        <HttpTag/>
+        <HttpValue/>
+        <Url>https://host:2000/cert</Url>
+        <ErrorCode/>
+        <XPATHExpression/>
+        <Method>default</Method>
+        <CustomMethod/>
+      </MatchRules>
+      <MatchWithPCRE>off</MatchWithPCRE>
+      <CombineWithOr>on</CombineWithOr>
+    </Matching>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy_rule_1_xform_0">
+      <mAdminState>enabled</mAdminState>
+      <Type>xform</Type>
+      <Input>INPUT</Input>
+      <Transform>local:///read-cert.xsl</Transform>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <Output>PIPE</Output>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <OutputType>default</OutputType>
+      <Transactional>off</Transactional>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy_rule_1_results_0">
+      <mAdminState>enabled</mAdminState>
+      <Type>results</Type>
+      <Input>PIPE</Input>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <OutputType>default</OutputType>
+      <Transactional>off</Transactional>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <StylePolicyRule xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy_rule_1">
+      <mAdminState>enabled</mAdminState>
+      <Actions class="StylePolicyAction">parse-cert-policy_rule_1_xform_0</Actions>
+      <Actions class="StylePolicyAction">parse-cert-policy_rule_1_results_0</Actions>
+      <Direction>rule</Direction>
+      <InputFormat>none</InputFormat>
+      <OutputFormat>none</OutputFormat>
+      <NonXMLProcessing>off</NonXMLProcessing>
+      <Unprocessed>off</Unprocessed>
+    </StylePolicyRule>
+    <Matching xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="match-all">
+      <mAdminState>enabled</mAdminState>
+      <MatchRules>
+        <Type>url</Type>
+        <HttpTag/>
+        <HttpValue/>
+        <Url>*</Url>
+        <ErrorCode/>
+        <XPATHExpression/>
+        <Method>default</Method>
+        <CustomMethod/>
+      </MatchRules>
+      <MatchWithPCRE>off</MatchWithPCRE>
+      <CombineWithOr>off</CombineWithOr>
+    </Matching>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy_rule_0_gatewayscript_0">
+      <mAdminState>enabled</mAdminState>
+      <Type>gatewayscript</Type>
+      <Input>INPUT</Input>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <GatewayScriptLocation>local:///der-decode.js</GatewayScriptLocation>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <Output>PIPE</Output>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <Transactional>off</Transactional>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy_rule_0_results_3">
+      <mAdminState>enabled</mAdminState>
+      <Type>results</Type>
+      <Input>PIPE</Input>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <OutputType>default</OutputType>
+      <Transactional>off</Transactional>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <StylePolicyRule xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy_rule_0">
+      <mAdminState>enabled</mAdminState>
+      <Actions class="StylePolicyAction">parse-cert-policy_rule_0_gatewayscript_0</Actions>
+      <Actions class="StylePolicyAction">parse-cert-policy_rule_0_results_3</Actions>
+      <Direction>rule</Direction>
+      <InputFormat>none</InputFormat>
+      <OutputFormat>none</OutputFormat>
+      <NonXMLProcessing>off</NonXMLProcessing>
+      <Unprocessed>off</Unprocessed>
+    </StylePolicyRule>
+    <StylePolicy xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert-policy">
+      <mAdminState>enabled</mAdminState>
+      <DefStylesheetForSoap>store:///filter-reject-all.xsl</DefStylesheetForSoap>
+      <DefStylesheetForXsl>store:///identity.xsl</DefStylesheetForXsl>
+      <DefXQueryForJSON>store:///reject-all-json.xq</DefXQueryForJSON>
+      <PolicyMaps>
+        <Match class="Matching">match-cert</Match>
+        <Rule class="StylePolicyRule">parse-cert-policy_rule_1</Rule>
+      </PolicyMaps>
+      <PolicyMaps>
+        <Match class="Matching">match-all</Match>
+        <Rule class="StylePolicyRule">parse-cert-policy_rule_0</Rule>
+      </PolicyMaps>
+    </StylePolicy>
+    <XMLFirewallService xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="parse-cert">
+      <mAdminState>enabled</mAdminState>
+      <LocalAddress>0.0.0.0</LocalAddress>
+      <UserSummary>parse-cert XML Firewall :)</UserSummary>
+      <Priority>normal</Priority>
+      <LocalPort>10000</LocalPort>
+      <HTTPTimeout>120</HTTPTimeout>
+      <HTTPPersistTimeout>180</HTTPPersistTimeout>
+      <DoHostRewrite>on</DoHostRewrite>
+      <SuppressHTTPWarnings>off</SuppressHTTPWarnings>
+      <HTTPCompression>off</HTTPCompression>
+      <HTTPIncludeResponseTypeEncoding>off</HTTPIncludeResponseTypeEncoding>
+      <AlwaysShowErrors>off</AlwaysShowErrors>
+      <DisallowGet>off</DisallowGet>
+      <DisallowEmptyResponse>off</DisallowEmptyResponse>
+      <HTTPPersistentConnections>on</HTTPPersistentConnections>
+      <HTTPClientIPLabel>X-Client-IP</HTTPClientIPLabel>
+      <HTTPLogCorIDLabel>X-Global-Transaction-ID</HTTPLogCorIDLabel>
+      <HTTPProxyPort>800</HTTPProxyPort>
+      <HTTPVersion>
+        <Front>HTTP/1.1</Front>
+        <Back>HTTP/1.1</Back>
+      </HTTPVersion>
+      <DoChunkedUpload>off</DoChunkedUpload>
+      <DefaultParamNamespace>http://www.datapower.com/param/config</DefaultParamNamespace>
+      <QueryParamNamespace>http://www.datapower.com/param/query</QueryParamNamespace>
+      <ForcePolicyExec>off</ForcePolicyExec>
+      <MonitorProcessingPolicy>terminate-at-first-throttle</MonitorProcessingPolicy>
+      <DebugMode persisted="false">off</DebugMode>
+      <DebuggerType>internal</DebuggerType>
+      <DebugHistory>25</DebugHistory>
+      <WebGUIMode>off</WebGUIMode>
+      <Type>loopback-proxy</Type>
+      <XMLManager class="XMLManager">default</XMLManager>
+      <StylePolicy class="StylePolicy">parse-cert-policy</StylePolicy>
+      <MaxMessageSize>0</MaxMessageSize>
+      <RequestType>preprocessed</RequestType>
+      <ResponseType>unprocessed</ResponseType>
+      <RequestAttachments>strip</RequestAttachments>
+      <ResponseAttachments>strip</ResponseAttachments>
+      <RootPartNotFirstAction>process-in-order</RootPartNotFirstAction>
+      <FrontAttachmentFormat>dynamic</FrontAttachmentFormat>
+      <BackAttachmentFormat>dynamic</BackAttachmentFormat>
+      <MIMEHeaders>on</MIMEHeaders>
+      <RewriteErrors>on</RewriteErrors>
+      <DelayErrors>on</DelayErrors>
+      <DelayErrorsDuration>1000</DelayErrorsDuration>
+      <SOAPSchemaURL>store:///schemas/soap-envelope.xsd</SOAPSchemaURL>
+      <WSDLResponsePolicy>off</WSDLResponsePolicy>
+      <FirewallParserLimits>off</FirewallParserLimits>
+      <ParserLimitsBytesScanned>4194304</ParserLimitsBytesScanned>
+      <ParserLimitsElementDepth>512</ParserLimitsElementDepth>
+      <ParserLimitsAttributeCount>128</ParserLimitsAttributeCount>
+      <ParserLimitsMaxNodeSize>33554432</ParserLimitsMaxNodeSize>
+      <ParserLimitsForbidExternalReferences>on</ParserLimitsForbidExternalReferences>
+      <ParserLimitsMaxPrefixes>1024</ParserLimitsMaxPrefixes>
+      <ParserLimitsMaxNamespaces>1024</ParserLimitsMaxNamespaces>
+      <ParserLimitsMaxLocalNames>60000</ParserLimitsMaxLocalNames>
+      <ParserLimitsAttachmentByteCount>2000000000</ParserLimitsAttachmentByteCount>
+      <ParserLimitsAttachmentPackageByteCount>0</ParserLimitsAttachmentPackageByteCount>
+      <ParserLimitsExternalReferences>forbid</ParserLimitsExternalReferences>
+      <CredentialCharset>protocol</CredentialCharset>
+      <SSLConfigType>proxy</SSLConfigType>
+    </XMLFirewallService>
+  </configuration>
+  <files/>
+</datapower-configuration>

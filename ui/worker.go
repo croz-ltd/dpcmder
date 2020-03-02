@@ -240,6 +240,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = toggleObjectMode(&workingModel)
 		case c == '?':
 			err = showItemInfo(&workingModel)
+		case c == 'P':
+			err = showObjectPolicy(&workingModel)
 		case c == 'h':
 			err = extprogs.ShowHelp()
 
@@ -1916,6 +1918,47 @@ func showItemInfo(m *model.Model) error {
 		}
 	default:
 		return errs.Error("Can't show info for non DataPower object.")
+	}
+
+	return nil
+}
+
+// showObjectPolicy shows policy (matches, rules & actions) for current object.
+func showObjectPolicy(m *model.Model) error {
+	logging.LogDebugf("worker/showObjectPolicy(), dp.Repo.ObjectConfigMode: %t",
+	 dp.Repo.ObjectConfigMode)
+
+	if !dp.Repo.ObjectConfigMode {
+		return errs.Error("Can't show policy for DataPower object if object mode is not active.")
+	}
+
+	currentItem := m.CurrItem()
+
+	switch currentItem.Config.Type {
+	case model.ItemDpObject:
+		updateStatusf("Fetching policy for object '%s' (%s) from domain '%s'.",
+			currentItem.Config.Name, currentItem.Config.Path,
+			currentItem.Config.DpDomain)
+		showProgressDialogf("Exporting object '%s' (%s) from domain '%s'...",
+			currentItem.Config.Name, currentItem.Config.Path,
+			currentItem.Config.DpDomain)
+		policyInfoBytes, err :=
+			dp.Repo.GetObjectPolicy(currentItem.Config.DpDomain,
+				currentItem.Config.Path, currentItem.Config.Name)
+		hideProgressDialog()
+		if err != nil {
+			return err
+		}
+		if policyInfoBytes != nil {
+			err = extprogs.View("*."+currentItem.Name, policyInfoBytes)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errs.Errorf("Can't show policy info for '%s' object.", currentItem.Name)
+		}
+	default:
+		return errs.Error("Can't show policy info for non DataPower object.")
 	}
 
 	return nil
