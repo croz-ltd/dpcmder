@@ -1,0 +1,11 @@
+WSGateway (test-ws-proxy)
+WSStylePolicy (test-ws-proxy)
+  Match (test-ws-proxy_match_all): [url(*)]
+  Rule (test-ws-proxy_default_request-rule / request-rule):
+    Action (INPUT -> test-ws-proxy_default_request-rule_defaultaction_slm -> NULL): slm()
+    Action (INPUT -> test-ws-proxy_default_request-rule_defaultaction_result -> OUTPUT): results()
+
+  Match (test-ws-proxy_match_all): [url(*)]
+  Rule (test-ws-proxy_default_response-rule / response-rule):
+    Action (INPUT -> test-ws-proxy_default_response-rule_defaultaction_result -> OUTPUT): results()
+

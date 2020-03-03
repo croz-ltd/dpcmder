@@ -1,0 +1,4 @@
+  Rule (test-ws-proxy_default_request-rule / request-rule):
+    Action (INPUT -> test-ws-proxy_default_request-rule_defaultaction_slm -> NULL): slm()
+    Action (INPUT -> test-ws-proxy_default_request-rule_defaultaction_result -> OUTPUT): results()
+

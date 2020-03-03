@@ -1282,7 +1282,7 @@ func TestGetObjectPolicy(t *testing.T) {
 
 		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
 		assert.Nil(t, "GetObjectPolicy", err)
-		expectedPolicyBytes, err := ioutil.ReadFile("testdata/export-svc-policy.txt")
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-xmlfw.txt")
 		assert.Nil(t, "GetObjectPolicy error reading expected policy info", err)
 		assert.Equals(t, "GetObjectPolicy", string(policyBytes), string(expectedPolicyBytes))
 	})
@@ -1293,20 +1293,69 @@ func TestGetObjectPolicy(t *testing.T) {
 
 		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
 		assert.Nil(t, "GetObjectPolicy", err)
-		expectedPolicyBytes, err := ioutil.ReadFile("testdata/export-svc-policy.txt")
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-xmlfw.txt")
 		assert.Nil(t, "GetObjectPolicy error reading expected policy info", err)
 		assert.Equals(t, "GetObjectPolicy", string(policyBytes), string(expectedPolicyBytes))
 	})
 }
 
-func TestGetObjectRulesFromExportXML(t *testing.T) {
+func TestGetObjectDetailsFromExportXML(t *testing.T) {
 	exportXMLBytes, err := ioutil.ReadFile("testdata/export.xml")
 	assert.Nil(t, "getObjectRulesFromExportXML reading export.xml", err)
-	policyBytes, err := getObjectRulesFromExportXML(exportXMLBytes, "XMLFirewallService", "parse-cert")
-	assert.Nil(t, "getObjectRulesFromExportXML", err)
-	expectedPolicyBytes, err := ioutil.ReadFile("testdata/export-svc-policy.txt")
-	assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
-	assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+
+	t.Run("getObjectRulesFromExportXML XMLFirewall", func(t *testing.T) {
+		policyBytes, err := getObjectDetailsFromExportXML(exportXMLBytes,
+			"XMLFirewallService", "parse-cert")
+		assert.Nil(t, "getObjectRulesFromExportXML", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-xmlfw.txt")
+		assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+		assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+	})
+
+	t.Run("getObjectRulesFromExportXML WSGateway", func(t *testing.T) {
+		policyBytes, err := getObjectDetailsFromExportXML(exportXMLBytes,
+			"WSGateway", "test-ws-proxy")
+		assert.Nil(t, "getObjectRulesFromExportXML", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-wsg.txt")
+		assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+		assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+	})
+
+	t.Run("getObjectRulesFromExportXML B2BProfile", func(t *testing.T) {
+		policyBytes, err := getObjectDetailsFromExportXML(exportXMLBytes,
+			"B2BProfile", "test-b2b-profile")
+		assert.Nil(t, "getObjectRulesFromExportXML", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-b2bp.txt")
+		assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+		assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+	})
+
+	t.Run("getObjectRulesFromExportXML WSStypePolicy", func(t *testing.T) {
+		policyBytes, err := getObjectDetailsFromExportXML(exportXMLBytes,
+			"WSStylePolicy", "test-ws-proxy")
+		assert.Nil(t, "getObjectRulesFromExportXML", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-policy-wsg.txt")
+		assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+		assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+	})
+
+	t.Run("getObjectRulesFromExportXML Matching", func(t *testing.T) {
+		policyBytes, err := getObjectDetailsFromExportXML(exportXMLBytes,
+			"Matching", "match-cert")
+		assert.Nil(t, "getObjectRulesFromExportXML", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-match-cert.txt")
+		assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+		assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+	})
+
+	t.Run("getObjectRulesFromExportXML WSStylePolicyRule", func(t *testing.T) {
+		policyBytes, err := getObjectDetailsFromExportXML(exportXMLBytes,
+			"WSStylePolicyRule", "test-ws-proxy_default_request-rule")
+		assert.Nil(t, "getObjectRulesFromExportXML", err)
+		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-rule-wsg.txt")
+		assert.Nil(t, "getObjectRulesFromExportXML error reading expected policy info", err)
+		assert.Equals(t, "getObjectRulesFromExportXML", string(policyBytes), string(expectedPolicyBytes))
+	})
 }
 
 func TestGetFilePath(t *testing.T) {

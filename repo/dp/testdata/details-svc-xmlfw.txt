@@ -1,0 +1,12 @@
+XMLFirewallService (parse-cert)
+StylePolicy (parse-cert-policy)
+  Match (match-cert): [url(/CERT) url(/cert) http(X-Type: CERT) fullyqualifiedurl(https://host:2000/cert)]
+  Rule (parse-cert-policy_rule_1 / rule):
+    Action (INPUT -> parse-cert-policy_rule_1_xform_0 -> PIPE): xform(local:///read-cert.xsl)
+    Action (PIPE -> parse-cert-policy_rule_1_results_0 -> ): results()
+
+  Match (match-all): [url(*)]
+  Rule (parse-cert-policy_rule_0 / rule):
+    Action (INPUT -> parse-cert-policy_rule_0_gatewayscript_0 -> PIPE): gatewayscript(local:///der-decode.js)
+    Action (PIPE -> parse-cert-policy_rule_0_results_3 -> ): results()
+

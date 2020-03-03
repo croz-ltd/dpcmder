@@ -232,6 +232,11 @@ S                    - save running DataPower configuration (SOMA only)
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
 ?                    - show status information for the current DataPower object
+P                    - show DataPower policy for the current DataPower object
+                       (can be used only on service, policy, matches,rules & actions)
+                       exports the current DataPower object, analyzes it and
+                       shows service, policy, matches, rules and actions for
+                       the object
 h                    - show help
 q                    - quit
 any-other-char       - show help (+ hex value of the key pressed visible in the status bar)

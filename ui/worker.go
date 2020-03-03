@@ -241,7 +241,7 @@ func ProcessInputEvent(event tcell.Event) error {
 		case c == '?':
 			err = showItemInfo(&workingModel)
 		case c == 'P':
-			err = showObjectPolicy(&workingModel)
+			err = showObjectDetails(&workingModel)
 		case c == 'h':
 			err = extprogs.ShowHelp()
 
@@ -1923,8 +1923,9 @@ func showItemInfo(m *model.Model) error {
 	return nil
 }
 
-// showObjectPolicy shows policy (matches, rules & actions) for current object.
-func showObjectPolicy(m *model.Model) error {
+// showObjectDetails shows details (service, policy, matches, rules & actions)
+// for the current object.
+func showObjectDetails(m *model.Model) error {
 	logging.LogDebugf("worker/showObjectPolicy(), dp.Repo.ObjectConfigMode: %t",
 	 dp.Repo.ObjectConfigMode)
 
@@ -1936,6 +1937,27 @@ func showObjectPolicy(m *model.Model) error {
 
 	switch currentItem.Config.Type {
 	case model.ItemDpObject:
+		switch currentItem.Config.Path {
+		case "B2BProfile",
+         "MultiProtocolGateway",
+         "WSGateway",
+         "XMLFirewallService",
+         "XSLProxyService",
+         "WebAppFW",
+         "WebTokenService",
+         "WSStylePolicy",
+         "StylePolicy",
+         "Matching",
+         "StylePolicyRule",
+         "WSStylePolicyRule",
+         "RequestStylePolicyRule",
+         "ResponseStylePolicyRule",
+         "ErrorStylePolicyRule":
+		default:
+			return errs.Errorf("Can't show policy for object of class '%s'.",
+				currentItem.Config.Path)
+		}
+
 		updateStatusf("Fetching policy for object '%s' (%s) from domain '%s'.",
 			currentItem.Config.Name, currentItem.Config.Path,
 			currentItem.Config.DpDomain)

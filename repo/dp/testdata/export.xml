@@ -17,10 +17,10 @@
     <firmware-build>306649</firmware-build>
     <delivery-type>LTS</delivery-type>
     <firmware-timestamp>2019/02/26 21:50:50</firmware-timestamp>
-    <current-date>2020-03-02</current-date>
-    <current-time>02:55:22 EST</current-time>
-    <reset-date>2020-02-29</reset-date>
-    <reset-time>07:49:15 EST</reset-time>
+    <current-date>2020-03-03</current-date>
+    <current-time>04:38:21 EST</current-time>
+    <reset-date>2020-03-01</reset-date>
+    <reset-time>00:22:58 EST</reset-time>
     <login-message/>
     <custom-ui-file/>
   </export-details>
@@ -338,6 +338,470 @@
       <CredentialCharset>protocol</CredentialCharset>
       <SSLConfigType>proxy</SSLConfigType>
     </XMLFirewallService>
+    <HTTPSourceProtocolHandler xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy-http-handler">
+      <mAdminState>enabled</mAdminState>
+      <LocalAddress>0.0.0.0</LocalAddress>
+      <LocalPort>10021</LocalPort>
+      <HTTPVersion>HTTP/1.1</HTTPVersion>
+      <AllowedFeatures>
+        <HTTP-1.0>on</HTTP-1.0>
+        <HTTP-1.1>on</HTTP-1.1>
+        <HTTP-2.0>off</HTTP-2.0>
+        <POST>on</POST>
+        <GET>off</GET>
+        <PUT>on</PUT>
+        <HEAD>off</HEAD>
+        <OPTIONS>off</OPTIONS>
+        <TRACE>off</TRACE>
+        <DELETE>off</DELETE>
+        <CONNECT>off</CONNECT>
+        <CustomMethods>off</CustomMethods>
+        <QueryString>on</QueryString>
+        <FragmentIdentifiers>on</FragmentIdentifiers>
+        <DotDot>off</DotDot>
+        <CmdExe>off</CmdExe>
+      </AllowedFeatures>
+      <PersistentConnections>on</PersistentConnections>
+      <MaxPersistentConnectionsReuse>0</MaxPersistentConnectionsReuse>
+      <AllowCompression>off</AllowCompression>
+      <AllowWebSocketUpgrade>off</AllowWebSocketUpgrade>
+      <WebSocketIdleTimeout>0</WebSocketIdleTimeout>
+      <MaxURLLen>16384</MaxURLLen>
+      <MaxTotalHdrLen>128000</MaxTotalHdrLen>
+      <MaxHdrCount>0</MaxHdrCount>
+      <MaxNameHdrLen>0</MaxNameHdrLen>
+      <MaxValueHdrLen>0</MaxValueHdrLen>
+      <MaxQueryStringLen>0</MaxQueryStringLen>
+      <CredentialCharset>protocol</CredentialCharset>
+      <HTTP2MaxStreams>100</HTTP2MaxStreams>
+      <HTTP2MaxFrameSize>16384</HTTP2MaxFrameSize>
+      <HTTP2StreamHeader>off</HTTP2StreamHeader>
+      <ChunkedEncoding>on</ChunkedEncoding>
+    </HTTPSourceProtocolHandler>
+    <WSEndpointRewritePolicy xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy">
+      <mAdminState>enabled</mAdminState>
+      <WSEndpointLocalRewriteRule>
+        <ServicePortMatchRegexp>^{urn:webservice:echoservice:1.0.0}EchoServiceSOAP$</ServicePortMatchRegexp>
+        <LocalEndpointProtocol>default</LocalEndpointProtocol>
+        <LocalEndpointHostname>0.0.0.0</LocalEndpointHostname>
+        <LocalEndpointPort>0</LocalEndpointPort>
+        <LocalEndpointURI>/</LocalEndpointURI>
+        <FrontProtocol class="HTTPSourceProtocolHandler">test-ws-proxy-http-handler</FrontProtocol>
+        <UseFrontProtocol>on</UseFrontProtocol>
+        <WSDLBindingProtocol>soap-11</WSDLBindingProtocol>
+        <FrontsidePortSuffix/>
+      </WSEndpointLocalRewriteRule>
+      <WSEndpointRemoteRewriteRule>
+        <ServicePortMatchRegexp>^{urn:webservice:echoservice:1.0.0}EchoServiceSOAP$</ServicePortMatchRegexp>
+        <RemoteEndpointProtocol>http</RemoteEndpointProtocol>
+        <RemoteEndpointHostname>echo.local</RemoteEndpointHostname>
+        <RemoteEndpointPort>80</RemoteEndpointPort>
+        <RemoteEndpointURI>/</RemoteEndpointURI>
+        <RemoteMQQM/>
+        <RemoteTibcoEMS/>
+        <RemoteWebSphereJMS/>
+      </WSEndpointRemoteRewriteRule>
+    </WSEndpointRewritePolicy>
+    <Matching xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_match_all">
+      <mAdminState>enabled</mAdminState>
+      <MatchRules>
+        <Type>url</Type>
+        <HttpTag/>
+        <HttpValue/>
+        <Url>*</Url>
+        <ErrorCode/>
+        <XPATHExpression/>
+        <Method>default</Method>
+        <CustomMethod/>
+      </MatchRules>
+      <MatchWithPCRE>off</MatchWithPCRE>
+      <CombineWithOr>off</CombineWithOr>
+    </Matching>
+    <SLMPolicy xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy">
+      <mAdminState>enabled</mAdminState>
+      <ExecutionPolicy>execute-all-statements</ExecutionPolicy>
+      <APIMgmt>off</APIMgmt>
+    </SLMPolicy>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_default_request-rule_defaultaction_slm">
+      <mAdminState>enabled</mAdminState>
+      <Type>slm</Type>
+      <Input>INPUT</Input>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <Output>NULL</Output>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <Transactional>off</Transactional>
+      <SLMPolicy>test-ws-proxy</SLMPolicy>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_default_request-rule_defaultaction_result">
+      <mAdminState>enabled</mAdminState>
+      <Type>results</Type>
+      <Input>INPUT</Input>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <Output>OUTPUT</Output>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <OutputType>default</OutputType>
+      <Transactional>off</Transactional>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <WSStylePolicyRule xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_default_request-rule">
+      <mAdminState>enabled</mAdminState>
+      <Actions class="StylePolicyAction">test-ws-proxy_default_request-rule_defaultaction_slm</Actions>
+      <Actions class="StylePolicyAction">test-ws-proxy_default_request-rule_defaultaction_result</Actions>
+      <Direction>request-rule</Direction>
+      <InputFormat>none</InputFormat>
+      <OutputFormat>none</OutputFormat>
+      <NonXMLProcessing>off</NonXMLProcessing>
+      <Unprocessed>off</Unprocessed>
+    </WSStylePolicyRule>
+    <StylePolicyAction xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_default_response-rule_defaultaction_result">
+      <mAdminState>enabled</mAdminState>
+      <Type>results</Type>
+      <Input>INPUT</Input>
+      <ParseSettingsReference>
+        <URL/>
+        <Literal/>
+        <Default/>
+      </ParseSettingsReference>
+      <ParseMetricsResultType>none</ParseMetricsResultType>
+      <TransformLanguage>none</TransformLanguage>
+      <ActionDebug persisted="false">off</ActionDebug>
+      <Output>OUTPUT</Output>
+      <NamedInOutLocationType>default</NamedInOutLocationType>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <OutputType>default</OutputType>
+      <Transactional>off</Transactional>
+      <SOAPValidation>body</SOAPValidation>
+      <SQLSourceType>static</SQLSourceType>
+      <JWSVerifyStripSignature>on</JWSVerifyStripSignature>
+      <Asynchronous>off</Asynchronous>
+      <ResultsMode>first-available</ResultsMode>
+      <RetryCount>0</RetryCount>
+      <RetryInterval>1000</RetryInterval>
+      <MultipleOutputs>off</MultipleOutputs>
+      <IteratorType>XPATH</IteratorType>
+      <Timeout>0</Timeout>
+      <MethodRewriteType>GET</MethodRewriteType>
+      <MethodType>POST</MethodType>
+      <MethodType2>POST</MethodType2>
+    </StylePolicyAction>
+    <WSStylePolicyRule xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_default_response-rule">
+      <mAdminState>enabled</mAdminState>
+      <Actions class="StylePolicyAction">test-ws-proxy_default_response-rule_defaultaction_result</Actions>
+      <Direction>response-rule</Direction>
+      <InputFormat>none</InputFormat>
+      <OutputFormat>none</OutputFormat>
+      <NonXMLProcessing>off</NonXMLProcessing>
+      <Unprocessed>off</Unprocessed>
+    </WSStylePolicyRule>
+    <WSStylePolicy xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy">
+      <mAdminState>enabled</mAdminState>
+      <DefStylesheetForSoap>store:///filter-reject-all.xsl</DefStylesheetForSoap>
+      <DefStylesheetForXsl>store:///identity.xsl</DefStylesheetForXsl>
+      <PolicyMaps>
+        <WSDLComponentType>fragmentid</WSDLComponentType>
+        <WSDLComponentValue/>
+        <Match class="Matching">test-ws-proxy_match_all</Match>
+        <Rule class="WSStylePolicyRule">test-ws-proxy_default_request-rule</Rule>
+        <Subscription/>
+        <WSDLFragmentID>http://www.datapower.com/fragment-id#dp.all()</WSDLFragmentID>
+      </PolicyMaps>
+      <PolicyMaps>
+        <WSDLComponentType>fragmentid</WSDLComponentType>
+        <WSDLComponentValue/>
+        <Match class="Matching">test-ws-proxy_match_all</Match>
+        <Rule class="WSStylePolicyRule">test-ws-proxy_default_response-rule</Rule>
+        <Subscription/>
+        <WSDLFragmentID>http://www.datapower.com/fragment-id#dp.all()</WSDLFragmentID>
+      </PolicyMaps>
+    </WSStylePolicy>
+    <PolicyAttachments xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy_Echo.wsdl">
+      <mAdminState>enabled</mAdminState>
+      <EnforcementMode>enforce</EnforcementMode>
+      <PolicyReferences>on</PolicyReferences>
+      <SLAEnforcementMode>allow-if-no-sla</SLAEnforcementMode>
+    </PolicyAttachments>
+    <WSGateway xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-ws-proxy">
+      <mAdminState>enabled</mAdminState>
+      <Priority>normal</Priority>
+      <XMLManager class="XMLManager">default</XMLManager>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+      <DefaultParamNamespace>http://www.datapower.com/param/config</DefaultParamNamespace>
+      <QueryParamNamespace>http://www.datapower.com/param/query</QueryParamNamespace>
+      <PropagateURI>off</PropagateURI>
+      <MonitorProcessingPolicy>terminate-at-first-throttle</MonitorProcessingPolicy>
+      <RequestAttachments>strip</RequestAttachments>
+      <ResponseAttachments>strip</ResponseAttachments>
+      <RequestAttachmentsFlowControl>off</RequestAttachmentsFlowControl>
+      <ResponseAttachmentsFlowControl>off</ResponseAttachmentsFlowControl>
+      <RootPartNotFirstAction>process-in-order</RootPartNotFirstAction>
+      <FrontAttachmentFormat>dynamic</FrontAttachmentFormat>
+      <BackAttachmentFormat>dynamic</BackAttachmentFormat>
+      <MIMEFrontHeaders>on</MIMEFrontHeaders>
+      <MIMEBackHeaders>on</MIMEBackHeaders>
+      <StreamOutputToBack>buffer-until-verification</StreamOutputToBack>
+      <StreamOutputToFront>buffer-until-verification</StreamOutputToFront>
+      <MaxMessageSize>0</MaxMessageSize>
+      <GatewayParserLimits>off</GatewayParserLimits>
+      <ParserLimitsElementDepth>512</ParserLimitsElementDepth>
+      <ParserLimitsAttributeCount>128</ParserLimitsAttributeCount>
+      <ParserLimitsMaxNodeSize>33554432</ParserLimitsMaxNodeSize>
+      <ParserLimitsForbidExternalReferences>on</ParserLimitsForbidExternalReferences>
+      <ParserLimitsExternalReferences>forbid</ParserLimitsExternalReferences>
+      <ParserLimitsMaxPrefixes>1024</ParserLimitsMaxPrefixes>
+      <ParserLimitsMaxNamespaces>1024</ParserLimitsMaxNamespaces>
+      <ParserLimitsMaxLocalNames>60000</ParserLimitsMaxLocalNames>
+      <ParserLimitsAttachmentByteCount>2000000000</ParserLimitsAttachmentByteCount>
+      <ParserLimitsAttachmentPackageByteCount>0</ParserLimitsAttachmentPackageByteCount>
+      <DebugMode persisted="false">off</DebugMode>
+      <DebuggerType>internal</DebuggerType>
+      <DebugHistory>25</DebugHistory>
+      <FlowControl>off</FlowControl>
+      <SOAPSchemaURL>store:///schemas/soap-envelope.xsd</SOAPSchemaURL>
+      <FrontTimeout>120</FrontTimeout>
+      <BackTimeout>120</BackTimeout>
+      <FrontPersistentTimeout>180</FrontPersistentTimeout>
+      <BackPersistentTimeout>180</BackPersistentTimeout>
+      <IncludeResponseTypeEncoding>off</IncludeResponseTypeEncoding>
+      <BackHTTPVersion>HTTP/1.1</BackHTTPVersion>
+      <PersistentConnections>on</PersistentConnections>
+      <LoopDetection>off</LoopDetection>
+      <DoHostRewriting>on</DoHostRewriting>
+      <DoChunkedUpload>off</DoChunkedUpload>
+      <ProcessHTTPErrors>on</ProcessHTTPErrors>
+      <HTTPClientIPLabel>X-Client-IP</HTTPClientIPLabel>
+      <HTTPLogCorIDLabel>X-Global-Transaction-ID</HTTPLogCorIDLabel>
+      <InOrderMode>
+        <Request>off</Request>
+        <Backend>off</Backend>
+        <Response>off</Response>
+      </InOrderMode>
+      <WSAMode>sync2sync</WSAMode>
+      <WSARequireAAA>on</WSARequireAAA>
+      <WSAStrip>on</WSAStrip>
+      <WSADefaultReplyTo>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</WSADefaultReplyTo>
+      <WSADefaultFaultTo>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</WSADefaultFaultTo>
+      <WSAForce>off</WSAForce>
+      <WSAGenStyle>sync</WSAGenStyle>
+      <WSAHTTPAsyncResponseCode>204</WSAHTTPAsyncResponseCode>
+      <WSATimeout>120</WSATimeout>
+      <WSRMEnabled>off</WSRMEnabled>
+      <WSRMSequenceExpiration>3600</WSRMSequenceExpiration>
+      <WSRMDestinationAcceptCreateSequence>on</WSRMDestinationAcceptCreateSequence>
+      <WSRMDestinationMaximumSequences>400</WSRMDestinationMaximumSequences>
+      <WSRMDestinationInOrder>off</WSRMDestinationInOrder>
+      <WSRMDestinationMaximumInOrderQueueLength>10</WSRMDestinationMaximumInOrderQueueLength>
+      <WSRMDestinationAcceptOffers>off</WSRMDestinationAcceptOffers>
+      <WSRMFrontForce>off</WSRMFrontForce>
+      <WSRMBackForce>off</WSRMBackForce>
+      <WSRMBackCreateSequence>off</WSRMBackCreateSequence>
+      <WSRMFrontCreateSequence>off</WSRMFrontCreateSequence>
+      <WSRMSourceMakeOffer>off</WSRMSourceMakeOffer>
+      <WSRMUsesSequenceSSL>off</WSRMUsesSequenceSSL>
+      <WSRMSourceMaximumSequences>400</WSRMSourceMaximumSequences>
+      <WSRMSourceRetransmissionInterval>10</WSRMSourceRetransmissionInterval>
+      <WSRMSourceExponentialBackoff>on</WSRMSourceExponentialBackoff>
+      <WSRMSourceMaximumRetransmissions>4</WSRMSourceMaximumRetransmissions>
+      <WSRMSourceMaximumQueueLength>30</WSRMSourceMaximumQueueLength>
+      <WSRMSourceRequestAckCount>1</WSRMSourceRequestAckCount>
+      <WSRMSourceInactivityClose>360</WSRMSourceInactivityClose>
+      <ForcePolicyExec>off</ForcePolicyExec>
+      <RewriteErrors>on</RewriteErrors>
+      <DelayErrors>on</DelayErrors>
+      <DelayErrorsDuration>3000</DelayErrorsDuration>
+      <RequestType>soap</RequestType>
+      <ResponseType>soap</ResponseType>
+      <FollowRedirects>on</FollowRedirects>
+      <AllowCompression>off</AllowCompression>
+      <AllowCacheControlHeader>off</AllowCacheControlHeader>
+      <Type>static-from-wsdl</Type>
+      <AutoCreateSources>off</AutoCreateSources>
+      <SSLServerConfigType>proxy</SSLServerConfigType>
+      <EndpointRewritePolicy class="WSEndpointRewritePolicy">test-ws-proxy</EndpointRewritePolicy>
+      <StylePolicy class="WSStylePolicy">test-ws-proxy</StylePolicy>
+      <RemoteFetchRetry>
+        <AutomaticRetry>off</AutomaticRetry>
+        <RetryInterval>1</RetryInterval>
+        <ReportingInterval>1</ReportingInterval>
+        <TotalRetries>1</TotalRetries>
+      </RemoteFetchRetry>
+      <BaseWSDL>
+        <WSDLSourceLocation>local:///Echo.wsdl</WSDLSourceLocation>
+        <WSDLName>Echo.wsdl</WSDLName>
+        <PolicyAttachments class="PolicyAttachments">test-ws-proxy_Echo.wsdl</PolicyAttachments>
+      </BaseWSDL>
+      <EncryptedKeySHA1CacheLifeTime>0</EncryptedKeySHA1CacheLifeTime>
+      <PreserveKeyChain>off</PreserveKeyChain>
+      <DecryptWithKeyFromED>off</DecryptWithKeyFromED>
+      <SOAPActionPolicy>lax</SOAPActionPolicy>
+      <WSMAgentMonitor>on</WSMAgentMonitor>
+      <WSMAgentMonitorPCM>all-messages</WSMAgentMonitorPCM>
+      <ProcessRespRulesOnOneWayMEP>off</ProcessRespRulesOnOneWayMEP>
+    </WSGateway>
+    <SMTPServerConnection xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="default" intrinsic="true">
+      <mAdminState>enabled</mAdminState>
+      <UserSummary>Default SMTP Server Connection</UserSummary>
+      <MailServerHost>smtp</MailServerHost>
+      <MailServerPort>25</MailServerPort>
+      <Auth>plain</Auth>
+      <SSLClientConfigType>proxy</SSLClientConfigType>
+    </SMTPServerConnection>
+    <B2BProfile xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:dp="http://www.datapower.com/schemas/management" name="test-b2b-profile">
+      <mAdminState>enabled</mAdminState>
+      <ProfileType>internal</ProfileType>
+      <CustomStylePolicy class="StylePolicy">parse-cert-policy</CustomStylePolicy>
+      <ResponseType>preprocessed</ResponseType>
+      <Destinations>
+        <DestName>test-b2b-destination</DestName>
+        <DestURL>as1://</DestURL>
+        <EnabledDocType>
+          <EnableXML>on</EnableXML>
+          <EnableX12>on</EnableX12>
+          <EnableEDIFACT>on</EnableEDIFACT>
+          <EnableBinary>on</EnableBinary>
+        </EnabledDocType>
+        <SMTPServerConnection class="SMTPServerConnection">default</SMTPServerConnection>
+        <EmailAddress>test@test.local</EmailAddress>
+        <SSHClientConnection/>
+        <UseUniqueFilenames>off</UseUniqueFilenames>
+        <SSLProxy/>
+        <OverrideTimeout>300</OverrideTimeout>
+        <EnableFTPSettings>off</EnableFTPSettings>
+        <UserName/>
+        <Password/>
+        <PasswordAlias/>
+        <EBMSMPCAuthMethod>username-token</EBMSMPCAuthMethod>
+        <UserNameToken/>
+        <UserNameTokenPassword/>
+        <UserNameTokenPasswordAlias/>
+        <EBMSMPCVerifyValCred/>
+        <Passive>pasv-req</Passive>
+        <AuthTLS>auth-off</AuthTLS>
+        <UseCCC>ccc-off</UseCCC>
+        <EncryptData>enc-data-off</EncryptData>
+        <DataType>binary</DataType>
+        <SlashSTOU>slash-stou-on</SlashSTOU>
+        <QuotedCommands/>
+        <SizeCheck>size-check-optional</SizeCheck>
+        <BinaryTransferMode>auto-detect</BinaryTransferMode>
+        <ASCompress>off</ASCompress>
+        <ASCompressBeforeSign>off</ASCompressBeforeSign>
+        <ASSendUnsigned>off</ASSendUnsigned>
+        <ASEncrypt>off</ASEncrypt>
+        <ASEncryptCert/>
+        <ASMDNRequest>off</ASMDNRequest>
+        <ASMDNRequestAsync>off</ASMDNRequestAsync>
+        <AS1MDNRedirectEmail/>
+        <AS2MDNRedirectURL/>
+        <AS3MDNRedirectURL/>
+        <ASMDNRequestSigned>off</ASMDNRequestSigned>
+        <Retransmit>off</Retransmit>
+        <ACKTime>1800</ACKTime>
+        <MaxResends>3</MaxResends>
+        <ASEncryptAlg>3des</ASEncryptAlg>
+        <ASMDNRequestSignedAlgs>sha1,md5</ASMDNRequestSignedAlgs>
+        <EBMSCpaId/>
+        <EBMSService/>
+        <EBMSServiceType/>
+        <EBMSAction/>
+        <EBMSSendUnsigned>off</EBMSSendUnsigned>
+        <EBMSEncrypt>off</EBMSEncrypt>
+        <EBMSEncryptCert/>
+        <EBMSEncryptAlg>http://www.w3.org/2001/04/xmlenc#tripledes-cbc</EBMSEncryptAlg>
+        <EBMSDuplicateEliminationRequest>on</EBMSDuplicateEliminationRequest>
+        <EBMSAckRequest>off</EBMSAckRequest>
+        <EBMSAckRequestSigned>off</EBMSAckRequestSigned>
+        <EBMSSyncReplyMode>none</EBMSSyncReplyMode>
+        <EBMSRetry>off</EBMSRetry>
+        <EBMSMaxRetries>3</EBMSMaxRetries>
+        <EBMSRetryInterval>1800</EBMSRetryInterval>
+        <EBMSIncludeTimeToLive>on</EBMSIncludeTimeToLive>
+        <SSLClientConfigType>proxy</SSLClientConfigType>
+        <SSLClient/>
+        <EBMSMessageExchangePattern>one-way-push</EBMSMessageExchangePattern>
+        <EBMSMessagePartitionChannel/>
+        <EBMSOutboundRequestReceipt>off</EBMSOutboundRequestReceipt>
+        <EBMSOutboundRequestSignedReceipt>off</EBMSOutboundRequestSignedReceipt>
+        <EBMSOutboundReceiptReplyPattern>Response</EBMSOutboundReceiptReplyPattern>
+        <EBMSOutboundReceptionAwarenessNotification>off</EBMSOutboundReceptionAwarenessNotification>
+        <EBMSOutboundReceptionAwarenessTimeout>300</EBMSOutboundReceptionAwarenessTimeout>
+        <EBMSCompress>off</EBMSCompress>
+      </Destinations>
+      <InboundRequireSigned>off</InboundRequireSigned>
+      <InboundRequireEncrypted>off</InboundRequireEncrypted>
+      <OutboundSign>off</OutboundSign>
+      <OutboundSignDigestAlg>sha1</OutboundSignDigestAlg>
+      <OutboundSignMICAlgVersion>SMIME3.1</OutboundSignMICAlgVersion>
+      <ASAllowDuplicateMessage>never</ASAllowDuplicateMessage>
+      <PreserveFilename>off</PreserveFilename>
+      <EBMSPersistDuration>0</EBMSPersistDuration>
+      <EBMSInboundSendReceipt>off</EBMSInboundSendReceipt>
+      <EBMSInboundSendSignedReceipt>off</EBMSInboundSendSignedReceipt>
+      <EBMSInboundReceiptReplyPattern>Response</EBMSInboundReceiptReplyPattern>
+      <EBMSInboundRequireSigned>off</EBMSInboundRequireSigned>
+      <EBMSInboundRequireEncrypted>off</EBMSInboundRequireEncrypted>
+      <EBMSOutboundSign>off</EBMSOutboundSign>
+      <EBMSOutboundSignatureAlg>dsa-sha1</EBMSOutboundSignatureAlg>
+      <EBMSOutboundSignatureC14NAlg>c14n</EBMSOutboundSignatureC14NAlg>
+      <EBMSOutboundSignDigestAlg>sha1</EBMSOutboundSignDigestAlg>
+      <EBMSEnableCPABinding>off</EBMSEnableCPABinding>
+      <EBMSStartParameter>off</EBMSStartParameter>
+      <EBMSAllowDuplicateMessage>never</EBMSAllowDuplicateMessage>
+      <MDNSSLClientConfigType>proxy</MDNSSLClientConfigType>
+      <EBMSAckSSLClientConfigType>proxy</EBMSAckSSLClientConfigType>
+      <EBMS3OutboundSign>off</EBMS3OutboundSign>
+      <EBMS3OutboundSignDigestAlg>sha1</EBMS3OutboundSignDigestAlg>
+      <EBMS3OutboundSignatureAlg>rsa-sha1</EBMS3OutboundSignatureAlg>
+      <EBMS3OutboundSignatureC14NAlg>exc-c14n</EBMS3OutboundSignatureC14NAlg>
+      <EBMS3InboundRequireSigned>off</EBMS3InboundRequireSigned>
+      <EBMS3InboundRequireEncrypted>off</EBMS3InboundRequireEncrypted>
+      <EBMS3InboundRequireCompressed>off</EBMS3InboundRequireCompressed>
+      <EBMS3ReceiptSSLClientConfigType>proxy</EBMS3ReceiptSSLClientConfigType>
+      <EBMSNotification>off</EBMSNotification>
+      <EBMSNotificationSSLClientConfigType>proxy</EBMSNotificationSSLClientConfigType>
+      <EBMS3AllowDuplicateMessage>never</EBMS3AllowDuplicateMessage>
+      <EBMS3DuplicateDetectionNotification>off</EBMS3DuplicateDetectionNotification>
+    </B2BProfile>
   </configuration>
   <files/>
 </datapower-configuration>
