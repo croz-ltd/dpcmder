@@ -23,6 +23,12 @@ Current functions:
   - turn on to automatically upload new and changed files from a local filesystem to a DataPower
   - useful for development to automatically propagate your changes from any IDE/editor you are using to DataPower
 
+![dpcmder export domain](./docs/dp_domain_export.gif)
+
+You can check some [dpcmder screenshots](./docs/screenshots.md) to better see
+typical uses of dpcmder in daily work.
+
+
 ## Download
 
 If you don't want to build applications yourself (or run it using "go run"),
