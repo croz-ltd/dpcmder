@@ -135,7 +135,8 @@ func (r localRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType
 		return false, err
 	}
 	filePath := r.GetFilePath(parentPath, fileName)
-	logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileType: %v", parentPath, fileName, fileType)
+	logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileName: '%s', fileType: %v",
+		parentPath, fileName, fileType)
 
 	switch fileType {
 	case model.ItemFile:
@@ -143,7 +144,8 @@ func (r localRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType
 	case model.ItemDirectory:
 		subFiles, err := ioutil.ReadDir(filePath)
 		if err != nil {
-			logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileType: %v - err: %v", parentPath, fileName, fileType, err)
+			logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileName: '%s', fileType: %v - err: %v",
+			parentPath, fileName, fileType, err)
 			return false, err
 		}
 		for _, subFile := range subFiles {

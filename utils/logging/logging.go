@@ -32,12 +32,9 @@ func LogDebug(v ...interface{}) {
 }
 
 // LogDebugf logs formatted debug message to log file.
-func LogDebugf(v ...interface{}) {
+func LogDebugf(format string, params ...interface{}) {
 	if DebugLogFile || TraceLogFile {
-		format := v[0].(string)
-		rest := v[1:]
-
-		logInternal(fmt.Sprintf(format, rest...))
+		logInternal(fmt.Sprintf(format, params...))
 	}
 }
 
@@ -49,12 +46,9 @@ func LogTrace(v ...interface{}) {
 }
 
 // LogTracef logs trace message to log file.
-func LogTracef(v ...interface{}) {
+func LogTracef(format string, params ...interface{}) {
 	if TraceLogFile {
-		format := v[0].(string)
-		rest := v[1:]
-
-		logInternal(fmt.Sprintf(format, rest...))
+		logInternal(fmt.Sprintf(format, params...))
 	}
 }
 

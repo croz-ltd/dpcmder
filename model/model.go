@@ -217,7 +217,7 @@ func (m *Model) SetItems(side Side, items []Item) {
 // GetVisibleItemCount returns number of items which will be shown for given side.
 func (m *Model) GetVisibleItemCount(side Side) int {
 	visibleItemCount := len(m.items[side])
-	logging.LogTracef("model/GetVisibleItemCount(%s), visibleItemCount: %d, m.ItemMaxRows: %d",
+	logging.LogTracef("model/GetVisibleItemCount(%v), visibleItemCount: %d, m.ItemMaxRows: %d",
 		side, visibleItemCount, m.ItemMaxRows)
 	if m.ItemMaxRows < visibleItemCount {
 		return m.ItemMaxRows
@@ -587,7 +587,7 @@ func (m *Model) SelToBottom() {
 func (m *Model) navUpDown(side Side, move int) {
 	newCurr := m.currItemIdx[side] + move
 	logging.LogDebugf(
-		"model/navUpDown(), side: %d, move: %d, newCurr: %d, m.currFirstRowItemIdx[side]: ",
+		"model/navUpDown(), side: %d, move: %d, newCurr: %d, m.currFirstRowItemIdx[side]: %d",
 		side, move, newCurr, m.currFirstRowItemIdx[side])
 
 	if newCurr < 0 {
@@ -605,7 +605,7 @@ func (m *Model) navUpDown(side Side, move int) {
 		m.currFirstRowItemIdx[side] = newCurr
 	}
 	logging.LogTracef(
-		"model/navUpDown(), newCurr: %d, minIdx: %d, maxIdx: %d, maxRows: %d, m.currFirstRowItemIdx[side]: ",
+		"model/navUpDown(), newCurr: %d, minIdx: %d, maxIdx: %d, maxRows: %d, m.currFirstRowItemIdx[side]: %d",
 		newCurr, minIdx, maxIdx, maxRows, m.currFirstRowItemIdx[side])
 
 	m.currItemIdx[side] = newCurr

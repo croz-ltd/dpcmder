@@ -1220,7 +1220,7 @@ func getObjectDetailsFromExportXML(exportXMLBytes []byte, objectClassName, objec
 	configQuery := "/datapower-configuration/configuration"
 	configNode := xmlquery.FindOne(doc, configQuery)
 	if configNode == nil {
-		logging.LogDebugf("Can't find '%s' in export.xml", configNode)
+		logging.LogDebugf("Can't find '%s' in export.xml", configQuery)
 		return nil, errs.Errorf("Can't find '%s' in export.xml", configQuery)
 	}
 

@@ -115,7 +115,7 @@ func (dpa *DataPowerAppliance) SetDpPlaintextPassword(password string) {
 func (dpa *DataPowerAppliance) DpPlaintextPassword() string {
 	passBytes, err := base32.StdEncoding.DecodeString(dpa.Password)
 	if err != nil {
-		logging.LogDebugf("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: '$s', err: %v",
+		logging.LogDebugf("config/DataPowerAppliance.DpPlaintextPassword() - Can't decode password: '%s', err: %v",
 			dpa.Password, err)
 		return ""
 	}
@@ -305,7 +305,9 @@ func (c *Config) CreateDpApplianceConfig() ([]byte, error) {
 	dpAppliance := DataPowerAppliance{}
 	json, err := json.MarshalIndent(dpAppliance, "", "  ")
 	if err != nil {
-		logging.LogDebugf("config/CreateDpApplianceConfig('%s') - Can't marshal empty DataPower appliance configuration.")
+		logging.LogDebugf(
+			"config/CreateDpApplianceConfig() - Can't marshal empty DataPower appliance configuration (%v).",
+			dpAppliance)
 		return nil, err
 	}
 	return json, nil

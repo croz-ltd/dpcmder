@@ -1312,7 +1312,7 @@ func exportAppliance(dpApplianceConfig, toViewConfig *model.ItemConfig, applianc
 	if applicanceConfig.Password == "" && dpTransientPassword == "" {
 		logging.LogDebugf("ui/exportAppliance(), before asking password.")
 		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
-		logging.LogDebugf("ui/exportAppliance(), after asking password (%s).", dialogResult)
+		logging.LogDebugf("ui/exportAppliance(), after asking password (%#v).", dialogResult)
 		if dialogResult.dialogCanceled || dialogResult.inputAnswer == "" {
 			return nil
 		}
@@ -1964,15 +1964,15 @@ func showObjectDetails(m *model.Model) error {
 		showProgressDialogf("Exporting object '%s' (%s) from domain '%s'...",
 			currentItem.Config.Name, currentItem.Config.Path,
 			currentItem.Config.DpDomain)
-		policyInfoBytes, err :=
-			dp.Repo.GetObjectPolicy(currentItem.Config.DpDomain,
+		objectInfoBytes, err :=
+			dp.Repo.GetObjectDetails(currentItem.Config.DpDomain,
 				currentItem.Config.Path, currentItem.Config.Name)
 		hideProgressDialog()
 		if err != nil {
 			return err
 		}
-		if policyInfoBytes != nil {
-			err = extprogs.View("*."+currentItem.Name, policyInfoBytes)
+		if objectInfoBytes != nil {
+			err = extprogs.View("*."+currentItem.Name, objectInfoBytes)
 			if err != nil {
 				return err
 			}
