@@ -7,10 +7,14 @@ Current functions:
 - basic file maintenance
   - view, edit, copy and delete file hierarchies (DataPower and local file system)
   - filter and search files in the current directory
+  - dpcmder view history (back / forward / jump)
 - object maintenance mode (as JSON or XML configurations)
   - view and edit DataPower object
   - copy an object to a JSON/XML file on the local file system
   - create an object from a JSON/XML file on the local file system
+  - clone an object
+  - view object status
+  - view object details (service, policy, match or rule)
 - DataPower domains
   - view DataPower domains and their status
   - create a DataPower Domain
