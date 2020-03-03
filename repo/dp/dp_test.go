@@ -1267,35 +1267,35 @@ func TestGetFileType(t *testing.T) {
 	})
 }
 
-func TestGetObjectPolicy(t *testing.T) {
-	t.Run("GetObjectPolicy no REST/SOMA", func(t *testing.T) {
+func TestGetObjectDetails(t *testing.T) {
+	t.Run("GetObjectDetails no REST/SOMA", func(t *testing.T) {
 		clearRepo()
 
-		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
-		assert.Equals(t, "GetObjectPolicy", err, errs.Error("DataPower management interface Unknown not supported."))
-		assert.Equals(t, "GetObjectPolicy", policyBytes, []byte(nil))
+		policyBytes, err := Repo.GetObjectDetails("tmp", "XMLFirewallService", "parse-cert")
+		assert.Equals(t, "GetObjectDetails", err, errs.Error("DataPower management interface Unknown not supported."))
+		assert.Equals(t, "GetObjectDetails", policyBytes, []byte(nil))
 	})
 
-	t.Run("GetObjectPolicy REST", func(t *testing.T) {
+	t.Run("GetObjectDetails REST", func(t *testing.T) {
 		clearRepo()
 		Repo.dataPowerAppliance.RestUrl = testRestURL
 
-		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
-		assert.Nil(t, "GetObjectPolicy", err)
+		policyBytes, err := Repo.GetObjectDetails("tmp", "XMLFirewallService", "parse-cert")
+		assert.Nil(t, "GetObjectDetails", err)
 		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-xmlfw.txt")
-		assert.Nil(t, "GetObjectPolicy error reading expected policy info", err)
-		assert.Equals(t, "GetObjectPolicy", string(policyBytes), string(expectedPolicyBytes))
+		assert.Nil(t, "GetObjectDetails error reading expected policy info", err)
+		assert.Equals(t, "GetObjectDetails", string(policyBytes), string(expectedPolicyBytes))
 	})
 
-	t.Run("GetObjectPolicy SOMA", func(t *testing.T) {
+	t.Run("GetObjectDetails SOMA", func(t *testing.T) {
 		clearRepo()
 		Repo.dataPowerAppliance.SomaUrl = testSomaURL
 
-		policyBytes, err := Repo.GetObjectPolicy("tmp", "XMLFirewallService", "parse-cert")
-		assert.Nil(t, "GetObjectPolicy", err)
+		policyBytes, err := Repo.GetObjectDetails("tmp", "XMLFirewallService", "parse-cert")
+		assert.Nil(t, "GetObjectDetails", err)
 		expectedPolicyBytes, err := ioutil.ReadFile("testdata/details-svc-xmlfw.txt")
-		assert.Nil(t, "GetObjectPolicy error reading expected policy info", err)
-		assert.Equals(t, "GetObjectPolicy", string(policyBytes), string(expectedPolicyBytes))
+		assert.Nil(t, "GetObjectDetails error reading expected policy info", err)
+		assert.Equals(t, "GetObjectDetails", string(policyBytes), string(expectedPolicyBytes))
 	})
 }
 
