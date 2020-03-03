@@ -1246,6 +1246,9 @@ func getObjectDetailsFromExportXML(exportXMLBytes []byte, objectClassName, objec
 			// policyRuleNode := policyMapNode.SelectElement("Rule")
 			ruleClass, ruleName := getReferencedObjectInfo(policyMapNode, "Rule")
 			ruleTxt, err := getObjectDetailsForRule(configNode, ruleClass, ruleName)
+			if err != nil {
+				return nil, err
+			}
 
 			policyTxt = fmt.Sprintf("%s%s%s", policyTxt, matchTxt, ruleTxt)
 		}
