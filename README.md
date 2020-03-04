@@ -6,7 +6,6 @@ of files on DataPower appliances and easier development of DataPower appliance s
 Current functions:
 - basic file maintenance
   - view, edit, copy and delete file hierarchies (DataPower and local file system)
-  - filter and search files in the current directory
 - object maintenance mode (as JSON or XML configurations)
   - view and edit DataPower object
   - copy an object to a JSON/XML file on the local file system
@@ -16,6 +15,7 @@ Current functions:
   - view object details (service, policy, match or rule)
 - common functions for file and object maintenance mode
   - dpcmder view history (back / forward / jump)
+  - filter and search items in the current view
 - DataPower domains
   - view DataPower domains and their status
   - create a DataPower Domain
