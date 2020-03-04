@@ -265,7 +265,7 @@ func scrollLineHoriz(line string, horizScroll int) string {
 				scrolledLine = line[byteIdx:]
 				break
 			}
-			runeIdx = runeIdx + 1
+			runeIdx++
 		}
 		return scrolledLine
 	}

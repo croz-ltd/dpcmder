@@ -1643,7 +1643,7 @@ func listAppliances() (model.ItemList, error) {
 			DpDomain:    config.Domain,
 			Parent:      &appliancesConfig}
 		items[idx] = model.Item{Name: name, Config: &itemConfig}
-		idx = idx + 1
+		idx++
 	}
 
 	sort.Sort(items)
@@ -1999,7 +1999,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 			classNamesAndStatusesWithDuplicates[1][idx] != objectStatusExternal {
 			classNameModifiedMap[className] = true
 		}
-		classNameMap[className] = classNameMap[className] + 1
+		classNameMap[className]++
 	}
 
 	logging.LogDebugf("repo/dp/listObjectClasses(), classNames: %v", classNames)
@@ -2559,7 +2559,7 @@ func removeJSONKey(inputJSON, keyName string) string {
 		// object we have to count nesting level (here we don't check if arrays and
 		// objects are properly nested one within other - we just count begin/end number
 		// of array and object definitions).
-		idx = idx + 1
+		idx++
 		valueCharLevel := 1
 		lastChar := " "[0]
 		for ; valueCharLevel > 0 && idx < len(rest); idx++ {
@@ -2573,9 +2573,9 @@ func removeJSONKey(inputJSON, keyName string) string {
 				case '{', '[':
 					switch rest[idx] {
 					case '{', '[':
-						valueCharLevel = valueCharLevel + 1
+						valueCharLevel++
 					case '}', ']':
-						valueCharLevel = valueCharLevel - 1
+						valueCharLevel--
 					}
 				}
 			}

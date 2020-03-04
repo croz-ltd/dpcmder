@@ -324,13 +324,13 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyEvent
 				changedAnswer = changedAnswer + string(c)
 			}
 			changedAnswer = changedAnswer + string(runeVal)
-			runeIdx = runeIdx + 1
+			runeIdx++
 		}
 		if answerLen == runeIdx && runeIdx == dialogSession.inputAnswerCursorIdx {
 			changedAnswer = changedAnswer + string(c)
 		}
 		dialogSession.inputAnswer = changedAnswer
-		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
+		dialogSession.inputAnswerCursorIdx++
 	case k == tcell.KeyEsc:
 		logging.LogDebugf("ui/processInputDialogInput() canceling user input: '%s'", dialogSession)
 		dialogSession.dialogCanceled = true
@@ -345,10 +345,10 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyEvent
 				if runeIdx+1 != dialogSession.inputAnswerCursorIdx {
 					changedAnswer = changedAnswer + string(runeVal)
 				}
-				runeIdx = runeIdx + 1
+				runeIdx++
 			}
 			dialogSession.inputAnswer = changedAnswer
-			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
+			dialogSession.inputAnswerCursorIdx--
 		}
 	case k == tcell.KeyDelete:
 		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
@@ -358,17 +358,17 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyEvent
 				if runeIdx != dialogSession.inputAnswerCursorIdx {
 					changedAnswer = changedAnswer + string(runeVal)
 				}
-				runeIdx = runeIdx + 1
+				runeIdx++
 			}
 			dialogSession.inputAnswer = changedAnswer
 		}
 	case k == tcell.KeyLeft:
 		if dialogSession.inputAnswerCursorIdx > 0 {
-			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx - 1
+			dialogSession.inputAnswerCursorIdx--
 		}
 	case k == tcell.KeyRight:
 		if dialogSession.inputAnswerCursorIdx < utf8.RuneCountInString(dialogSession.inputAnswer) {
-			dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
+			dialogSession.inputAnswerCursorIdx++
 		}
 	case k == tcell.KeyHome:
 		dialogSession.inputAnswerCursorIdx = 0
@@ -628,11 +628,11 @@ func processSelectListDialogInput(dialogSession *listSelectionDialogSessionInfo,
 		dialogSession.dialogSubmitted = true
 	case k == tcell.KeyUp, c == 'i':
 		if dialogSession.selectionIdx > 0 {
-			dialogSession.selectionIdx = dialogSession.selectionIdx - 1
+			dialogSession.selectionIdx--
 		}
 	case k == tcell.KeyDown, c == 'k':
 		if dialogSession.selectionIdx < len(dialogSession.list)-1 {
-			dialogSession.selectionIdx = dialogSession.selectionIdx + 1
+			dialogSession.selectionIdx++
 		}
 	case k == tcell.KeyHome, c == 'a':
 		dialogSession.selectionIdx = 0
@@ -2068,7 +2068,7 @@ func updateProgressDialog() {
 			Message:  progressDialogSession.msg,
 			Progress: progressDialogSession.value}
 		out.DrawEvent(progressEvent)
-		progressDialogSession.value = progressDialogSession.value + 1
+		progressDialogSession.value++
 		if progressDialogSession.value > 99 {
 			progressDialogSession.value = 0
 		}

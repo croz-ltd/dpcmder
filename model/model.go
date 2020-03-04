@@ -339,7 +339,7 @@ func (m *Model) AddNextView(side Side, viewConfig *ItemConfig, viewTitle string)
 	case prevViewConfig:
 		m.NavCurrentViewBack(side)
 	default:
-		m.viewConfigCurrIdx[side] = m.viewConfigCurrIdx[side] + 1
+		m.viewConfigCurrIdx[side]++
 	}
 	m.SetCurrentView(side, viewConfig, viewTitle)
 }
