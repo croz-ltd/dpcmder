@@ -550,7 +550,7 @@ func (r *dpRepo) CreateDirByPath(dpDomain, parentPath, dirName string) (bool, er
 				}
 			}
 			errMsg := fmt.Sprintf("Error creating '%s' dir in path '%s'", dirName, parentPath)
-			logging.LogDebug("repo/dp/CreateDirByPath() - %s", errMsg)
+			logging.LogDebugf("repo/dp/CreateDirByPath() - %s", errMsg)
 			return false, errs.Error(errMsg)
 		default:
 			logging.LogDebug("repo/dp/CreateDirByPath(), using neither REST neither SOMA.")
@@ -994,7 +994,7 @@ func (r *dpRepo) GetObjectDetails(domainName, objectClassName, objectName string
 					return nil, err
 				}
 				if len(exportZipReader.File) != 1 {
-					logging.LogDebug("repo/dp/GetObjectDetails() - Unexpected number of compressed files (%d).",
+					logging.LogDebugf("repo/dp/GetObjectDetails() - Unexpected number of compressed files (%d).",
 						len(exportZipReader.File))
 					return nil, errs.Errorf("Unexpected number of compressed files (%d)", len(exportZipReader.File))
 				}
@@ -1016,7 +1016,6 @@ func (r *dpRepo) GetObjectDetails(domainName, objectClassName, objectName string
 					logging.LogDebug("repo/dp/GetObjectDetails() - Error reading export.xml from export archive.", err)
 					return nil, err
 				}
-
 
 				if uint64(bytesRead) != exportXMLFile.UncompressedSize64 {
 					logging.LogDebug("repo/dp/GetObjectDetails() - Wrong number of bytes read for export.xml from export archive.", err)
@@ -1090,7 +1089,7 @@ func (r *dpRepo) GetObjectDetails(domainName, objectClassName, objectName string
 
 				if uint64(bytesRead) != file.UncompressedSize64 {
 					logging.LogDebugf("repo/dp/GetObjectDetails() - Wrong number of bytes (%d/%d) read for export.xml from export archive, err: %v",
-					bytesRead, file.UncompressedSize64, err)
+						bytesRead, file.UncompressedSize64, err)
 					return nil, errs.Errorf("Error reading export.xml from DataPower export archive.")
 				}
 
@@ -1175,7 +1174,7 @@ func getObjectDetailsFromExportXML(exportXMLBytes []byte, objectClassName, objec
 		}
 
 		matchTxt := fmt.Sprintf("  Match (%s): [%s]\n",
-				matchNode.SelectAttr("name"), mrTxt)
+			matchNode.SelectAttr("name"), mrTxt)
 
 		return []byte(matchTxt), nil
 	}
@@ -1198,7 +1197,6 @@ func getObjectDetailsFromExportXML(exportXMLBytes []byte, objectClassName, objec
 				logging.LogDebugf("Can't find '%s' action in export.xml", actionQuery)
 				return nil, errs.Errorf("Can't find '%s' action in export.xml", actionQuery)
 			}
-
 
 			actionsTxt = fmt.Sprintf("%s    Action (%s -> %s -> %s): %s(%s%s)\n", actionsTxt,
 				getSubnodeInnerText(actionNode, "Input"),
@@ -1259,12 +1257,12 @@ func getObjectDetailsFromExportXML(exportXMLBytes []byte, objectClassName, objec
 	// TODO: check ConfigMQproxy ?
 	switch objectClassName {
 	case "B2BProfile",
-       "MultiProtocolGateway",
-       "WSGateway",
-       "XMLFirewallService",
-       "XSLProxyService",
-       "WebAppFW",
-       "WebTokenService":
+		"MultiProtocolGateway",
+		"WSGateway",
+		"XMLFirewallService",
+		"XSLProxyService",
+		"WebAppFW",
+		"WebTokenService":
 		svcQuery := fmt.Sprintf("/%s[@name='%s']", objectClassName, objectName)
 		svcNode := xmlquery.FindOne(configNode, svcQuery)
 		if svcNode == nil {
@@ -1297,17 +1295,17 @@ func getObjectDetailsFromExportXML(exportXMLBytes []byte, objectClassName, objec
 		return []byte(svcTxt), nil
 
 	case "WSStylePolicy",
-       "StylePolicy":
+		"StylePolicy":
 		return getObjectDetailsForPolicy(configNode, objectClassName, objectName)
 
 	case "Matching":
 		return getObjectDetailsForMatch(configNode, objectClassName, objectName)
 
 	case "StylePolicyRule",
-       "WSStylePolicyRule",
-       "RequestStylePolicyRule",
-       "ResponseStylePolicyRule",
-       "ErrorStylePolicyRule":
+		"WSStylePolicyRule",
+		"RequestStylePolicyRule",
+		"ResponseStylePolicyRule",
+		"ErrorStylePolicyRule":
 		return getObjectDetailsForRule(configNode, objectClassName, objectName)
 
 	default:

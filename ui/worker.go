@@ -332,7 +332,7 @@ func processInputDialogInput(dialogSession *userDialogInputSessionInfo, keyEvent
 		dialogSession.inputAnswer = changedAnswer
 		dialogSession.inputAnswerCursorIdx = dialogSession.inputAnswerCursorIdx + 1
 	case k == tcell.KeyEsc:
-		logging.LogDebug("ui/processInputDialogInput() canceling user input: '%s'", dialogSession)
+		logging.LogDebugf("ui/processInputDialogInput() canceling user input: '%s'", dialogSession)
 		dialogSession.dialogCanceled = true
 	case k == tcell.KeyEnter:
 		logging.LogDebugf("ui/processInputDialogInput() accepting user input: '%s'", dialogSession)
@@ -621,7 +621,7 @@ func processSelectListDialogInput(dialogSession *listSelectionDialogSessionInfo,
 	k := keyEvent.Key()
 	switch {
 	case k == tcell.KeyEsc, c == 'H':
-		logging.LogDebug("ui/processSelectListDialogInput() canceling selection: '%s'", dialogSession)
+		logging.LogDebugf("ui/processSelectListDialogInput() canceling selection: '%s'", dialogSession)
 		dialogSession.dialogCanceled = true
 	case k == tcell.KeyEnter:
 		logging.LogDebugf("ui/processSelectListDialogInput() accepting selection: '%s'", dialogSession)
@@ -1858,7 +1858,7 @@ func toggleObjectMode(m *model.Model) error {
 		// When we switch to object config mode - add/open object class list.
 		if dp.Repo.ObjectConfigMode {
 			if oldView.DpDomain == "" {
-				logging.LogDebug("worker/toggleObjectMode(), can't switch to object mode, oldView: %v.", oldView)
+				logging.LogDebugf("worker/toggleObjectMode(), can't switch to object mode, oldView: %v.", oldView)
 				dp.Repo.ObjectConfigMode = false
 				return errs.Errorf("Can't show object view if DataPower domain is not selected.")
 			}
@@ -1927,7 +1927,7 @@ func showItemInfo(m *model.Model) error {
 // for the current object.
 func showObjectDetails(m *model.Model) error {
 	logging.LogDebugf("worker/showObjectPolicy(), dp.Repo.ObjectConfigMode: %t",
-	 dp.Repo.ObjectConfigMode)
+		dp.Repo.ObjectConfigMode)
 
 	if !dp.Repo.ObjectConfigMode {
 		return errs.Error("Can't show policy for DataPower object if object mode is not active.")
@@ -1939,20 +1939,20 @@ func showObjectDetails(m *model.Model) error {
 	case model.ItemDpObject:
 		switch currentItem.Config.Path {
 		case "B2BProfile",
-         "MultiProtocolGateway",
-         "WSGateway",
-         "XMLFirewallService",
-         "XSLProxyService",
-         "WebAppFW",
-         "WebTokenService",
-         "WSStylePolicy",
-         "StylePolicy",
-         "Matching",
-         "StylePolicyRule",
-         "WSStylePolicyRule",
-         "RequestStylePolicyRule",
-         "ResponseStylePolicyRule",
-         "ErrorStylePolicyRule":
+			"MultiProtocolGateway",
+			"WSGateway",
+			"XMLFirewallService",
+			"XSLProxyService",
+			"WebAppFW",
+			"WebTokenService",
+			"WSStylePolicy",
+			"StylePolicy",
+			"Matching",
+			"StylePolicyRule",
+			"WSStylePolicyRule",
+			"RequestStylePolicyRule",
+			"ResponseStylePolicyRule",
+			"ErrorStylePolicyRule":
 		default:
 			return errs.Errorf("Can't show policy for object of class '%s'.",
 				currentItem.Config.Path)
