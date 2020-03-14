@@ -23,6 +23,10 @@ github.com/lucasb-eyer/go-colorful v1.0.3/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/go-runewidth v0.0.6 h1:V2iyH+aX9C5fsYCpK60U8BYIvmhqxuOL3JZcqc1NB7k=
 github.com/mattn/go-runewidth v0.0.6/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
+github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8 h1:ajJQhvqPSQFJJ4aV5mDAMx8F7iFi6Dxfo6y62wymLNs=
+github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8/go.mod h1:Nw/CCOXNyF5JDd6UpYxBwG5WWZ2FOJ/d5QnXL4KQ6vY=
+github.com/vvidovic/jq v0.0.1 h1:TbAkgdsf3VBp3yzWkcXveoZz1ZXGq0a2B8THeDqKxRU=
+github.com/vvidovic/jq v0.0.1/go.mod h1:eZHXJi8S8O6UqClMa1y2Jubr9+ERROdWwFNk2s95IBU=
 github.com/vvidovic/tcell v1.3.1 h1:WEJ6igQvaB3Io5oOpTcFiV72YNcR0wsyPCMBGa2ECa8=
 github.com/vvidovic/tcell v1.3.1/go.mod h1:WH91zlTa3xOzknvOpANwx8ENYwkiyBaPKQu9Qn8DUGI=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

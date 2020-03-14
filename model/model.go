@@ -47,6 +47,12 @@ func (it ItemType) UserFriendlyString() string {
 		return "object class"
 	case ItemDpObject:
 		return "object"
+	case ItemDpStatusClassList:
+		return "status class list"
+	case ItemDpStatusClass:
+		return "status class"
+	case ItemDpStatus:
+		return "status"
 	case ItemNone:
 		return "-"
 	default:
@@ -62,8 +68,11 @@ const (
 	ItemDpDomain          = ItemType('D')
 	ItemDpFilestore       = ItemType('F')
 	ItemDpObjectClassList = ItemType('L')
-	ItemDpObjectClass     = ItemType('C')
-	ItemDpObject          = ItemType('O')
+	ItemDpObjectClass     = ItemType('O')
+	ItemDpObject          = ItemType('o')
+	ItemDpStatusClassList = ItemType('l')
+	ItemDpStatusClass     = ItemType('S')
+	ItemDpStatus          = ItemType('s')
 	ItemNone              = ItemType('-')
 	ItemAny               = ItemType('*')
 )

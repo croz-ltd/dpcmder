@@ -1,0 +1,51 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/status/test/StylesheetCachingSummary"
+    },
+    "doc": {
+      "href": "/mgmt/docs/status/StylesheetCachingSummary"
+    }
+  },
+  "StylesheetCachingSummary": [
+    {
+      "XMLManager": {
+        "value": "default",
+        "href": "/mgmt/config/test/XMLManager/default"
+      },
+      "CacheSize": 256,
+      "CacheCount": 0,
+      "ReadyCount": 0,
+      "PendingCount": 0,
+      "BadCount": 0,
+      "DupCount": 0,
+      "CacheKBCount": 0
+    },
+    {
+      "XMLManager": {
+        "value": "default-attempt-stream",
+        "href": "/mgmt/config/test/XMLManager/default-attempt-stream"
+      },
+      "CacheSize": 256,
+      "CacheCount": 0,
+      "ReadyCount": 0,
+      "PendingCount": 0,
+      "BadCount": 0,
+      "DupCount": 0,
+      "CacheKBCount": 0
+    },
+    {
+      "XMLManager": {
+        "value": "default-wsrr",
+        "href": "/mgmt/config/test/XMLManager/default-wsrr"
+      },
+      "CacheSize": 256,
+      "CacheCount": 0,
+      "ReadyCount": 0,
+      "PendingCount": 0,
+      "BadCount": 0,
+      "DupCount": 0,
+      "CacheKBCount": 0
+    }
+  ]
+}

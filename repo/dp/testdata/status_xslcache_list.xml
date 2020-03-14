@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-03-13T17:40:48-04:00</dp:timestamp>
+         <dp:status>
+            <StylesheetCachingSummary xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <XMLManager class="XMLManager">default</XMLManager>
+               <CacheSize>256</CacheSize>
+               <CacheCount>1</CacheCount>
+               <ReadyCount>1</ReadyCount>
+               <PendingCount>0</PendingCount>
+               <BadCount>0</BadCount>
+               <DupCount>0</DupCount>
+               <CacheKBCount>330</CacheKBCount>
+            </StylesheetCachingSummary>
+            <StylesheetCachingSummary xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <XMLManager class="XMLManager">default-attempt-stream</XMLManager>
+               <CacheSize>256</CacheSize>
+               <CacheCount>0</CacheCount>
+               <ReadyCount>0</ReadyCount>
+               <PendingCount>0</PendingCount>
+               <BadCount>0</BadCount>
+               <DupCount>0</DupCount>
+               <CacheKBCount>0</CacheKBCount>
+            </StylesheetCachingSummary>
+            <StylesheetCachingSummary xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <XMLManager class="XMLManager">default-wsrr</XMLManager>
+               <CacheSize>256</CacheSize>
+               <CacheCount>0</CacheCount>
+               <ReadyCount>0</ReadyCount>
+               <PendingCount>0</PendingCount>
+               <BadCount>0</BadCount>
+               <DupCount>0</DupCount>
+               <CacheKBCount>0</CacheKBCount>
+            </StylesheetCachingSummary>
+         </dp:status>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

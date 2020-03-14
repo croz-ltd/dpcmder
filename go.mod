@@ -13,6 +13,8 @@ require (
 	github.com/gdamore/tcell v1.3.0
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/mattn/go-runewidth v0.0.6 // indirect
+	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
+	github.com/vvidovic/jq v0.0.1
 	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708 // indirect
 	golang.org/x/net v0.0.0-20191112182307-2180aed22343 // indirect
 )

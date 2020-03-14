@@ -69,6 +69,14 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		}
 	case "https://my_dp_host:5554/mgmt/actionqueue/tmp/pending/Export-20200228T061406Z-2":
 		content, err = ioutil.ReadFile("testdata/export-svc-pending-get.json")
+	case "https://my_dp_host:5554/mgmt/status/":
+		content, err = ioutil.ReadFile("testdata/status_class_list.json")
+	case "https://my_dp_host:5554/mgmt/status/MyDomain/StylesheetCachingSummary":
+		content, err = ioutil.ReadFile("testdata/status_xslcache_list.json")
+	case "https://my_dp_host:5554/mgmt/status/MyDomain/ActiveUsers":
+		content, err = ioutil.ReadFile("testdata/status_users_list.json")
+	case "https://my_dp_host:5554/mgmt/status/MyDomain/CryptoEngineStatus2":
+		content, err = ioutil.ReadFile("testdata/status_ce_list.json")
 	case "https://my_dp_host:5550/service/mgmt/current":
 		var opTag string
 		var opClass string
@@ -76,12 +84,12 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		var opLayoutOnly string
 		var opFilePath string
 
-		r := regexp.MustCompile(`.*<man:([^ ]+) class="([^ ]+)"( object-class="([^ ]+)")?/>.*`)
+		r := regexp.MustCompile(`.*<man:([^ ]+)( class="([^ ]+)")?( object-class="([^ ]+)")?/>.*`)
 		matches := r.FindStringSubmatch(body)
-		if len(matches) == 5 {
+		if len(matches) == 6 {
 			opTag = matches[1]
-			opClass = matches[2]
-			opObjClass = matches[4]
+			opClass = matches[3]
+			opObjClass = matches[5]
 		}
 
 		if len(matches) == 0 {
@@ -125,8 +133,14 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			content, err = ioutil.ReadFile("testdata/object_xmlfwsvc_config_list.xml")
 		case opTag == "get-config" && opClass == "Domain" && opObjClass == "":
 			content, err = ioutil.ReadFile("testdata/domain_config_list.xml")
+		case opTag == "get-status" && opClass == "StylesheetCachingSummary" && opObjClass == "":
+			content, err = ioutil.ReadFile("testdata/status_xslcache_list.xml")
+		case opTag == "get-status" && opClass == "ActiveUsers" && opObjClass == "":
+			content, err = ioutil.ReadFile("testdata/status_users_list.xml")
 		case opTag == "get-status" && opClass == "DomainStatus" && opObjClass == "":
 			content, err = ioutil.ReadFile("testdata/domain_status_list.xml")
+		case opTag == "get-status" && opClass == "" && opObjClass == "":
+			content, err = ioutil.ReadFile("testdata/status_class_list.xml")
 		case opTag == "get-filestore" && opLayoutOnly == "true":
 			content, err = ioutil.ReadFile("testdata/filestore_layout_list.xml")
 		case opTag == "get-filestore" && opLayoutOnly == "false":

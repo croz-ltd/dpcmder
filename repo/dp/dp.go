@@ -16,6 +16,7 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
+	"github.com/savaki/jq"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -34,25 +35,39 @@ type dpApplicance struct {
 	config.DataPowerAppliance
 }
 
+// ViewMode represent one of available DataPower view modes.
+type ViewMode byte
+
+// Available DataPower view modes.
+const (
+	DpFilestoreMode = ViewMode('f')
+	DpObjectMode    = ViewMode('o')
+	DpStatusMode    = ViewMode('s')
+)
+
+func (v ViewMode) String() string {
+	return string(v)
+}
+
 // dpRepo contains basic DataPower repo information and implements Repo interface.
 type dpRepo struct {
 	name               string
 	dpFilestoreXmls    map[string]string
 	invalidateCache    bool
 	dataPowerAppliance dpApplicance
-	ObjectConfigMode   bool
+	DpViewMode         ViewMode
 	req                requester
 }
 
 // Repo is instance or DataPower repo/Repo interface implementation used for all
 // operations on DataPower except syncing local filesystem to DataPower.
 var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string),
-	req: netRequester{}}
+	DpViewMode: DpFilestoreMode, req: netRequester{}}
 
 // SyncRepo is instance or DataPower repo/Repo interface implementation used for
 // syncing local directory to DataPower directory.
 var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string),
-	req: netRequester{}}
+	DpViewMode: DpFilestoreMode, req: netRequester{}}
 
 // dpDomainInfo contains domain name and basic state
 type dpDomainInfo struct {
@@ -125,6 +140,7 @@ func getDpAppliance(itemToShow *model.ItemConfig) dpApplicance {
 		return dpApplicance{}
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
 		model.ItemDpObjectClassList, model.ItemDpObjectClass,
+		model.ItemDpStatusClassList, model.ItemDpStatusClass,
 		model.ItemDirectory:
 		dataPowerAppliance := config.Conf.DataPowerAppliances[itemToShow.DpAppliance]
 		if dataPowerAppliance.Password == "" {
@@ -139,9 +155,10 @@ func getDpAppliance(itemToShow *model.ItemConfig) dpApplicance {
 	}
 }
 func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
-	logging.LogDebugf("repo/dp/GetList(%v), r.ObjectConfigMode: %t", itemToShow, r.ObjectConfigMode)
+	logging.LogDebugf("repo/dp/GetList(%v), r.DpViewMode: %s", itemToShow, r.DpViewMode)
 
-	if r.ObjectConfigMode {
+	switch r.DpViewMode {
+	case DpObjectMode:
 		if itemToShow.DpAppliance == "" {
 			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpAppliance.", itemToShow)
 			return nil, errs.Errorf("Internal error showing object config mode - missing dp appliance.")
@@ -160,12 +177,40 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listObjects(itemToShow)
 		default:
-			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
-				itemToShow, r.ObjectConfigMode)
-			r.ObjectConfigMode = false
+			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for DpViewMode: %s.",
+				itemToShow, r.DpViewMode)
+			r.DpViewMode = DpFilestoreMode
 			return nil, errs.Errorf("Internal error showing object config mode - wrong view type.")
 		}
-	} else {
+	case DpStatusMode:
+		if itemToShow.DpAppliance == "" {
+			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpAppliance.", itemToShow)
+			return nil, errs.Errorf("Internal error showing status config mode - missing dp appliance.")
+		}
+
+		if itemToShow.DpDomain == "" {
+			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpDomain.", itemToShow)
+			return nil, errs.Errorf("Internal error showing status config mode - missing domain.")
+		}
+
+		switch itemToShow.Type {
+		case model.ItemDpStatusClassList:
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
+			return r.listStatusClasses(itemToShow)
+		case model.ItemDpStatusClass:
+			r.dataPowerAppliance = getDpAppliance(itemToShow)
+			return r.listStatuses(itemToShow)
+		default:
+			wrongView := r.DpViewMode
+			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for DpViewMode: %s.",
+				itemToShow, wrongView)
+			r.DpViewMode = DpFilestoreMode
+			return nil, errs.Errorf(
+				"Internal error showing status config mode - wrong view type: %s.",
+				wrongView)
+		}
+
+	case DpFilestoreMode:
 		switch itemToShow.Type {
 		case model.ItemNone:
 			r.dataPowerAppliance = getDpAppliance(itemToShow)
@@ -186,10 +231,12 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 			r.dataPowerAppliance = getDpAppliance(itemToShow)
 			return r.listDpDir(itemToShow)
 		default:
-			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for ObjectConfigMode: %t.",
-				itemToShow, r.ObjectConfigMode)
+			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for DpViewMode: %s.",
+				itemToShow, r.DpViewMode)
 			return nil, errs.Errorf("Internal error showing filestore mode - wrong view type.")
 		}
+	default:
+		return nil, errs.Errorf("Unknown DataPower view mode.")
 	}
 }
 
@@ -1474,6 +1521,112 @@ func (r *dpRepo) RenameObject(dpObject []byte, objectName string) ([]byte, error
 	}
 }
 
+// GetStatus fetches DataPower status info.
+func (r *dpRepo) GetStatus(dpDomain, statusClass string, statusIdx int) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetStatus('%s', '%s', %d)",
+		dpDomain, statusClass, statusIdx)
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		getStatusesURL := fmt.Sprintf("/mgmt/status/%s/%s",
+			dpDomain, statusClass)
+		statusesRespJSON, err := r.restGet(getStatusesURL)
+		if err != nil {
+			if respErr, ok := err.(errs.UnexpectedHTTPResponse); ok && respErr.StatusCode == 404 {
+				return nil, nil
+			}
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatus(), statusesRespJSON: '%s'", statusesRespJSON)
+
+		jqQueryStatuses := fmt.Sprintf(".%s", statusClass)
+		jqOpStatuses, err := jq.Parse(jqQueryStatuses)
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatus(), error parsing query '%s', %v",
+				jqOpStatuses, err)
+			return nil, err
+		}
+		statusesJSON, err := jqOpStatuses.Apply([]byte(statusesRespJSON))
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatus(), error applying query '%s', %v",
+				jqQueryStatuses, err)
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatus(), statusesJSON: '%s'", statusesJSON)
+
+		var jqQuery string
+		firstChar := string(statusesJSON[0:1])
+		switch firstChar {
+		case "[":
+			jqQuery = fmt.Sprintf(".[%d]", statusIdx)
+		case "{":
+			jqQuery = "."
+		default:
+			return nil, errs.Errorf("Unexpected result for jqQuery '%s' on '%s'.",
+				jqQuery, statusesJSON)
+		}
+
+		jqOp, err := jq.Parse(jqQuery)
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatus(), error parsing query '%s', %v",
+				jqQuery, err)
+			return nil, err
+		}
+		statusJSON, err := jqOp.Apply([]byte(statusesJSON))
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatus(), error applying query '%s', %v",
+				jqQuery, err)
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatus(), statusJSON: '%s'", statusJSON)
+
+		formattedJSON, err := cleanJSONObject(string(statusJSON))
+		if err != nil {
+			return nil, err
+		}
+		return []byte(formattedJSON), nil
+	case config.DpInterfaceSoma:
+		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-status class="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`,
+			dpDomain, statusClass)
+		somaResponse, err := r.soma(somaStatusRequest)
+		if err != nil {
+			return nil, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
+		}
+
+		query := fmt.Sprintf(
+			"//*[local-name()='response']/*[local-name()='status']/*")
+		resultNodes := xmlquery.Find(doc, query)
+		resultNode := resultNodes[statusIdx]
+		if resultNode == nil {
+			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+		}
+
+		resultXML := resultNode.OutputXML(true)
+		formattedXML, err := cleanXML(resultXML)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(formattedXML), nil
+	default:
+		logging.LogDebug("repo/dp/GetObject(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
+	}
+}
+
 // SaveConfiguration saves current DataPower configuration.
 func (r *dpRepo) SaveConfiguration(itemConfig *model.ItemConfig) error {
 	logging.LogDebugf("repo/dp/SaveConfiguration(%v)", itemConfig)
@@ -1982,7 +2135,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
 
 	default:
-		r.ObjectConfigMode = false
+		r.DpViewMode = DpFilestoreMode
 		logging.LogDebug("repo/dp/listObjectClasses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
@@ -2202,6 +2355,269 @@ func (r *dpRepo) listObjects(itemConfig *model.ItemConfig) (model.ItemList, erro
 		return items, nil
 	default:
 		logging.LogDebug("repo/dp/listObjects(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
+	}
+}
+
+// listStatusClasses lists all status classes used in current DataPower domain.
+func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemList, error) {
+	logging.LogDebugf("repo/dp/listStatusClasses(%v)", currentView)
+
+	if currentView.DpAppliance == "" {
+		return nil, errs.Error("Can't get status class list if DataPower appliance is not selected.")
+	}
+
+	if currentView.DpDomain == "" {
+		return nil, errs.Error("Can't get status class list if DataPower domain is not selected.")
+	}
+
+	var classNamesWithDuplicates []string
+	var err error
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		responseJSON, err := r.restGet("/mgmt/status/")
+		if err != nil {
+			return nil, err
+		}
+		doc, err := jsonquery.Parse(strings.NewReader(responseJSON))
+		if err != nil {
+			logging.LogDebug("Error parsing JSON.", err)
+			return nil, err
+		}
+		query := "/_links/*"
+		resultNodes := jsonquery.Find(doc, query)
+		if resultNodes == nil {
+			logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, responseJSON)
+			return nil, errs.Errorf("Unexpected JSON, can't find '%s'.", query)
+		}
+		classNamesWithDuplicates = make([]string, 0)
+		for _, node := range resultNodes {
+			className := node.Data
+			if className != "self" {
+				classNamesWithDuplicates = append(classNamesWithDuplicates, className)
+			}
+		}
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+	  <man:request domain="%s">
+	    <man:get-status/>
+	  </man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, currentView.DpDomain)
+		var somaResponse string
+		somaResponse, err = r.soma(somaRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
+		}
+		query := "//*[local-name()='response']/*[local-name()='status']/*"
+		resultNodes := xmlquery.Find(doc, query)
+		if resultNodes == nil {
+			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+		}
+
+		for _, node := range resultNodes {
+			className := node.Data
+			classNamesWithDuplicates = append(classNamesWithDuplicates, className)
+		}
+
+	default:
+		r.DpViewMode = DpFilestoreMode
+		logging.LogDebug("repo/dp/listStatusClasses(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	classNames := make([]string, 0)
+	classNameMap := make(map[string]int)
+	for _, className := range classNamesWithDuplicates {
+		if className == "self" {
+			continue
+		}
+		if _, oldName := classNameMap[className]; !oldName {
+			classNames = append(classNames, className)
+		}
+		classNameMap[className]++
+	}
+
+	logging.LogDebugf("repo/dp/listStatusClasses(), classNames: %v", classNames)
+
+	items := make(model.ItemList, len(classNames))
+	for idx, className := range classNames {
+		itemConfig := model.ItemConfig{Type: model.ItemDpStatusClass,
+			Name:        className,
+			DpAppliance: currentView.DpAppliance,
+			DpDomain:    currentView.DpDomain,
+			Path:        className,
+			Parent:      currentView}
+		item := model.Item{Name: className,
+			Size:   fmt.Sprintf("%d", classNameMap[className]),
+			Config: &itemConfig}
+		items[idx] = item
+	}
+
+	sort.Sort(items)
+
+	logging.LogDebugf("repo/dp/listStatusClasses(), items: %v", items)
+	return items, nil
+}
+
+// listStatuses lists all statuses of selected class in current DataPower domain.
+func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, error) {
+	logging.LogDebugf("repo/dp/listStatuses(%v)", itemConfig)
+
+	switch itemConfig.Type {
+	case model.ItemDpStatusClass:
+	default:
+		return nil, errs.Error("Can't get status list if no status class is known.")
+	}
+
+	statusClassName := itemConfig.Path
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		getStatusesURL := fmt.Sprintf("/mgmt/status/%s/%s",
+			itemConfig.DpDomain, itemConfig.Path)
+		statusesRespJSON, err := r.restGet(getStatusesURL)
+		if err != nil {
+			if respErr, ok := err.(errs.UnexpectedHTTPResponse); ok && respErr.StatusCode == 404 {
+				return nil, nil
+			}
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/listStatuses(), statusesRespJSON: '%s'", statusesRespJSON)
+
+		jqQueryStatuses := fmt.Sprintf(".%s", statusClassName)
+		jqOpStatuses, err := jq.Parse(jqQueryStatuses)
+		if err != nil {
+			logging.LogDebugf("repo/dp/listStatuses(), error parsing query '%s', %v",
+				jqOpStatuses, err)
+			return nil, err
+		}
+		statusesJSON, err := jqOpStatuses.Apply([]byte(statusesRespJSON))
+		if err != nil {
+			logging.LogDebugf("repo/dp/listStatuses(), error applying query '%s', %v",
+				jqQueryStatuses, err)
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/listStatuses(), statusesJSON: '%s'", statusesJSON)
+
+		doc, err := jsonquery.Parse(bytes.NewReader(statusesJSON))
+		if err != nil {
+			logging.LogDebugf("Error parsing statuses JSON , err: %v", err)
+			return nil, err
+		}
+
+		var query string
+		firstChar := string(statusesJSON[0:1])
+		switch firstChar {
+		case "[":
+			query = "/*"
+		case "{":
+			query = "/"
+		default:
+			return nil, errs.Errorf("Unexpected result for query '%s' on '%s'.",
+				query, statusesJSON)
+		}
+
+		nodes := jsonquery.Find(doc, query)
+		if len(nodes) == 0 {
+			return nil, errs.Errorf("No status for class '%s' found.", statusClassName)
+		}
+
+		parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
+		items := make(model.ItemList, len(nodes))
+		items = append(items, parentDir)
+
+		for idx, node := range nodes {
+			statusPath := fmt.Sprintf("%d", idx)
+			var statusName string
+			switch statusClassName {
+			case "StylesheetCachingSummary":
+				statusName = jsonquery.FindOne(node, "/XMLManager/value").InnerText()
+			default:
+				statusName = fmt.Sprintf("%d", idx)
+			}
+
+			itemConfig := model.ItemConfig{Type: model.ItemDpStatus,
+				Name:        statusName,
+				DpAppliance: itemConfig.DpAppliance,
+				DpDomain:    itemConfig.DpDomain,
+				Path:        statusPath,
+				Parent:      itemConfig}
+
+			item := model.Item{Name: statusName, Config: &itemConfig}
+			items[idx] = item
+		}
+
+		sort.Sort(items)
+
+		logging.LogDebugf("repo/dp/listObjects(), items: %v", items)
+		return items, nil
+	case config.DpInterfaceSoma:
+		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-status class="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
+		doc, err := r.somaGetDoc(somaStatusRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		query := fmt.Sprintf("//*[local-name()='response']/*[local-name()='status']/*[local-name()='%s']", statusClassName)
+		nodes := xmlquery.Find(doc, query)
+		if len(nodes) == 0 {
+			return nil, errs.Errorf("No status for class '%s' found.", statusClassName)
+		}
+
+		parentDir := model.Item{Name: "..", Config: itemConfig.Parent}
+
+		items := make(model.ItemList, len(nodes))
+		items = append(items, parentDir)
+		for idx, node := range nodes {
+			statusPath := fmt.Sprintf("%d", idx)
+			var statusName string
+			switch statusClassName {
+			case "StylesheetCachingSummary":
+				statusName = xmlquery.FindOne(node, "/XMLManager").InnerText()
+			default:
+				statusName = fmt.Sprintf("%d", idx)
+			}
+
+			itemConfig := model.ItemConfig{Type: model.ItemDpStatus,
+				Name:        statusName,
+				DpAppliance: itemConfig.DpAppliance,
+				DpDomain:    itemConfig.DpDomain,
+				Path:        statusPath,
+				Parent:      itemConfig}
+			item := model.Item{Name: statusName, Config: &itemConfig}
+			items[idx] = item
+		}
+
+		sort.Sort(items)
+
+		logging.LogDebugf("repo/dp/listStatuses(), items: %v", items)
+		return items, nil
+	default:
+		logging.LogDebug("repo/dp/listStatuses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
 }

@@ -23,7 +23,7 @@ func clearRepo() {
 	Repo.dpFilestoreXmls = make(map[string]string)
 	Repo.invalidateCache = false
 	Repo.dataPowerAppliance = dpApplicance{}
-	Repo.ObjectConfigMode = false
+	Repo.DpViewMode = DpFilestoreMode
 }
 
 func TestString(t *testing.T) {
@@ -134,7 +134,7 @@ func TestGetTitle(t *testing.T) {
 }
 
 func TestGetList(t *testing.T) {
-	t.Run("ObjectConfigMode wrong item type", func(t *testing.T) {
+	t.Run("DpObjectMode wrong item type", func(t *testing.T) {
 		clearRepo()
 
 		dpa := config.DataPowerAppliance{
@@ -142,7 +142,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.ObjectConfigMode = true
+		Repo.DpViewMode = DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList}
@@ -169,7 +169,7 @@ func TestGetList(t *testing.T) {
 		assert.Equals(t, "GetList", len(itemList), 0)
 	})
 
-	t.Run("ObjectConfigMode/ObjectClassList REST", func(t *testing.T) {
+	t.Run("DpObjectMode/ObjectClassList REST", func(t *testing.T) {
 		clearRepo()
 
 		dpa := config.DataPowerAppliance{
@@ -177,7 +177,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.ObjectConfigMode = true
+		Repo.DpViewMode = DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
@@ -226,7 +226,7 @@ func TestGetList(t *testing.T) {
 		assert.Equals(t, "GetList", len(itemList), 0)
 	})
 
-	t.Run("ObjectConfigMode/ObjectClassList SOMA", func(t *testing.T) {
+	t.Run("DpObjectMode/ObjectClassList SOMA", func(t *testing.T) {
 		clearRepo()
 
 		dpa := config.DataPowerAppliance{
@@ -234,7 +234,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.ObjectConfigMode = true
+		Repo.DpViewMode = DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
@@ -274,7 +274,7 @@ func TestGetList(t *testing.T) {
 		}
 	})
 
-	t.Run("ObjectConfigMode/ObjectList REST", func(t *testing.T) {
+	t.Run("DpObjectMode/ObjectList REST", func(t *testing.T) {
 		clearRepo()
 
 		dpa := config.DataPowerAppliance{
@@ -282,7 +282,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.ObjectConfigMode = true
+		Repo.DpViewMode = DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClass,
@@ -330,7 +330,7 @@ func TestGetList(t *testing.T) {
 		}
 	})
 
-	t.Run("ObjectConfigMode/ObjectList SOMA", func(t *testing.T) {
+	t.Run("DpObjectMode/ObjectList SOMA", func(t *testing.T) {
 		clearRepo()
 
 		dpa := config.DataPowerAppliance{
@@ -338,7 +338,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.ObjectConfigMode = true
+		Repo.DpViewMode = DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClass,
@@ -382,6 +382,367 @@ func TestGetList(t *testing.T) {
 						DpObjectState: model.ItemDpObjectState{OpState: "up",
 							AdminState: "enabled", EventCode: "0x00000000",
 							ConfigState: "saved"},
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("DpStatusMode wrong item type", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClassList}
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing status config mode - missing dp appliance."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		itemToShow.DpAppliance = "MyApplianceName"
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing status config mode - missing domain."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+
+		itemToShow.DpDomain = "MyDomain"
+		itemToShow.Type = model.ItemDirectory
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing status config mode - wrong view type: s."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+	})
+
+	t.Run("DpStatusMode/StatusClassList REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClassList,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain",
+			DpFilestore: "local:",
+			Path:        "Status classes"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 147)
+
+		if len(itemList) == 147 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClassList,
+				Path: "Status classes", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "ActiveUsers", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "ActiveUsers", Path: "ActiveUsers",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "APISubscriberCacheStatus", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "APISubscriberCacheStatus", Path: "APISubscriberCacheStatus",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[100],
+				model.Item{Name: "SGClientConnectionStatus", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "SGClientConnectionStatus", Path: "SGClientConnectionStatus",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[146],
+				model.Item{Name: "ZosNSSstatus", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "ZosNSSstatus", Path: "ZosNSSstatus",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+
+		itemToShow.Type = model.ItemDirectory
+		itemList, err = Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err,
+			errs.Error("Internal error showing status config mode - wrong view type: s."))
+		assert.Equals(t, "GetList", len(itemList), 0)
+	})
+
+	t.Run("DpStatusMode/StatusClassList SOMA", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClassList,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "Status classes"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 64)
+
+		if len(itemList) == 64 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClassList,
+				Path: "Status classes", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0],
+				model.Item{Name: "ActiveUsers", Size: "8", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "ActiveUsers", Path: "ActiveUsers",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "ARPStatus", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "ARPStatus", Path: "ARPStatus",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[20],
+				model.Item{Name: "FirmwareStatus2", Size: "1", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "FirmwareStatus2", Path: "FirmwareStatus2",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[63],
+				model.Item{Name: "XMLNamesStatus", Size: "4", Modified: "",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "XMLNamesStatus", Path: "XMLNamesStatus",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("DpStatusMode/StatusList xsl cache REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "StylesheetCachingSummary"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 4)
+
+		if len(itemList) == 4 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClass,
+				Path: "StylesheetCachingSummary", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "default",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "default", Path: "0",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[2],
+				model.Item{Name: "default-attempt-stream",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "default-attempt-stream", Path: "1",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[3],
+				model.Item{Name: "default-wsrr",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "default-wsrr", Path: "2",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("DpStatusMode/StatusList active users REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "ActiveUsers"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 9)
+
+		if len(itemList) == 9 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClass,
+				Path: "ActiveUsers", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "0",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "0", Path: "0",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[8],
+				model.Item{Name: "7",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "7", Path: "7",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("DpStatusMode/StatusList xsl cache SOMA", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "StylesheetCachingSummary"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 4)
+
+		if len(itemList) == 4 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClass,
+				Path: "StylesheetCachingSummary", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "default",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "default", Path: "0",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[2],
+				model.Item{Name: "default-attempt-stream",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "default-attempt-stream", Path: "1",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[3],
+				model.Item{Name: "default-wsrr",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "default-wsrr", Path: "2",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("DpStatusMode/StatusList single status REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "CryptoEngineStatus2"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 2)
+
+		if len(itemList) == 2 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClass,
+				Path: "CryptoEngineStatus2", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "0",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "0", Path: "0",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+		}
+	})
+
+	t.Run("DpStatusMode/StatusList users SOMA", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "xxx",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+
+		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
+			DpAppliance: "MyApplianceName",
+			DpDomain:    "MyDomain", DpFilestore: "local:", Path: "ActiveUsers"}
+		config.Conf.DataPowerAppliances[itemToShow.DpAppliance] = dpa
+		itemList, err := Repo.GetList(&itemToShow)
+
+		assert.Equals(t, "GetList", err, nil)
+		assert.Equals(t, "GetList", len(itemList), 9)
+
+		if len(itemList) == 9 {
+			parentItemConfig := model.ItemConfig{Type: model.ItemDpStatusClass,
+				Path: "ActiveUsers", DpAppliance: "MyApplianceName",
+				DpDomain: "MyDomain", DpFilestore: "local:"}
+			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
+			assert.DeepEqual(t, "GetList", itemList[1],
+				model.Item{Name: "0",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "0", Path: "0",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[8],
+				model.Item{Name: "7",
+					Config: &model.ItemConfig{Type: model.ItemDpStatus,
+						Name: "7", Path: "7",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 		}
 	})
@@ -1687,4 +2048,95 @@ func TestRenameObject(t *testing.T) {
 	objectXMLGot, err := Repo.RenameObject([]byte(objectXMLInput), "new-xmlfw-name")
 	assert.DeepEqual(t, "XML object configuration rename err", err, nil)
 	assert.DeepEqual(t, "XML object configuration rename", string(objectXMLGot), objectXMLExpected)
+}
+
+func TestGetStatus(t *testing.T) {
+	t.Run("DpStatusMode/GetStatus * REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "MyDomain",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+		Repo.dataPowerAppliance = dpApplicance{"", dpa}
+
+		statusBytes, err := Repo.GetStatus(
+			dpa.Domain, "StylesheetCachingSummary", 1)
+
+		assert.Equals(t, "GetStatus", err, nil)
+
+		wantStatus := `{
+  "XMLManager": {
+    "value": "default-attempt-stream"
+  },
+  "CacheSize": 256,
+  "CacheCount": 0,
+  "ReadyCount": 0,
+  "PendingCount": 0,
+  "BadCount": 0,
+  "DupCount": 0,
+  "CacheKBCount": 0
+}`
+		assert.Equals(t, "GetStatus", string(statusBytes), wantStatus)
+	})
+
+	t.Run("DpStatusMode/GetStatus single status REST", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			RestUrl:  testRestURL,
+			Username: "user",
+			Domain:   "MyDomain",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+		Repo.dataPowerAppliance = dpApplicance{"", dpa}
+
+		statusBytes, err := Repo.GetStatus(
+			dpa.Domain, "CryptoEngineStatus2", 0)
+
+		assert.Equals(t, "GetStatus", err, nil)
+
+		wantStatus := `{
+  "EngineType": "standard",
+  "EngineStatus": "fullyOperational",
+  "FIPSLevel": "notApplicable",
+  "FIPSRole": "notApplicable",
+  "DisableAmount": "none"
+}`
+		assert.Equals(t, "GetStatus", string(statusBytes), wantStatus)
+	})
+
+	t.Run("DpStatusMode/GetStatus SOMA", func(t *testing.T) {
+		clearRepo()
+
+		dpa := config.DataPowerAppliance{
+			SomaUrl:  testSomaURL,
+			Username: "user",
+			Domain:   "MyDomain",
+		}
+		Repo.DpViewMode = DpStatusMode
+		Repo.req = mockRequester{}
+		Repo.dataPowerAppliance = dpApplicance{"", dpa}
+
+		statusBytes, err := Repo.GetStatus(
+			dpa.Domain, "StylesheetCachingSummary", 1)
+
+		assert.Equals(t, "GetStatus", err, nil)
+
+		wantStatus := `<StylesheetCachingSummary>
+  <XMLManager class="XMLManager">default-attempt-stream</XMLManager>
+  <CacheSize>256</CacheSize>
+  <CacheCount>0</CacheCount>
+  <ReadyCount>0</ReadyCount>
+  <PendingCount>0</PendingCount>
+  <BadCount>0</BadCount>
+  <DupCount>0</DupCount>
+  <CacheKBCount>0</CacheKBCount>
+</StylesheetCachingSummary>`
+		assert.Equals(t, "GetStatus", string(statusBytes), wantStatus)
+	})
 }

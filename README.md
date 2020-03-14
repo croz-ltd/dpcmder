@@ -13,6 +13,11 @@ Current functions:
   - clone an object
   - view object status
   - view object details (service, policy, match or rule)
+- status mode (as JSON or XML information)
+  - view DataPower statuses
+  - TODO: add names (instead of indexes) for different status classes (currently
+          only StylesheetCachingSummary shows proper names)
+  - TODO: add XSL Stylesheet cache flush action (+ other similar for other caches)
 - common functions for file and object maintenance mode
   - dpcmder view history (back / forward / jump)
   - filter and search items in the current view
@@ -239,7 +244,8 @@ f                    - filter visible items by a given string
 .                    - enter a location (full path) for the local file system
 s                    - auto-synchronize selected directories (local to DataPower)
 S                    - save running DataPower configuration (SOMA only)
-0                    - toggle DataPower view from filestore view to object view
+0                    - cycle between different DataPower view modes
+                       filestore mode view / object mode view / status mode view
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
 ?                    - show status information for the current DataPower object

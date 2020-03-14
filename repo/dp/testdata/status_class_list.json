@@ -1,0 +1,448 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/status/"
+    },
+    "ActiveUsers": {
+      "href": "/mgmt/status/{domain}/ActiveUsers"
+    },
+    "APISubscriberCacheStatus": {
+      "href": "/mgmt/status/{domain}/APISubscriberCacheStatus"
+    },
+    "APISubscriberStatus": {
+      "href": "/mgmt/status/{domain}/APISubscriberStatus"
+    },
+    "AuthCookieCacheStatus": {
+      "href": "/mgmt/status/{domain}/AuthCookieCacheStatus"
+    },
+    "B2BHighAvailabilityStatus": {
+      "href": "/mgmt/status/{domain}/B2BHighAvailabilityStatus"
+    },
+    "B2BMessageArchiveStatus": {
+      "href": "/mgmt/status/{domain}/B2BMessageArchiveStatus"
+    },
+    "B2BMPCStatus2": {
+      "href": "/mgmt/status/{domain}/B2BMPCStatus2"
+    },
+    "B2BTransactionLog2": {
+      "href": "/mgmt/status/{domain}/B2BTransactionLog2"
+    },
+    "Battery": {
+      "href": "/mgmt/status/{domain}/Battery"
+    },
+    "ConfigSequenceStatus": {
+      "href": "/mgmt/status/{domain}/ConfigSequenceStatus"
+    },
+    "ConnectionsAccepted": {
+      "href": "/mgmt/status/{domain}/ConnectionsAccepted"
+    },
+    "CPUUsage": {
+      "href": "/mgmt/status/{domain}/CPUUsage"
+    },
+    "CryptoEngineStatus2": {
+      "href": "/mgmt/status/{domain}/CryptoEngineStatus2"
+    },
+    "CryptoHwDisableStatus": {
+      "href": "/mgmt/status/{domain}/CryptoHwDisableStatus"
+    },
+    "CryptoModeStatus": {
+      "href": "/mgmt/status/{domain}/CryptoModeStatus"
+    },
+    "CurrentSensors": {
+      "href": "/mgmt/status/{domain}/CurrentSensors"
+    },
+    "DateTimeStatus": {
+      "href": "/mgmt/status/{domain}/DateTimeStatus"
+    },
+    "DateTimeStatus2": {
+      "href": "/mgmt/status/{domain}/DateTimeStatus2"
+    },
+    "DebugActionStatus": {
+      "href": "/mgmt/status/{domain}/DebugActionStatus"
+    },
+    "DNSCacheHostStatus4": {
+      "href": "/mgmt/status/{domain}/DNSCacheHostStatus4"
+    },
+    "DNSNameServerStatus2": {
+      "href": "/mgmt/status/{domain}/DNSNameServerStatus2"
+    },
+    "DNSSearchDomainStatus": {
+      "href": "/mgmt/status/{domain}/DNSSearchDomainStatus"
+    },
+    "DNSStaticHostStatus": {
+      "href": "/mgmt/status/{domain}/DNSStaticHostStatus"
+    },
+    "DocumentCachingSummary": {
+      "href": "/mgmt/status/{domain}/DocumentCachingSummary"
+    },
+    "DocumentStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/DocumentStatusSimpleIndex"
+    },
+    "DomainCheckpointStatus": {
+      "href": "/mgmt/status/{domain}/DomainCheckpointStatus"
+    },
+    "DomainsMemoryStatus2": {
+      "href": "/mgmt/status/{domain}/DomainsMemoryStatus2"
+    },
+    "DomainStatus": {
+      "href": "/mgmt/status/{domain}/DomainStatus"
+    },
+    "DynamicQueueManager": {
+      "href": "/mgmt/status/{domain}/DynamicQueueManager"
+    },
+    "EnvironmentalFanSensors": {
+      "href": "/mgmt/status/{domain}/EnvironmentalFanSensors"
+    },
+    "EthernetInterfaceStatus": {
+      "href": "/mgmt/status/{domain}/EthernetInterfaceStatus"
+    },
+    "FailureNotificationStatus2": {
+      "href": "/mgmt/status/{domain}/FailureNotificationStatus2"
+    },
+    "FilePollerStatus": {
+      "href": "/mgmt/status/{domain}/FilePollerStatus"
+    },
+    "FilesystemStatus": {
+      "href": "/mgmt/status/{domain}/FilesystemStatus"
+    },
+    "FirmwareStatus2": {
+      "href": "/mgmt/status/{domain}/FirmwareStatus2"
+    },
+    "FirmwareVersion3": {
+      "href": "/mgmt/status/{domain}/FirmwareVersion3"
+    },
+    "GatewayPeeringStatus": {
+      "href": "/mgmt/status/{domain}/GatewayPeeringStatus"
+    },
+    "GatewayTransactions": {
+      "href": "/mgmt/status/{domain}/GatewayTransactions"
+    },
+    "HTTPConnections": {
+      "href": "/mgmt/status/{domain}/HTTPConnections"
+    },
+    "HTTPMeanTransactionTime2": {
+      "href": "/mgmt/status/{domain}/HTTPMeanTransactionTime2"
+    },
+    "HTTPTransactions2": {
+      "href": "/mgmt/status/{domain}/HTTPTransactions2"
+    },
+    "Hypervisor3": {
+      "href": "/mgmt/status/{domain}/Hypervisor3"
+    },
+    "IGMPStatus": {
+      "href": "/mgmt/status/{domain}/IGMPStatus"
+    },
+    "IMSConnectstatus": {
+      "href": "/mgmt/status/{domain}/IMSConnectstatus"
+    },
+    "IPAddressStatus": {
+      "href": "/mgmt/status/{domain}/IPAddressStatus"
+    },
+    "IPMulticastStatus": {
+      "href": "/mgmt/status/{domain}/IPMulticastStatus"
+    },
+    "KerberosTickets2": {
+      "href": "/mgmt/status/{domain}/KerberosTickets2"
+    },
+    "LDAPPoolEntries": {
+      "href": "/mgmt/status/{domain}/LDAPPoolEntries"
+    },
+    "LDAPPoolSummary": {
+      "href": "/mgmt/status/{domain}/LDAPPoolSummary"
+    },
+    "LibraryVersion": {
+      "href": "/mgmt/status/{domain}/LibraryVersion"
+    },
+    "LicenseStatus": {
+      "href": "/mgmt/status/{domain}/LicenseStatus"
+    },
+    "LinkAggregationMemberStatus": {
+      "href": "/mgmt/status/{domain}/LinkAggregationMemberStatus"
+    },
+    "LinkAggregationStatus": {
+      "href": "/mgmt/status/{domain}/LinkAggregationStatus"
+    },
+    "LinkStatus": {
+      "href": "/mgmt/status/{domain}/LinkStatus"
+    },
+    "LoadBalancerStatus2": {
+      "href": "/mgmt/status/{domain}/LoadBalancerStatus2"
+    },
+    "LogTargetStatus": {
+      "href": "/mgmt/status/{domain}/LogTargetStatus"
+    },
+    "LunaLatency": {
+      "href": "/mgmt/status/{domain}/LunaLatency"
+    },
+    "MemoryStatus": {
+      "href": "/mgmt/status/{domain}/MemoryStatus"
+    },
+    "MessageCountFilters": {
+      "href": "/mgmt/status/{domain}/MessageCountFilters"
+    },
+    "MessageCounts": {
+      "href": "/mgmt/status/{domain}/MessageCounts"
+    },
+    "MessageDurationFilters": {
+      "href": "/mgmt/status/{domain}/MessageDurationFilters"
+    },
+    "MessageDurations": {
+      "href": "/mgmt/status/{domain}/MessageDurations"
+    },
+    "MessageSources": {
+      "href": "/mgmt/status/{domain}/MessageSources"
+    },
+    "MQConnStatus": {
+      "href": "/mgmt/status/{domain}/MQConnStatus"
+    },
+    "MQQMstatus": {
+      "href": "/mgmt/status/{domain}/MQQMstatus"
+    },
+    "NDCacheStatus2": {
+      "href": "/mgmt/status/{domain}/NDCacheStatus2"
+    },
+    "NetworkInterfaceStatus": {
+      "href": "/mgmt/status/{domain}/NetworkInterfaceStatus"
+    },
+    "NetworkReceiveDataThroughput": {
+      "href": "/mgmt/status/{domain}/NetworkReceiveDataThroughput"
+    },
+    "NetworkReceivePacketThroughput": {
+      "href": "/mgmt/status/{domain}/NetworkReceivePacketThroughput"
+    },
+    "NetworkTransmitDataThroughput": {
+      "href": "/mgmt/status/{domain}/NetworkTransmitDataThroughput"
+    },
+    "NetworkTransmitPacketThroughput": {
+      "href": "/mgmt/status/{domain}/NetworkTransmitPacketThroughput"
+    },
+    "NFSMountStatus": {
+      "href": "/mgmt/status/{domain}/NFSMountStatus"
+    },
+    "NTPRefreshStatus": {
+      "href": "/mgmt/status/{domain}/NTPRefreshStatus"
+    },
+    "OAuthCachesStatus": {
+      "href": "/mgmt/status/{domain}/OAuthCachesStatus"
+    },
+    "ObjectStatus": {
+      "href": "/mgmt/status/{domain}/ObjectStatus"
+    },
+    "ODRConnectorGroupStatus2": {
+      "href": "/mgmt/status/{domain}/ODRConnectorGroupStatus2"
+    },
+    "ODRLoadBalancerStatus": {
+      "href": "/mgmt/status/{domain}/ODRLoadBalancerStatus"
+    },
+    "PCIBus": {
+      "href": "/mgmt/status/{domain}/PCIBus"
+    },
+    "PolicyDomainStatus": {
+      "href": "/mgmt/status/{domain}/PolicyDomainStatus"
+    },
+    "PowerSensors": {
+      "href": "/mgmt/status/{domain}/PowerSensors"
+    },
+    "QuotaEnforcementStatus": {
+      "href": "/mgmt/status/{domain}/QuotaEnforcementStatus"
+    },
+    "RaidArrayStatus": {
+      "href": "/mgmt/status/{domain}/RaidArrayStatus"
+    },
+    "RaidBatteryBackUpStatus": {
+      "href": "/mgmt/status/{domain}/RaidBatteryBackUpStatus"
+    },
+    "RaidBatteryModuleStatus": {
+      "href": "/mgmt/status/{domain}/RaidBatteryModuleStatus"
+    },
+    "RaidLogicalDriveStatus": {
+      "href": "/mgmt/status/{domain}/RaidLogicalDriveStatus"
+    },
+    "RaidPartitionStatus": {
+      "href": "/mgmt/status/{domain}/RaidPartitionStatus"
+    },
+    "RaidPhysicalDriveStatus": {
+      "href": "/mgmt/status/{domain}/RaidPhysicalDriveStatus"
+    },
+    "RateLimitAPIStatus": {
+      "href": "/mgmt/status/{domain}/RateLimitAPIStatus"
+    },
+    "RateLimitAssemblyStatus": {
+      "href": "/mgmt/status/{domain}/RateLimitAssemblyStatus"
+    },
+    "RateLimitConcurrentStatus": {
+      "href": "/mgmt/status/{domain}/RateLimitConcurrentStatus"
+    },
+    "RateLimitCountStatus": {
+      "href": "/mgmt/status/{domain}/RateLimitCountStatus"
+    },
+    "RateLimitRateStatus": {
+      "href": "/mgmt/status/{domain}/RateLimitRateStatus"
+    },
+    "RateLimitTokenBucketStatus": {
+      "href": "/mgmt/status/{domain}/RateLimitTokenBucketStatus"
+    },
+    "RoutingStatus3": {
+      "href": "/mgmt/status/{domain}/RoutingStatus3"
+    },
+    "SecureCloudConnectorConnectionsStatus": {
+      "href": "/mgmt/status/{domain}/SecureCloudConnectorConnectionsStatus"
+    },
+    "SelfBalancedStatus2": {
+      "href": "/mgmt/status/{domain}/SelfBalancedStatus2"
+    },
+    "SelfBalancedTable": {
+      "href": "/mgmt/status/{domain}/SelfBalancedTable"
+    },
+    "ServicesMemoryStatus2": {
+      "href": "/mgmt/status/{domain}/ServicesMemoryStatus2"
+    },
+    "ServicesStatus": {
+      "href": "/mgmt/status/{domain}/ServicesStatus"
+    },
+    "ServiceVersionStatus": {
+      "href": "/mgmt/status/{domain}/ServiceVersionStatus"
+    },
+    "SGClientConnectionStatus": {
+      "href": "/mgmt/status/{domain}/SGClientConnectionStatus"
+    },
+    "SGClientStatus": {
+      "href": "/mgmt/status/{domain}/SGClientStatus"
+    },
+    "SLMPeeringStatus": {
+      "href": "/mgmt/status/{domain}/SLMPeeringStatus"
+    },
+    "SLMSummaryStatus": {
+      "href": "/mgmt/status/{domain}/SLMSummaryStatus"
+    },
+    "SNMPStatus": {
+      "href": "/mgmt/status/{domain}/SNMPStatus"
+    },
+    "SQLConnectionPoolStatus": {
+      "href": "/mgmt/status/{domain}/SQLConnectionPoolStatus"
+    },
+    "SQLStatus": {
+      "href": "/mgmt/status/{domain}/SQLStatus"
+    },
+    "SSHKnownHostFileStatus2": {
+      "href": "/mgmt/status/{domain}/SSHKnownHostFileStatus2"
+    },
+    "SSHKnownHostStatus": {
+      "href": "/mgmt/status/{domain}/SSHKnownHostStatus"
+    },
+    "SSHTrustedHostStatus": {
+      "href": "/mgmt/status/{domain}/SSHTrustedHostStatus"
+    },
+    "StandbyStatus2": {
+      "href": "/mgmt/status/{domain}/StandbyStatus2"
+    },
+    "StylesheetCachingSummary": {
+      "href": "/mgmt/status/{domain}/StylesheetCachingSummary"
+    },
+    "StylesheetExecutionsSimpleIndex": {
+      "href": "/mgmt/status/{domain}/StylesheetExecutionsSimpleIndex"
+    },
+    "StylesheetMeanExecutionTimeSimpleIndex": {
+      "href": "/mgmt/status/{domain}/StylesheetMeanExecutionTimeSimpleIndex"
+    },
+    "StylesheetProfilesSimpleIndex": {
+      "href": "/mgmt/status/{domain}/StylesheetProfilesSimpleIndex"
+    },
+    "StylesheetStatus": {
+      "href": "/mgmt/status/{domain}/StylesheetStatus"
+    },
+    "StylesheetStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/StylesheetStatusSimpleIndex"
+    },
+    "SystemUsage": {
+      "href": "/mgmt/status/{domain}/SystemUsage"
+    },
+    "SystemUsage2Table": {
+      "href": "/mgmt/status/{domain}/SystemUsage2Table"
+    },
+    "TCPSummary": {
+      "href": "/mgmt/status/{domain}/TCPSummary"
+    },
+    "TCPTable": {
+      "href": "/mgmt/status/{domain}/TCPTable"
+    },
+    "TemperatureSensors": {
+      "href": "/mgmt/status/{domain}/TemperatureSensors"
+    },
+    "TenantMemory": {
+      "href": "/mgmt/status/{domain}/TenantMemory"
+    },
+    "UDDISubscriptionKeyStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/UDDISubscriptionKeyStatusSimpleIndex"
+    },
+    "UDDISubscriptionServiceStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/UDDISubscriptionServiceStatusSimpleIndex"
+    },
+    "UDDISubscriptionStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/UDDISubscriptionStatusSimpleIndex"
+    },
+    "VirtualPlatform3": {
+      "href": "/mgmt/status/{domain}/VirtualPlatform3"
+    },
+    "VlanInterfaceStatus2": {
+      "href": "/mgmt/status/{domain}/VlanInterfaceStatus2"
+    },
+    "WebAppFwAccepted": {
+      "href": "/mgmt/status/{domain}/WebAppFwAccepted"
+    },
+    "WebAppFwRejected": {
+      "href": "/mgmt/status/{domain}/WebAppFwRejected"
+    },
+    "WebSphereJMSStatus": {
+      "href": "/mgmt/status/{domain}/WebSphereJMSStatus"
+    },
+    "WSMAgentSpoolers": {
+      "href": "/mgmt/status/{domain}/WSMAgentSpoolers"
+    },
+    "WSMAgentStatus": {
+      "href": "/mgmt/status/{domain}/WSMAgentStatus"
+    },
+    "WSOperationMetricsSimpleIndex": {
+      "href": "/mgmt/status/{domain}/WSOperationMetricsSimpleIndex"
+    },
+    "WSOperationsStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/WSOperationsStatusSimpleIndex"
+    },
+    "WSRRSavdSrchSubsPolicyAttachmentsStatus": {
+      "href": "/mgmt/status/{domain}/WSRRSavdSrchSubsPolicyAttachmentsStatus"
+    },
+    "WSRRSavedSearchSubscriptionServiceStatus": {
+      "href": "/mgmt/status/{domain}/WSRRSavedSearchSubscriptionServiceStatus"
+    },
+    "WSRRSavedSearchSubscriptionStatus": {
+      "href": "/mgmt/status/{domain}/WSRRSavedSearchSubscriptionStatus"
+    },
+    "WSRRSubscriptionPolicyAttachmentsStatus": {
+      "href": "/mgmt/status/{domain}/WSRRSubscriptionPolicyAttachmentsStatus"
+    },
+    "WSRRSubscriptionServiceStatus": {
+      "href": "/mgmt/status/{domain}/WSRRSubscriptionServiceStatus"
+    },
+    "WSRRSubscriptionStatus": {
+      "href": "/mgmt/status/{domain}/WSRRSubscriptionStatus"
+    },
+    "WSWSDLStatusSimpleIndex": {
+      "href": "/mgmt/status/{domain}/WSWSDLStatusSimpleIndex"
+    },
+    "WXSGridStatus": {
+      "href": "/mgmt/status/{domain}/WXSGridStatus"
+    },
+    "XC10GridStatus": {
+      "href": "/mgmt/status/{domain}/XC10GridStatus"
+    },
+    "XMLNamesStatus": {
+      "href": "/mgmt/status/{domain}/XMLNamesStatus"
+    },
+    "ZHybridTCSstatus": {
+      "href": "/mgmt/status/{domain}/ZHybridTCSstatus"
+    },
+    "ZosNSSstatus": {
+      "href": "/mgmt/status/{domain}/ZosNSSstatus"
+    }
+  }
+}

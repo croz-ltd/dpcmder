@@ -3,6 +3,11 @@ package ui
 import (
 	"bytes"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+	"unicode/utf8"
+
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/events"
 	"github.com/croz-ltd/dpcmder/extprogs"
@@ -14,9 +19,6 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/gdamore/tcell"
-	"strings"
-	"time"
-	"unicode/utf8"
 )
 
 // dpMissingPasswordError is constant error returned if DataPower password is
@@ -438,6 +440,7 @@ func showView(side model.Side, itemConfig *model.ItemConfig,
 	case model.ItemDpConfiguration, model.ItemDpDomain, model.ItemDpFilestore,
 		model.ItemDirectory,
 		model.ItemDpObjectClassList, model.ItemDpObjectClass,
+		model.ItemDpStatusClassList, model.ItemDpStatusClass,
 		model.ItemNone:
 		itemList, err = r.GetList(itemConfig)
 		if err != nil {
@@ -513,12 +516,16 @@ func showPrevView() error {
 	logging.LogDebugf("ui/showPrevView(), side: %v, oldView: %v, newView: %s",
 		side, oldView, newView)
 
-	// If previous view in history requires filestore mode, switch to filestore mode.
-	if side == model.Left &&
+	// If previous view in history requires filestore/object mode, switch mode.
+	switch {
+	case side == model.Left && dp.Repo.DpViewMode == dp.DpObjectMode &&
 		newView.Type != model.ItemDpObjectClassList &&
-		newView.Type != model.ItemDpObjectClass &&
-		dp.Repo.ObjectConfigMode {
-		dp.Repo.ObjectConfigMode = false
+		newView.Type != model.ItemDpObjectClass:
+		dp.Repo.DpViewMode = dp.DpFilestoreMode
+	case side == model.Left && dp.Repo.DpViewMode == dp.DpStatusMode &&
+		newView.Type != model.ItemDpStatusClassList &&
+		newView.Type != model.ItemDpStatusClass:
+		dp.Repo.DpViewMode = dp.DpObjectMode
 	}
 
 	if newView == oldView {
@@ -538,9 +545,14 @@ func showNextView() error {
 	logging.LogDebugf("ui/showNextView(), side: %v, oldView: %v, newView: %s",
 		side, oldView, newView)
 
-	// If next view in history requires object mode, switch to object config mode.
-	if side == model.Left && newView.Type == model.ItemDpObjectClassList && !dp.Repo.ObjectConfigMode {
-		dp.Repo.ObjectConfigMode = true
+	// If next view in history requires object/status mode, switch mode.
+	switch {
+	case side == model.Left && dp.Repo.DpViewMode == dp.DpFilestoreMode &&
+		newView.Type == model.ItemDpObjectClassList:
+		dp.Repo.DpViewMode = dp.DpObjectMode
+	case side == model.Left && dp.Repo.DpViewMode == dp.DpObjectMode &&
+		newView.Type == model.ItemDpStatusClassList:
+		dp.Repo.DpViewMode = dp.DpStatusMode
 	}
 
 	if newView == oldView {
@@ -600,9 +612,14 @@ loop:
 		newView := workingModel.NavCurrentViewIdx(side, dialogSession.selectionIdx)
 		// If proper mode for new view (object mode vs filestore mode).
 		if side == model.Left {
-			dp.Repo.ObjectConfigMode =
-				(newView.Type == model.ItemDpObjectClassList ||
-					newView.Type == model.ItemDpObjectClass)
+			switch newView.Type {
+			case model.ItemDpObjectClassList, model.ItemDpObjectClass:
+				dp.Repo.DpViewMode = dp.DpObjectMode
+			case model.ItemDpStatusClassList, model.ItemDpStatusClass:
+				dp.Repo.DpViewMode = dp.DpStatusMode
+			default:
+				dp.Repo.DpViewMode = dp.DpFilestoreMode
+			}
 		}
 		showView(side, newView, ".", "", false)
 	}
@@ -712,6 +729,21 @@ func viewCurrent(m *model.Model) error {
 			return err
 		}
 		err = extprogs.View(getObjectTmpName(ci.Name), objectContent)
+		if err != nil {
+			return err
+		}
+	case model.ItemDpStatus:
+		statusIdx, err := strconv.Atoi(ci.Config.Path)
+		if err != nil {
+			return err
+		}
+		statusContent, err :=
+			dp.Repo.GetStatus(
+				ci.Config.DpDomain, ci.Config.Parent.Name, statusIdx)
+		if err != nil {
+			return err
+		}
+		err = extprogs.View(getObjectTmpName(ci.Name), statusContent)
 		if err != nil {
 			return err
 		}
@@ -961,9 +993,12 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 		}
 	case model.ItemFile:
 		// If we copy to DataPower and we are in ObjectConfigMode we copy file to object.
-		if toRepo.String() == dp.Repo.String() && dp.Repo.ObjectConfigMode {
+		switch {
+		case toRepo.String() == dp.Repo.String() && dp.Repo.DpViewMode == dp.DpObjectMode:
 			res, err = copyFileToObject(item.Config, item.Name, fromRepo, toRepo, fromViewConfig, toViewConfig, confirmOverwrite)
-		} else {
+		case toRepo.String() == dp.Repo.String() && dp.Repo.DpViewMode == dp.DpStatusMode:
+			err = errs.Errorf("Can't copy to DataPower status.")
+		default:
 			res, err = copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
 		}
 
@@ -1844,22 +1879,33 @@ func syncLocalToDpLater(tree, treeOld *localfs.Tree) bool {
 	return changesMade
 }
 
-// toggleObjectMode switches between (default) filestore mode and object mode
-// for DataPower view.
+// toggleObjectMode switches between (default) filestore mode, object mode and
+// status mode for the DataPower view.
 func toggleObjectMode(m *model.Model) error {
-	logging.LogDebugf("worker/toggleObjectMode(), dp.Repo.ObjectConfigMode: %t", dp.Repo.ObjectConfigMode)
+	logging.LogDebugf("worker/toggleObjectMode(), dp.Repo.DpViewMode: %s", dp.Repo.DpViewMode)
 
 	side := m.CurrSide()
 	switch side {
 	case model.Left:
-		dp.Repo.ObjectConfigMode = !dp.Repo.ObjectConfigMode
+		switch dp.Repo.DpViewMode {
+		case dp.DpFilestoreMode:
+			dp.Repo.DpViewMode = dp.DpObjectMode
+		case dp.DpObjectMode:
+			dp.Repo.DpViewMode = dp.DpStatusMode
+		case dp.DpStatusMode:
+			dp.Repo.DpViewMode = dp.DpFilestoreMode
+		default:
+			dp.Repo.DpViewMode = dp.DpFilestoreMode
+		}
+
 		oldView := m.ViewConfig(side)
 
 		// When we switch to object config mode - add/open object class list.
-		if dp.Repo.ObjectConfigMode {
+		switch dp.Repo.DpViewMode {
+		case dp.DpObjectMode:
 			if oldView.DpDomain == "" {
 				logging.LogDebugf("worker/toggleObjectMode(), can't switch to object mode, oldView: %v.", oldView)
-				dp.Repo.ObjectConfigMode = false
+				dp.Repo.DpViewMode = dp.DpFilestoreMode
 				return errs.Errorf("Can't show object view if DataPower domain is not selected.")
 			}
 			newView := model.ItemConfig{
@@ -1871,13 +1917,28 @@ func toggleObjectMode(m *model.Model) error {
 				DpDomain:    oldView.DpDomain,
 				DpFilestore: oldView.DpFilestore}
 			return showItem(model.Left, &newView, newView.Path)
+		case dp.DpStatusMode:
+			if oldView.DpDomain == "" {
+				logging.LogDebugf("worker/toggleObjectMode(), can't switch to status mode, oldView: %v.", oldView)
+				dp.Repo.DpViewMode = dp.DpFilestoreMode
+				return errs.Errorf("Can't show status view if DataPower domain is not selected.")
+			}
+			newView := model.ItemConfig{
+				Parent:      oldView,
+				Name:        "Status classes",
+				Type:        model.ItemDpStatusClassList,
+				Path:        "Status classes",
+				DpAppliance: oldView.DpAppliance,
+				DpDomain:    oldView.DpDomain,
+				DpFilestore: oldView.DpFilestore}
+			return showItem(model.Left, &newView, newView.Path)
 		}
 
-		// When we switch from object config mode - navigate to first non-object view.
+		// When we switch from object or status config mode - navigate to first non-object view.
 		switch oldView.Type {
-		case model.ItemDpObjectClassList:
+		case model.ItemDpObjectClassList, model.ItemDpStatusClassList:
 			m.NavCurrentViewBack(side)
-		case model.ItemDpObjectClass:
+		case model.ItemDpObjectClass, model.ItemDpStatusClass:
 			m.NavCurrentViewBack(side)
 			m.NavCurrentViewBack(side)
 		default:
@@ -1894,9 +1955,9 @@ func toggleObjectMode(m *model.Model) error {
 
 // showItemInfo shows information about current item.
 func showItemInfo(m *model.Model) error {
-	logging.LogDebugf("worker/showItemInfo(), dp.Repo.ObjectConfigMode: %t", dp.Repo.ObjectConfigMode)
+	logging.LogDebugf("worker/showItemInfo(), dp.Repo.DpViewMode: %s", dp.Repo.DpViewMode)
 
-	if !dp.Repo.ObjectConfigMode {
+	if dp.Repo.DpViewMode != dp.DpObjectMode {
 		return errs.Error("Can't show info for DataPower object if object mode is not active.")
 	}
 
@@ -1926,10 +1987,10 @@ func showItemInfo(m *model.Model) error {
 // showObjectDetails shows details (service, policy, matches, rules & actions)
 // for the current object.
 func showObjectDetails(m *model.Model) error {
-	logging.LogDebugf("worker/showObjectPolicy(), dp.Repo.ObjectConfigMode: %t",
-		dp.Repo.ObjectConfigMode)
+	logging.LogDebugf("worker/showObjectPolicy(), dp.Repo.ObjectConfigMode: %s",
+		dp.Repo.DpViewMode)
 
-	if !dp.Repo.ObjectConfigMode {
+	if dp.Repo.DpViewMode != dp.DpObjectMode {
 		return errs.Error("Can't show policy for DataPower object if object mode is not active.")
 	}
 

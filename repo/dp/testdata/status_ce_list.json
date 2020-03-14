@@ -1,0 +1,17 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/status/test/CryptoEngineStatus2"
+    },
+    "doc": {
+      "href": "/mgmt/docs/status/CryptoEngineStatus2"
+    }
+  },
+  "CryptoEngineStatus2": {
+    "EngineType": "standard",
+    "EngineStatus": "fullyOperational",
+    "FIPSLevel": "notApplicable",
+    "FIPSRole": "notApplicable",
+    "DisableAmount": "none"
+  }
+}

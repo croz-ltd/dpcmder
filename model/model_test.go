@@ -12,8 +12,9 @@ import (
 func TestItemTypeString(t *testing.T) {
 	types := []ItemType{ItemFile, ItemDirectory, ItemDpConfiguration, ItemDpDomain,
 		ItemDpFilestore, ItemDpObjectClassList, ItemDpObjectClass, ItemDpObject,
+		ItemDpStatusClassList, ItemDpStatusClass, ItemDpStatus,
 		ItemNone}
-	wantArr := []string{"f", "d", "A", "D", "F", "L", "C", "O", "-"}
+	wantArr := []string{"f", "d", "A", "D", "F", "L", "O", "o", "l", "S", "s", "-"}
 
 	for idx, gotType := range types {
 		got := gotType.String()

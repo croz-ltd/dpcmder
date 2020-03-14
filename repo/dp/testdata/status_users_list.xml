@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2020-03-14T04:00:09-04:00</dp:timestamp>
+         <dp:status>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>473</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 12:47:17 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>477</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 12:50:50 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>480</session>
+               <name>admin</name>
+               <connection>web-gui</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 12:55:58 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>557</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 16:09:48 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>558</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 16:09:52 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>560</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 16:17:25 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>561</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Fri Mar 13 16:17:29 2020</login>
+               <domain>test</domain>
+            </ActiveUsers>
+            <ActiveUsers xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+               <session>608</session>
+               <name>admin</name>
+               <connection>saml-artifact</connection>
+               <address>172.17.0.1</address>
+               <login>Sat Mar 14 04:00:09 2020</login>
+               <domain>default</domain>
+            </ActiveUsers>
+         </dp:status>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

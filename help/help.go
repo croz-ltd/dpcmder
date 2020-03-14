@@ -69,7 +69,8 @@ f                    - filter visible items by a given string
 .                    - enter a location (full path) for the local file system
 s                    - auto-synchronize selected directories (local to DataPower)
 S                    - save running DataPower configuration (SOMA only)
-0                    - toggle DataPower view from filestore view to object view
+0                    - cycle between different DataPower view modes
+                       filestore mode view / object mode view / status mode view
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
 ?                    - show status information for the current DataPower object
@@ -112,6 +113,9 @@ Some new features added are SOMA-only. For example, with REST you can't compare
 persisted DataPower object configuration to saved configuration.
 
 TODO:
+- flush xsl cache:
+  - 3rd mode (filestore / object / status)
+	- (sometimes) there can be actions on status objects - flush xsl cache
 - add domain/appliance import?
 - add creation of new DataPower objects
   (should be able to show/create all classes of objects, even ones without

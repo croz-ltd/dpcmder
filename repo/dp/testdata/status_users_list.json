@@ -1,0 +1,76 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/status/test/ActiveUsers"
+    },
+    "doc": {
+      "href": "/mgmt/docs/status/ActiveUsers"
+    }
+  },
+  "ActiveUsers": [
+    {
+      "session": 473,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 12:47:17 2020",
+      "domain": "test"
+    },
+    {
+      "session": 477,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 12:50:50 2020",
+      "domain": "test"
+    },
+    {
+      "session": 480,
+      "name": "admin",
+      "connection": "web-gui",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 12:55:58 2020",
+      "domain": "test"
+    },
+    {
+      "session": 557,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 16:09:48 2020",
+      "domain": "test"
+    },
+    {
+      "session": 558,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 16:09:52 2020",
+      "domain": "test"
+    },
+    {
+      "session": 560,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 16:17:25 2020",
+      "domain": "test"
+    },
+    {
+      "session": 561,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Fri Mar 13 16:17:29 2020",
+      "domain": "test"
+    },
+    {
+      "session": 606,
+      "name": "admin",
+      "connection": "saml-artifact",
+      "address": "172.17.0.1",
+      "login": "Sat Mar 14 03:56:25 2020",
+      "domain": "test"
+    }
+  ]
+}
