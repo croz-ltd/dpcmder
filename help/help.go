@@ -113,9 +113,12 @@ Some new features added are SOMA-only. For example, with REST you can't compare
 persisted DataPower object configuration to saved configuration.
 
 TODO:
-- flush xsl cache:
-  - 3rd mode (filestore / object / status)
-	- (sometimes) there can be actions on status objects - flush xsl cache
+- status mode:
+  - for statuses which shows caches - add "modified" (*) flag, maybe even
+	  "size" of current cache
+	- flush xsl cache action on single status (delete - x key)
+	- flush xsl cache action on multiple statuses (class level) (delete - x key)
+	- flush other caches
 - add domain/appliance import?
 - add creation of new DataPower objects
   (should be able to show/create all classes of objects, even ones without
