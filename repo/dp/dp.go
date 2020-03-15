@@ -35,39 +35,25 @@ type dpApplicance struct {
 	config.DataPowerAppliance
 }
 
-// ViewMode represent one of available DataPower view modes.
-type ViewMode byte
-
-// Available DataPower view modes.
-const (
-	DpFilestoreMode = ViewMode('f')
-	DpObjectMode    = ViewMode('o')
-	DpStatusMode    = ViewMode('s')
-)
-
-func (v ViewMode) String() string {
-	return string(v)
-}
-
 // dpRepo contains basic DataPower repo information and implements Repo interface.
 type dpRepo struct {
 	name               string
 	dpFilestoreXmls    map[string]string
 	invalidateCache    bool
 	dataPowerAppliance dpApplicance
-	DpViewMode         ViewMode
+	DpViewMode         model.DpViewMode
 	req                requester
 }
 
 // Repo is instance or DataPower repo/Repo interface implementation used for all
 // operations on DataPower except syncing local filesystem to DataPower.
 var Repo = dpRepo{name: "DataPower", dpFilestoreXmls: make(map[string]string),
-	DpViewMode: DpFilestoreMode, req: netRequester{}}
+	DpViewMode: model.DpFilestoreMode, req: netRequester{}}
 
 // SyncRepo is instance or DataPower repo/Repo interface implementation used for
 // syncing local directory to DataPower directory.
 var SyncRepo = dpRepo{name: "SyncDataPower", dpFilestoreXmls: make(map[string]string),
-	DpViewMode: DpFilestoreMode, req: netRequester{}}
+	DpViewMode: model.DpFilestoreMode, req: netRequester{}}
 
 // dpDomainInfo contains domain name and basic state
 type dpDomainInfo struct {
@@ -158,7 +144,7 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 	logging.LogDebugf("repo/dp/GetList(%v), r.DpViewMode: %s", itemToShow, r.DpViewMode)
 
 	switch r.DpViewMode {
-	case DpObjectMode:
+	case model.DpObjectMode:
 		if itemToShow.DpAppliance == "" {
 			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpAppliance.", itemToShow)
 			return nil, errs.Errorf("Internal error showing object config mode - missing dp appliance.")
@@ -179,10 +165,10 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 		default:
 			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for DpViewMode: %s.",
 				itemToShow, r.DpViewMode)
-			r.DpViewMode = DpFilestoreMode
+			r.DpViewMode = model.DpFilestoreMode
 			return nil, errs.Errorf("Internal error showing object config mode - wrong view type.")
 		}
-	case DpStatusMode:
+	case model.DpStatusMode:
 		if itemToShow.DpAppliance == "" {
 			logging.LogDebugf("repo/dp/GetList(%v) - can't find DpAppliance.", itemToShow)
 			return nil, errs.Errorf("Internal error showing status config mode - missing dp appliance.")
@@ -204,13 +190,13 @@ func (r *dpRepo) GetList(itemToShow *model.ItemConfig) (model.ItemList, error) {
 			wrongView := r.DpViewMode
 			logging.LogDebugf("repo/dp/GetList(%v) - can't get children or item for DpViewMode: %s.",
 				itemToShow, wrongView)
-			r.DpViewMode = DpFilestoreMode
+			r.DpViewMode = model.DpFilestoreMode
 			return nil, errs.Errorf(
 				"Internal error showing status config mode - wrong view type: %s.",
 				wrongView)
 		}
 
-	case DpFilestoreMode:
+	case model.DpFilestoreMode:
 		switch itemToShow.Type {
 		case model.ItemNone:
 			r.dataPowerAppliance = getDpAppliance(itemToShow)
@@ -1778,7 +1764,8 @@ func (r *dpRepo) GetInfo(item *model.Item) ([]byte, error) {
 
 func (r *dpRepo) FlushCache(
 	domainName, statusClass, statusName string, itemType model.ItemType) (bool, error) {
-	logging.LogDebugf("repo/dp/FlushCache('%s', '%s', '%s' (%s))", domainName, statusClass, statusName, itemType)
+	logging.LogDebugf("repo/dp/FlushCache('%s', '%s', '%s' (%s))",
+		domainName, statusClass, statusName, itemType)
 
 	switch itemType {
 	case model.ItemDpStatusClass:
@@ -2269,7 +2256,7 @@ func (r *dpRepo) listObjectClasses(currentView *model.ItemConfig) (model.ItemLis
 			"//*[local-name()='response']/*[local-name()='status']/*[local-name()='ObjectStatus']/ConfigState")
 
 	default:
-		r.DpViewMode = DpFilestoreMode
+		r.DpViewMode = model.DpFilestoreMode
 		logging.LogDebug("repo/dp/listObjectClasses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
@@ -2566,7 +2553,7 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 		}
 
 	default:
-		r.DpViewMode = DpFilestoreMode
+		r.DpViewMode = model.DpFilestoreMode
 		logging.LogDebug("repo/dp/listStatusClasses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
@@ -2597,8 +2584,12 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 			DpDomain:    currentView.DpDomain,
 			Path:        className,
 			Parent:      currentView}
+		statusCnt := ""
+		if r.dataPowerAppliance.DpManagmentInterface() == config.DpInterfaceSoma {
+			statusCnt = fmt.Sprintf("%d", classNameMap[className])
+		}
 		item := model.Item{Name: className,
-			Size:   fmt.Sprintf("%d", classNameMap[className]),
+			Size:   statusCnt,
 			Config: &itemConfig}
 		items[idx] = item
 	}

@@ -23,7 +23,7 @@ func clearRepo() {
 	Repo.dpFilestoreXmls = make(map[string]string)
 	Repo.invalidateCache = false
 	Repo.dataPowerAppliance = dpApplicance{}
-	Repo.DpViewMode = DpFilestoreMode
+	Repo.DpViewMode = model.DpFilestoreMode
 }
 
 func TestString(t *testing.T) {
@@ -142,7 +142,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpObjectMode
+		Repo.DpViewMode = model.DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList}
@@ -177,7 +177,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpObjectMode
+		Repo.DpViewMode = model.DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
@@ -234,7 +234,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpObjectMode
+		Repo.DpViewMode = model.DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClassList,
@@ -282,7 +282,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpObjectMode
+		Repo.DpViewMode = model.DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClass,
@@ -338,7 +338,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpObjectMode
+		Repo.DpViewMode = model.DpObjectMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpObjectClass,
@@ -394,7 +394,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClassList}
@@ -429,7 +429,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClassList,
@@ -449,28 +449,28 @@ func TestGetList(t *testing.T) {
 				Path: "Status classes", DpAppliance: "MyApplianceName",
 				DpDomain: "MyDomain", DpFilestore: "local:"}
 			assert.DeepEqual(t, "GetList", itemList[0],
-				model.Item{Name: "ActiveUsers", Size: "1", Modified: "",
+				model.Item{Name: "ActiveUsers", Size: "", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
 						Name: "ActiveUsers", Path: "ActiveUsers",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[1],
-				model.Item{Name: "APISubscriberCacheStatus", Size: "1", Modified: "",
+				model.Item{Name: "APISubscriberCacheStatus", Size: "", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
 						Name: "APISubscriberCacheStatus", Path: "APISubscriberCacheStatus",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[100],
-				model.Item{Name: "SGClientConnectionStatus", Size: "1", Modified: "",
+				model.Item{Name: "SGClientConnectionStatus", Size: "", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
 						Name: "SGClientConnectionStatus", Path: "SGClientConnectionStatus",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[146],
-				model.Item{Name: "ZosNSSstatus", Size: "1", Modified: "",
+				model.Item{Name: "ZosNSSstatus", Size: "", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
 						Name: "ZosNSSstatus", Path: "ZosNSSstatus",
@@ -494,7 +494,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClassList,
@@ -549,7 +549,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
@@ -595,7 +595,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
@@ -635,7 +635,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
@@ -681,7 +681,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
@@ -715,7 +715,7 @@ func TestGetList(t *testing.T) {
 			Username: "user",
 			Domain:   "xxx",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 
 		itemToShow := model.ItemConfig{Type: model.ItemDpStatusClass,
@@ -2059,7 +2059,7 @@ func TestGetStatus(t *testing.T) {
 			Username: "user",
 			Domain:   "MyDomain",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 		Repo.dataPowerAppliance = dpApplicance{"", dpa}
 
@@ -2091,7 +2091,7 @@ func TestGetStatus(t *testing.T) {
 			Username: "user",
 			Domain:   "MyDomain",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 		Repo.dataPowerAppliance = dpApplicance{"", dpa}
 
@@ -2118,7 +2118,7 @@ func TestGetStatus(t *testing.T) {
 			Username: "user",
 			Domain:   "MyDomain",
 		}
-		Repo.DpViewMode = DpStatusMode
+		Repo.DpViewMode = model.DpStatusMode
 		Repo.req = mockRequester{}
 		Repo.dataPowerAppliance = dpApplicance{"", dpa}
 

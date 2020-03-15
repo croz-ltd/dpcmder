@@ -518,14 +518,14 @@ func showPrevView() error {
 
 	// If previous view in history requires filestore/object mode, switch mode.
 	switch {
-	case side == model.Left && dp.Repo.DpViewMode == dp.DpObjectMode &&
+	case side == model.Left && dp.Repo.DpViewMode == model.DpObjectMode &&
 		newView.Type != model.ItemDpObjectClassList &&
 		newView.Type != model.ItemDpObjectClass:
-		dp.Repo.DpViewMode = dp.DpFilestoreMode
-	case side == model.Left && dp.Repo.DpViewMode == dp.DpStatusMode &&
+		dp.Repo.DpViewMode = model.DpFilestoreMode
+	case side == model.Left && dp.Repo.DpViewMode == model.DpStatusMode &&
 		newView.Type != model.ItemDpStatusClassList &&
 		newView.Type != model.ItemDpStatusClass:
-		dp.Repo.DpViewMode = dp.DpObjectMode
+		dp.Repo.DpViewMode = model.DpObjectMode
 	}
 
 	if newView == oldView {
@@ -547,12 +547,12 @@ func showNextView() error {
 
 	// If next view in history requires object/status mode, switch mode.
 	switch {
-	case side == model.Left && dp.Repo.DpViewMode == dp.DpFilestoreMode &&
+	case side == model.Left && dp.Repo.DpViewMode == model.DpFilestoreMode &&
 		newView.Type == model.ItemDpObjectClassList:
-		dp.Repo.DpViewMode = dp.DpObjectMode
-	case side == model.Left && dp.Repo.DpViewMode == dp.DpObjectMode &&
+		dp.Repo.DpViewMode = model.DpObjectMode
+	case side == model.Left && dp.Repo.DpViewMode == model.DpObjectMode &&
 		newView.Type == model.ItemDpStatusClassList:
-		dp.Repo.DpViewMode = dp.DpStatusMode
+		dp.Repo.DpViewMode = model.DpStatusMode
 	}
 
 	if newView == oldView {
@@ -614,11 +614,11 @@ loop:
 		if side == model.Left {
 			switch newView.Type {
 			case model.ItemDpObjectClassList, model.ItemDpObjectClass:
-				dp.Repo.DpViewMode = dp.DpObjectMode
+				dp.Repo.DpViewMode = model.DpObjectMode
 			case model.ItemDpStatusClassList, model.ItemDpStatusClass:
-				dp.Repo.DpViewMode = dp.DpStatusMode
+				dp.Repo.DpViewMode = model.DpStatusMode
 			default:
-				dp.Repo.DpViewMode = dp.DpFilestoreMode
+				dp.Repo.DpViewMode = model.DpFilestoreMode
 			}
 		}
 		showView(side, newView, ".", "", false)
@@ -994,9 +994,9 @@ func copyItem(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 	case model.ItemFile:
 		// If we copy to DataPower and we are in ObjectConfigMode we copy file to object.
 		switch {
-		case toRepo.String() == dp.Repo.String() && dp.Repo.DpViewMode == dp.DpObjectMode:
+		case toRepo.String() == dp.Repo.String() && dp.Repo.DpViewMode == model.DpObjectMode:
 			res, err = copyFileToObject(item.Config, item.Name, fromRepo, toRepo, fromViewConfig, toViewConfig, confirmOverwrite)
-		case toRepo.String() == dp.Repo.String() && dp.Repo.DpViewMode == dp.DpStatusMode:
+		case toRepo.String() == dp.Repo.String() && dp.Repo.DpViewMode == model.DpStatusMode:
 			err = errs.Errorf("Can't copy to DataPower status.")
 		default:
 			res, err = copyFile(fromRepo, toRepo, fromViewConfig, toViewConfig, item.Name, confirmOverwrite)
@@ -1941,27 +1941,29 @@ func toggleObjectMode(m *model.Model) error {
 	side := m.CurrSide()
 	switch side {
 	case model.Left:
-		switch dp.Repo.DpViewMode {
-		case dp.DpFilestoreMode:
-			dp.Repo.DpViewMode = dp.DpObjectMode
-		case dp.DpObjectMode:
-			dp.Repo.DpViewMode = dp.DpStatusMode
-		case dp.DpStatusMode:
-			dp.Repo.DpViewMode = dp.DpFilestoreMode
-		default:
-			dp.Repo.DpViewMode = dp.DpFilestoreMode
-		}
-
 		oldView := m.ViewConfig(side)
 
-		// When we switch to object config mode - add/open object class list.
+		if oldView.DpDomain == "" {
+			logging.LogDebugf("worker/toggleObjectMode(), can't switch to non-filestore mode, oldView: %v.", oldView)
+			dp.Repo.DpViewMode = model.DpFilestoreMode
+			return errs.Errorf("Can't show object or status view if DataPower domain is not selected.")
+		}
+
 		switch dp.Repo.DpViewMode {
-		case dp.DpObjectMode:
-			if oldView.DpDomain == "" {
-				logging.LogDebugf("worker/toggleObjectMode(), can't switch to object mode, oldView: %v.", oldView)
-				dp.Repo.DpViewMode = dp.DpFilestoreMode
-				return errs.Errorf("Can't show object view if DataPower domain is not selected.")
-			}
+		case model.DpFilestoreMode:
+			dp.Repo.DpViewMode = model.DpObjectMode
+		case model.DpObjectMode:
+			dp.Repo.DpViewMode = model.DpStatusMode
+		case model.DpStatusMode:
+			dp.Repo.DpViewMode = model.DpFilestoreMode
+		default:
+			dp.Repo.DpViewMode = model.DpFilestoreMode
+		}
+
+		// When we switch to object config mode - add/open object class list.
+		// When we switch to status mode - add/open status class list.
+		switch dp.Repo.DpViewMode {
+		case model.DpObjectMode:
 			newView := model.ItemConfig{
 				Parent:      oldView,
 				Name:        "Object classes",
@@ -1971,12 +1973,7 @@ func toggleObjectMode(m *model.Model) error {
 				DpDomain:    oldView.DpDomain,
 				DpFilestore: oldView.DpFilestore}
 			return showItem(model.Left, &newView, newView.Path)
-		case dp.DpStatusMode:
-			if oldView.DpDomain == "" {
-				logging.LogDebugf("worker/toggleObjectMode(), can't switch to status mode, oldView: %v.", oldView)
-				dp.Repo.DpViewMode = dp.DpFilestoreMode
-				return errs.Errorf("Can't show status view if DataPower domain is not selected.")
-			}
+		case model.DpStatusMode:
 			newView := model.ItemConfig{
 				Parent:      oldView,
 				Name:        "Status classes",
@@ -1986,21 +1983,20 @@ func toggleObjectMode(m *model.Model) error {
 				DpDomain:    oldView.DpDomain,
 				DpFilestore: oldView.DpFilestore}
 			return showItem(model.Left, &newView, newView.Path)
+		case model.DpFilestoreMode:
+			// When we switch from status mode navigate back to first filestore mode.
+			ic := m.NavCurrentViewBack(side)
+			for ic.DpViewMode() != model.DpFilestoreMode {
+				ic = m.NavCurrentViewBack(side)
+			}
+			firstNonObjectView := m.ViewConfig(side)
+			return showItem(model.Left, firstNonObjectView, ".")
+		default:
+			logging.LogDebugf("worker/toggleObjectMode(), unknown view mode %v.",
+				dp.Repo.DpViewMode)
+			return errs.Errorf("Unknown view mode %v.", dp.Repo.DpViewMode)
 		}
 
-		// When we switch from object or status config mode - navigate to first non-object view.
-		switch oldView.Type {
-		case model.ItemDpObjectClassList, model.ItemDpStatusClassList:
-			m.NavCurrentViewBack(side)
-		case model.ItemDpObjectClass, model.ItemDpStatusClass:
-			m.NavCurrentViewBack(side)
-			m.NavCurrentViewBack(side)
-		default:
-			logging.LogDebugf("worker/toggleObjectMode(), currentView of unexpected type: %v", oldView)
-			return errs.Error("Internal error occured while switching back to filestore mode.")
-		}
-		firstNonObjectView := m.ViewConfig(side)
-		return showItem(model.Left, firstNonObjectView, ".")
 	default:
 		logging.LogDebug("worker/toggleObjectMode(), To toggle object mode select DataPower view.")
 		return errs.Error("To toggle object mode select DataPower view.")
@@ -2011,7 +2007,7 @@ func toggleObjectMode(m *model.Model) error {
 func showItemInfo(m *model.Model) error {
 	logging.LogDebugf("worker/showItemInfo(), dp.Repo.DpViewMode: %s", dp.Repo.DpViewMode)
 
-	if dp.Repo.DpViewMode != dp.DpObjectMode {
+	if dp.Repo.DpViewMode != model.DpObjectMode {
 		return errs.Error("Can't show info for DataPower object if object mode is not active.")
 	}
 
@@ -2044,7 +2040,7 @@ func showObjectDetails(m *model.Model) error {
 	logging.LogDebugf("worker/showObjectPolicy(), dp.Repo.ObjectConfigMode: %s",
 		dp.Repo.DpViewMode)
 
-	if dp.Repo.DpViewMode != dp.DpObjectMode {
+	if dp.Repo.DpViewMode != model.DpObjectMode {
 		return errs.Error("Can't show policy for DataPower object if object mode is not active.")
 	}
 

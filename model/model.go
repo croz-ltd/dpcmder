@@ -137,6 +137,21 @@ type Model struct {
 	statuses            []string
 }
 
+// ViewMode represent one of available DataPower view modes.
+type DpViewMode byte
+
+// Available DataPower view modes.
+const (
+	DpFilestoreMode = DpViewMode('f')
+	DpObjectMode    = DpViewMode('o')
+	DpStatusMode    = DpViewMode('s')
+)
+
+// DpViewMode methods
+func (v DpViewMode) String() string {
+	return string(v)
+}
+
 // ItemConfig methods
 
 // String method returns ItemConfig details.
@@ -153,6 +168,20 @@ func (ic ItemConfig) Equals(other *ItemConfig) bool {
 	}
 	return ic.Path == other.Path && ic.DpAppliance == other.DpAppliance &&
 		ic.DpDomain == other.DpDomain && ic.DpFilestore == other.DpFilestore
+}
+
+// DpViewMode returns which DataPower view mode ItemConfig contains.
+// Should be called only for DataPower config, all local file will
+// return DpFilestoreMode.
+func (ic ItemConfig) DpViewMode() DpViewMode {
+	switch ic.Type {
+	case ItemDpObjectClassList, ItemDpObjectClass:
+		return DpObjectMode
+	case ItemDpStatusClassList, ItemDpStatusClass:
+		return DpStatusMode
+	default:
+		return DpFilestoreMode
+	}
 }
 
 // ItemDpObjectState methods
