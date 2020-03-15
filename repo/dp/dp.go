@@ -1776,6 +1776,140 @@ func (r *dpRepo) GetInfo(item *model.Item) ([]byte, error) {
 	return itemInfoPretty, err
 }
 
+func (r *dpRepo) FlushCache(
+	domainName, statusClass, statusName string, itemType model.ItemType) (bool, error) {
+	logging.LogDebugf("repo/dp/FlushCache('%s', '%s', '%s' (%s))", domainName, statusClass, statusName, itemType)
+
+	switch itemType {
+	case model.ItemDpStatusClass:
+		switch r.dataPowerAppliance.DpManagmentInterface() {
+		case config.DpInterfaceRest:
+			switch statusClass {
+			case "StylesheetCachingSummary":
+				getStatusesURL := fmt.Sprintf("/mgmt/status/%s/%s", domainName, statusClass)
+				getStatusesQuery := fmt.Sprintf("/%s//XMLManager/value", statusClass)
+				statusNames, _, err :=
+					r.restGetForListResult(getStatusesURL, getStatusesQuery)
+				if err != nil {
+					return false, err
+				}
+				for _, statusName := range statusNames {
+					res, err := r.FlushCache(
+						domainName, statusClass, statusName, model.ItemDpStatus)
+					if err != nil || !res {
+						return res, err
+					}
+				}
+				return true, nil
+			default:
+				return false, errs.Errorf("Don't know to flush cache for '%s'.", statusClass)
+			}
+		case config.DpInterfaceSoma:
+			switch statusClass {
+			case "StylesheetCachingSummary":
+				somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:man="http://www.datapower.com/schemas/management">
+			<soapenv:Body>
+				<man:request domain="%s">
+					<man:get-status class="%s"/>
+				</man:request>
+			</soapenv:Body>
+		</soapenv:Envelope>`, domainName, statusClass)
+				doc, err := r.somaGetDoc(somaStatusRequest)
+				if err != nil {
+					return false, err
+				}
+
+				query :=
+					fmt.Sprintf("//*[local-name()='response']/*[local-name()='status']/*[local-name()='%s']/*[local-name()='XMLManager']",
+						statusClass)
+				nodes := xmlquery.Find(doc, query)
+				if len(nodes) == 0 {
+					return false, errs.Errorf("No status for class '%s' found.", statusClass)
+				}
+				for _, node := range nodes {
+					statusName := node.InnerText()
+					res, err := r.FlushCache(
+						domainName, statusClass, statusName, model.ItemDpStatus)
+					if err != nil || !res {
+						return res, err
+					}
+				}
+				return true, nil
+			default:
+				return false, errs.Errorf("Don't know to flush cache for '%s'.", statusClass)
+			}
+		default:
+			logging.LogDebug("repo/dp/FlushCache(), using neither REST neither SOMA.")
+			return false, errs.Error("DataPower management interface not set.")
+		}
+	case model.ItemDpStatus:
+		switch r.dataPowerAppliance.DpManagmentInterface() {
+		case config.DpInterfaceRest:
+			restActionPath := fmt.Sprintf("/mgmt/actionqueue/%s", domainName)
+			logging.LogDebugf("repo/dp/FlushCache(), restActionPath: '%s'", restActionPath)
+			switch statusClass {
+			case "StylesheetCachingSummary":
+				flushRequestJSON :=
+					fmt.Sprintf(`{"FlushStylesheetCache":{"XMLManager":"%s"}}`, statusName)
+				jsonResponseString, err := r.rest(restActionPath, "POST", flushRequestJSON)
+				if err != nil {
+					return false, err
+				}
+				logging.LogDebugf("jsonResponseString: '%s'", jsonResponseString)
+				resultMsg, err := parseJSONFindOne(jsonResponseString,
+					"/FlushStylesheetCache")
+				if err != nil {
+					return false, err
+				}
+				if resultMsg == "Operation completed." {
+					return true, nil
+				}
+				return false, errs.Errorf("Error flushing cache '%s': '%s'",
+					statusName, resultMsg)
+			default:
+				return false, errs.Errorf("Don't know to flush cache for '%s'.", statusClass)
+			}
+		case config.DpInterfaceSoma:
+			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:man="http://www.datapower.com/schemas/management">
+   <soapenv:Body>
+      <man:request domain="%s">
+         <man:do-action>
+            <FlushStylesheetCache>
+               <XMLManager>%s</XMLManager>
+            </FlushStylesheetCache>
+         </man:do-action>
+      </man:request>
+   </soapenv:Body>
+</soapenv:Envelope>`,
+				domainName, statusName)
+			somaResponse, err := r.soma(somaRequest)
+			if err != nil {
+				return false, err
+			}
+			resultMsg, err := parseSOMAFindOne(somaResponse, "//*[local-name()='response']/*[local-name()='result']")
+			if err != nil {
+				logging.LogDebug("Error parsing response SOAP.", err)
+				return false, err
+			}
+			if resultMsg == "OK" {
+				return true, nil
+			}
+			return false, errs.Errorf("Error flushing cache '%s': '%s'",
+				statusName, resultMsg)
+		default:
+			logging.LogDebug("repo/dp/FlushCache(), using neither REST neither SOMA.")
+			return false, errs.Error("DataPower management interface not set.")
+		}
+	default:
+		logging.LogDebugf(
+			"repo/dp/FlushCache(), don't know how to flush cache for item type %s.",
+			itemType)
+		return false, errs.Errorf("Don't know how to flush cache for item type %s.",
+			itemType.UserFriendlyString())
+	}
+}
+
 // GetManagementInterface returns current DataPower management interface used.
 func (r *dpRepo) GetManagementInterface() string {
 	return r.dataPowerAppliance.DpManagmentInterface()
@@ -2570,7 +2704,6 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 	case config.DpInterfaceSoma:
 		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">
-	<soapenv:Header/>
 	<soapenv:Body>
 		<man:request domain="%s">
 			<man:get-status class="%s"/>
@@ -2886,7 +3019,7 @@ func parseSOMAFindOne(somaResponse, query string) (string, error) {
 		return "", errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
 	}
 
-	return resultNode.InnerText(), nil
+	return strings.TrimSpace(resultNode.InnerText()), nil
 }
 
 // parseSOMAFindList query soma response and returns array of strings.
