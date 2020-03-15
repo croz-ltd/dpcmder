@@ -119,6 +119,8 @@ TODO:
 	- flush xsl cache action on single status (delete - x key)
 	- flush xsl cache action on multiple statuses (class level) (delete - x key)
 	- flush other caches
+	- remove count for REST statuses
+
 - add domain/appliance import?
 - add creation of new DataPower objects
   (should be able to show/create all classes of objects, even ones without
