@@ -112,7 +112,7 @@
             <StylesheetCachingSummary xmlns:env="http://www.w3.org/2003/05/soap-envelope">
                <XMLManager class="XMLManager">default</XMLManager>
                <CacheSize>256</CacheSize>
-               <CacheCount>0</CacheCount>
+               <CacheCount>1</CacheCount>
                <ReadyCount>0</ReadyCount>
                <PendingCount>0</PendingCount>
                <BadCount>0</BadCount>

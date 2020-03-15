@@ -462,11 +462,11 @@ func TestGetList(t *testing.T) {
 						Name: "APISubscriberCacheStatus", Path: "APISubscriberCacheStatus",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
-			assert.DeepEqual(t, "GetList", itemList[100],
-				model.Item{Name: "SGClientConnectionStatus", Size: "", Modified: "",
+			assert.DeepEqual(t, "GetList", itemList[111],
+				model.Item{Name: "StylesheetCachingSummary", Size: "", Modified: "",
 					Selected: false,
 					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
-						Name: "SGClientConnectionStatus", Path: "SGClientConnectionStatus",
+						Name: "StylesheetCachingSummary", Path: "StylesheetCachingSummary",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[146],
@@ -531,6 +531,13 @@ func TestGetList(t *testing.T) {
 						Name: "FirmwareStatus2", Path: "FirmwareStatus2",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[51],
+				model.Item{Name: "StylesheetCachingSummary", Size: "3", Modified: "*",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "StylesheetCachingSummary", Path: "StylesheetCachingSummary",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[63],
 				model.Item{Name: "XMLNamesStatus", Size: "4", Modified: "",
 					Selected: false,
@@ -567,19 +574,19 @@ func TestGetList(t *testing.T) {
 				DpDomain: "MyDomain", DpFilestore: "local:"}
 			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
 			assert.DeepEqual(t, "GetList", itemList[1],
-				model.Item{Name: "default",
+				model.Item{Name: "default", Size: "1", Modified: "*",
 					Config: &model.ItemConfig{Type: model.ItemDpStatus,
 						Name: "default", Path: "0",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[2],
-				model.Item{Name: "default-attempt-stream",
+				model.Item{Name: "default-attempt-stream", Size: "0",
 					Config: &model.ItemConfig{Type: model.ItemDpStatus,
 						Name: "default-attempt-stream", Path: "1",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[3],
-				model.Item{Name: "default-wsrr",
+				model.Item{Name: "default-wsrr", Size: "0",
 					Config: &model.ItemConfig{Type: model.ItemDpStatus,
 						Name: "default-wsrr", Path: "2",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
@@ -653,19 +660,19 @@ func TestGetList(t *testing.T) {
 				DpDomain: "MyDomain", DpFilestore: "local:"}
 			assert.DeepEqual(t, "GetList", itemList[0], model.Item{Name: ".."})
 			assert.DeepEqual(t, "GetList", itemList[1],
-				model.Item{Name: "default",
+				model.Item{Name: "default", Size: "1", Modified: "*",
 					Config: &model.ItemConfig{Type: model.ItemDpStatus,
 						Name: "default", Path: "0",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[2],
-				model.Item{Name: "default-attempt-stream",
+				model.Item{Name: "default-attempt-stream", Size: "0",
 					Config: &model.ItemConfig{Type: model.ItemDpStatus,
 						Name: "default-attempt-stream", Path: "1",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[3],
-				model.Item{Name: "default-wsrr",
+				model.Item{Name: "default-wsrr", Size: "0",
 					Config: &model.ItemConfig{Type: model.ItemDpStatus,
 						Name: "default-wsrr", Path: "2",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",

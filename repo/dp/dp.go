@@ -2493,6 +2493,8 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 	}
 
 	var classNamesWithDuplicates []string
+	// Can be find out only for SOMA interface.
+	classModifiedMap := make(map[string]bool)
 	var err error
 
 	switch r.dataPowerAppliance.DpManagmentInterface() {
@@ -2550,6 +2552,15 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 		for _, node := range resultNodes {
 			className := node.Data
 			classNamesWithDuplicates = append(classNamesWithDuplicates, className)
+			switch className {
+			case "StylesheetCachingSummary":
+				cacheUseCountNode := xmlquery.FindOne(node,
+					fmt.Sprintf("/*[local-name()='CacheCount']"))
+				if cacheUseCountNode != nil && cacheUseCountNode.InnerText() != "0" {
+					logging.LogDebugf("==== '%s'", cacheUseCountNode.InnerText())
+					classModifiedMap[className] = true
+				}
+			}
 		}
 
 	default:
@@ -2588,9 +2599,14 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 		if r.dataPowerAppliance.DpManagmentInterface() == config.DpInterfaceSoma {
 			statusCnt = fmt.Sprintf("%d", classNameMap[className])
 		}
+		modified := ""
+		if classModifiedMap[className] {
+			modified = "*"
+		}
 		item := model.Item{Name: className,
-			Size:   statusCnt,
-			Config: &itemConfig}
+			Size:     statusCnt,
+			Modified: modified,
+			Config:   &itemConfig}
 		items[idx] = item
 	}
 
@@ -2670,11 +2686,18 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 		for idx, node := range nodes {
 			statusPath := fmt.Sprintf("%d", idx)
 			var statusName string
+			var size string
+			var modified string
 			switch statusClassName {
 			case "StylesheetCachingSummary":
 				statusName = jsonquery.FindOne(node, "/XMLManager/value").InnerText()
+				size = jsonquery.FindOne(node, "/CacheCount").InnerText()
 			default:
 				statusName = fmt.Sprintf("%d", idx)
+			}
+
+			if size != "" && size != "0" {
+				modified = "*"
 			}
 
 			itemConfig := model.ItemConfig{Type: model.ItemDpStatus,
@@ -2684,7 +2707,8 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 				Path:        statusPath,
 				Parent:      itemConfig}
 
-			item := model.Item{Name: statusName, Config: &itemConfig}
+			item := model.Item{Name: statusName, Size: size, Modified: modified,
+				Config: &itemConfig}
 			items[idx] = item
 		}
 
@@ -2719,11 +2743,18 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 		for idx, node := range nodes {
 			statusPath := fmt.Sprintf("%d", idx)
 			var statusName string
+			var size string
+			var modified string
 			switch statusClassName {
 			case "StylesheetCachingSummary":
 				statusName = xmlquery.FindOne(node, "/XMLManager").InnerText()
+				size = xmlquery.FindOne(node, "/CacheCount").InnerText()
 			default:
 				statusName = fmt.Sprintf("%d", idx)
+			}
+
+			if size != "" && size != "0" {
+				modified = "*"
 			}
 
 			itemConfig := model.ItemConfig{Type: model.ItemDpStatus,
@@ -2732,7 +2763,8 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 				DpDomain:    itemConfig.DpDomain,
 				Path:        statusPath,
 				Parent:      itemConfig}
-			item := model.Item{Name: statusName, Config: &itemConfig}
+			item := model.Item{Name: statusName, Size: size, Modified: modified,
+				Config: &itemConfig}
 			items[idx] = item
 		}
 

@@ -14,7 +14,7 @@
         "href": "/mgmt/config/test/XMLManager/default"
       },
       "CacheSize": 256,
-      "CacheCount": 0,
+      "CacheCount": 1,
       "ReadyCount": 0,
       "PendingCount": 0,
       "BadCount": 0,
