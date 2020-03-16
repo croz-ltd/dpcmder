@@ -442,7 +442,7 @@
             <DocumentCachingSummary xmlns:env="http://www.w3.org/2003/05/soap-envelope">
                <XMLManager class="XMLManager">default</XMLManager>
                <CacheCount>5000</CacheCount>
-               <DocCount>0</DocCount>
+               <DocCount>2</DocCount>
                <CacheSizeKiB>0</CacheSizeKiB>
                <KiByteCount>0</KiByteCount>
                <ExpiredCount>0</ExpiredCount>
@@ -450,7 +450,7 @@
             <DocumentCachingSummary xmlns:env="http://www.w3.org/2003/05/soap-envelope">
                <XMLManager class="XMLManager">default-attempt-stream</XMLManager>
                <CacheCount>5000</CacheCount>
-               <DocCount>0</DocCount>
+               <DocCount>10</DocCount>
                <CacheSizeKiB>0</CacheSizeKiB>
                <KiByteCount>0</KiByteCount>
                <ExpiredCount>0</ExpiredCount>
@@ -2850,7 +2850,7 @@
                <Domain>test</Domain>
                <XMLManager>default</XMLManager>
                <CacheCount>5000</CacheCount>
-               <DocCount>0</DocCount>
+               <DocCount>2</DocCount>
                <CacheSizeKiB>0</CacheSizeKiB>
                <KiByteCount>0</KiByteCount>
             </DocumentCachingSummaryGlobal>
@@ -2858,7 +2858,7 @@
                <Domain>test</Domain>
                <XMLManager>default-attempt-stream</XMLManager>
                <CacheCount>5000</CacheCount>
-               <DocCount>0</DocCount>
+               <DocCount>10</DocCount>
                <CacheSizeKiB>0</CacheSizeKiB>
                <KiByteCount>0</KiByteCount>
             </DocumentCachingSummaryGlobal>

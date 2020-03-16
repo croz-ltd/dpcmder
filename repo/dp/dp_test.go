@@ -531,6 +531,20 @@ func TestGetList(t *testing.T) {
 						Name: "FirmwareStatus2", Path: "FirmwareStatus2",
 						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
 						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[12],
+				model.Item{Name: "DocumentCachingSummary", Size: "3", Modified: "*",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "DocumentCachingSummary", Path: "DocumentCachingSummary",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
+			assert.DeepEqual(t, "GetList", itemList[13],
+				model.Item{Name: "DocumentCachingSummaryGlobal", Size: "3", Modified: "*",
+					Selected: false,
+					Config: &model.ItemConfig{Type: model.ItemDpStatusClass,
+						Name: "DocumentCachingSummaryGlobal", Path: "DocumentCachingSummaryGlobal",
+						DpAppliance: "MyApplianceName", DpDomain: "MyDomain",
+						Parent: &parentItemConfig}})
 			assert.DeepEqual(t, "GetList", itemList[51],
 				model.Item{Name: "StylesheetCachingSummary", Size: "3", Modified: "*",
 					Selected: false,

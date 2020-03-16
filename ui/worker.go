@@ -1600,7 +1600,8 @@ func deleteCurrent(m *model.Model) error {
 				item.Name, item.Config.Type.UserFriendlyString())
 		case model.ItemDpStatusClass:
 			switch item.Name {
-			case "StylesheetCachingSummary":
+			case "StylesheetCachingSummary", "DocumentCachingSummary",
+				"DocumentCachingSummaryGlobal":
 				confirmMsg =
 					fmt.Sprintf("Confirm flushing all '%s' caches (y/ya/n/na): ",
 						item.Name)
@@ -1612,7 +1613,8 @@ func deleteCurrent(m *model.Model) error {
 			}
 		case model.ItemDpStatus:
 			switch viewConfig.Path {
-			case "StylesheetCachingSummary":
+			case "StylesheetCachingSummary", "DocumentCachingSummary",
+				"DocumentCachingSummaryGlobal":
 				confirmMsg =
 					fmt.Sprintf("Confirm flushing cache of '%s' (%s) (y/ya/n/na): ",
 						item.Name, viewConfig.Path)
