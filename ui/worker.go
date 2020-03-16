@@ -738,8 +738,7 @@ func viewCurrent(m *model.Model) error {
 			return err
 		}
 		statusContent, err :=
-			dp.Repo.GetStatus(
-				ci.Config.DpDomain, ci.Config.Parent.Name, statusIdx)
+			dp.Repo.GetStatus(ci.Config.DpDomain, ci.Config.Parent.Name, statusIdx)
 		if err != nil {
 			return err
 		}
@@ -747,8 +746,19 @@ func viewCurrent(m *model.Model) error {
 		if err != nil {
 			return err
 		}
+	case model.ItemDpStatusClass:
+		statusesContent, err :=
+			dp.Repo.GetStatuses(ci.Config.DpDomain, ci.Config.Name)
+		if err != nil {
+			return err
+		}
+		err = extprogs.View(getObjectTmpName(ci.Name), statusesContent)
+		if err != nil {
+			return err
+		}
 	default:
-		return errs.Errorf("Can't view item '%s' (%s)", ci.Name, ci.Config.Type.UserFriendlyString())
+		return errs.Errorf("Can't view item '%s' (%s)",
+			ci.Name, ci.Config.Type.UserFriendlyString())
 	}
 
 	return err

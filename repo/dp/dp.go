@@ -1608,7 +1608,85 @@ func (r *dpRepo) GetStatus(dpDomain, statusClass string, statusIdx int) ([]byte,
 		}
 		return []byte(formattedXML), nil
 	default:
-		logging.LogDebug("repo/dp/GetObject(), using neither REST neither SOMA.")
+		logging.LogDebug("repo/dp/GetStatus(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
+	}
+}
+
+// GetStatuses fetches DataPower status info for all statuses in class.
+func (r *dpRepo) GetStatuses(dpDomain, statusClass string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetStatuses('%s', '%s')", dpDomain, statusClass)
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		getStatusesURL := fmt.Sprintf("/mgmt/status/%s/%s",
+			dpDomain, statusClass)
+		statusesRespJSON, err := r.restGet(getStatusesURL)
+		if err != nil {
+			if respErr, ok := err.(errs.UnexpectedHTTPResponse); ok && respErr.StatusCode == 404 {
+				return nil, nil
+			}
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatuses(), statusesRespJSON: '%s'", statusesRespJSON)
+
+		jqQueryStatuses := fmt.Sprintf(".%s", statusClass)
+		jqOpStatuses, err := jq.Parse(jqQueryStatuses)
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatuses(), error parsing query '%s', %v",
+				jqOpStatuses, err)
+			return nil, err
+		}
+		statusesJSON, err := jqOpStatuses.Apply([]byte(statusesRespJSON))
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatuses(), error applying query '%s', %v",
+				jqQueryStatuses, err)
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatuses(), statusesJSON: '%s'", statusesJSON)
+
+		formattedJSON, err := cleanJSONObject(string(statusesJSON))
+		if err != nil {
+			return nil, err
+		}
+		return []byte(formattedJSON), nil
+	case config.DpInterfaceSoma:
+		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-status class="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`,
+			dpDomain, statusClass)
+		somaResponse, err := r.soma(somaStatusRequest)
+		if err != nil {
+			return nil, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
+		}
+
+		query := fmt.Sprintf(
+			"//*[local-name()='response']/*[local-name()='status']")
+		resultNode := xmlquery.FindOne(doc, query)
+		if resultNode == nil {
+			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+		}
+
+		resultXML := resultNode.OutputXML(true)
+		formattedXML, err := cleanXML(resultXML)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(formattedXML), nil
+	default:
+		logging.LogDebug("repo/dp/GetStatuses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
 }
