@@ -15,9 +15,7 @@ Current functions:
   - view object details (service, policy, match or rule)
 - status mode (as JSON or XML information)
   - view DataPower statuses
-  - TODO: add names (instead of indexes) for different status classes (currently
-          only StylesheetCachingSummary shows proper names)
-  - TODO: add XSL Stylesheet cache flush action (+ other similar for other caches)
+  - flush xsl cache & document cache
 - common functions for file and object maintenance mode
   - dpcmder view history (back / forward / jump)
   - filter and search items in the current view
@@ -212,7 +210,8 @@ Space                - select current item
 TAB                  - switch from left to right panel and vice versa
 Return               - enter directory
 F2/2                 - refresh focused pane (reload files/dirs)
-F3/3                 - view current file or DataPower configuration
+F3/3                 - view current file, DataPower configuration, DataPower
+                       object, DataPower status (or all statuses of same class)
                        (see "Custom external commands" below)
 F4/4                 - edit file
                        (see "Custom external commands" below)
@@ -268,6 +267,13 @@ u i o
 j k l
 a   z
 
+DataPower view mode (filestore / object / status):
+You can cycle though 3 available DataPower view mode (when focus is on the
+DataPower view).
+- filestore view mode: file maintenance, domain or appliance backup.
+- object view mode: view DataPower objects and make quick configuration changes.
+- status view mode: view DataPower statuses and flush xsl & document caches.
+
 Custom external commands (Viewer/Editor/Diff):
 dpcmder configuration is saved to ~/.dpcmder/config.json where commands used for
 calling external commands are set. By default, these are "less", "vi" and "diff"
@@ -284,6 +290,7 @@ or for the fancier colored output you can use something like:
 SOMA (+ AMP) vs REST:
 SOMA and AMP interfaces have one shortcoming - you can't see domain list if you
 don't have proper rights. With REST you can get domain list without any credentials.
+Some of the DataPower information is not available using REST interface.
 Some new features added are SOMA-only. For example, with REST you can't compare
 persisted DataPower object configuration to saved configuration.
 ```
