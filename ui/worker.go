@@ -1589,6 +1589,10 @@ func deleteCurrent(m *model.Model) error {
 		var cancelMsg string
 		switch item.Config.Type {
 		case model.ItemDirectory, model.ItemFile, model.ItemDpConfiguration, model.ItemDpObject:
+			if item.Name == ".." {
+				return errs.Errorf("Won't delete parent item '%s' (%s) at '%s', aborting...",
+					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
+			}
 			confirmMsg =
 				fmt.Sprintf("Confirm deletion of '%s' (%s) at '%s' (y/ya/n/na): ",
 					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
