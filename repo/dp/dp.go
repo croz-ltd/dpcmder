@@ -1608,7 +1608,85 @@ func (r *dpRepo) GetStatus(dpDomain, statusClass string, statusIdx int) ([]byte,
 		}
 		return []byte(formattedXML), nil
 	default:
-		logging.LogDebug("repo/dp/GetObject(), using neither REST neither SOMA.")
+		logging.LogDebug("repo/dp/GetStatus(), using neither REST neither SOMA.")
+		return nil, errs.Error("DataPower management interface not set.")
+	}
+}
+
+// GetStatuses fetches DataPower status info for all statuses in class.
+func (r *dpRepo) GetStatuses(dpDomain, statusClass string) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetStatuses('%s', '%s')", dpDomain, statusClass)
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		getStatusesURL := fmt.Sprintf("/mgmt/status/%s/%s",
+			dpDomain, statusClass)
+		statusesRespJSON, err := r.restGet(getStatusesURL)
+		if err != nil {
+			if respErr, ok := err.(errs.UnexpectedHTTPResponse); ok && respErr.StatusCode == 404 {
+				return nil, nil
+			}
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatuses(), statusesRespJSON: '%s'", statusesRespJSON)
+
+		jqQueryStatuses := fmt.Sprintf(".%s", statusClass)
+		jqOpStatuses, err := jq.Parse(jqQueryStatuses)
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatuses(), error parsing query '%s', %v",
+				jqOpStatuses, err)
+			return nil, err
+		}
+		statusesJSON, err := jqOpStatuses.Apply([]byte(statusesRespJSON))
+		if err != nil {
+			logging.LogDebugf("repo/dp/GetStatuses(), error applying query '%s', %v",
+				jqQueryStatuses, err)
+			return nil, err
+		}
+		logging.LogDebugf("repo/dp/GetStatuses(), statusesJSON: '%s'", statusesJSON)
+
+		formattedJSON, err := cleanJSONObject(string(statusesJSON))
+		if err != nil {
+			return nil, err
+		}
+		return []byte(formattedJSON), nil
+	case config.DpInterfaceSoma:
+		somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:get-status class="%s"/>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`,
+			dpDomain, statusClass)
+		somaResponse, err := r.soma(somaStatusRequest)
+		if err != nil {
+			return nil, err
+		}
+		doc, err := xmlquery.Parse(strings.NewReader(somaResponse))
+		if err != nil {
+			logging.LogDebug("Error parsing response SOAP.", err)
+			return nil, err
+		}
+
+		query := fmt.Sprintf(
+			"//*[local-name()='response']/*[local-name()='status']")
+		resultNode := xmlquery.FindOne(doc, query)
+		if resultNode == nil {
+			logging.LogDebugf("Can't find '%s' in SOMA response:\n'%s'", query, somaResponse)
+			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
+		}
+
+		resultXML := resultNode.OutputXML(true)
+		formattedXML, err := cleanXML(resultXML)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(formattedXML), nil
+	default:
+		logging.LogDebug("repo/dp/GetStatuses(), using neither REST neither SOMA.")
 		return nil, errs.Error("DataPower management interface not set.")
 	}
 }
@@ -1772,7 +1850,7 @@ func (r *dpRepo) FlushCache(
 		switch r.dataPowerAppliance.DpManagmentInterface() {
 		case config.DpInterfaceRest:
 			switch statusClass {
-			case "StylesheetCachingSummary":
+			case "StylesheetCachingSummary", "DocumentCachingSummary":
 				getStatusesURL := fmt.Sprintf("/mgmt/status/%s/%s", domainName, statusClass)
 				getStatusesQuery := fmt.Sprintf("/%s//XMLManager/value", statusClass)
 				statusNames, _, err :=
@@ -1793,7 +1871,7 @@ func (r *dpRepo) FlushCache(
 			}
 		case config.DpInterfaceSoma:
 			switch statusClass {
-			case "StylesheetCachingSummary":
+			case "StylesheetCachingSummary", "DocumentCachingSummary":
 				somaStatusRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 			xmlns:man="http://www.datapower.com/schemas/management">
 			<soapenv:Body>
@@ -1831,45 +1909,52 @@ func (r *dpRepo) FlushCache(
 			return false, errs.Error("DataPower management interface not set.")
 		}
 	case model.ItemDpStatus:
+		var flushCacheOp string
+		switch statusClass {
+		case "StylesheetCachingSummary":
+			flushCacheOp = "FlushStylesheetCache"
+		case "DocumentCachingSummary":
+			flushCacheOp = "FlushDocumentCache"
+		default:
+			return false, errs.Errorf("Don't know to flush cache for '%s'.", statusClass)
+		}
+
 		switch r.dataPowerAppliance.DpManagmentInterface() {
 		case config.DpInterfaceRest:
 			restActionPath := fmt.Sprintf("/mgmt/actionqueue/%s", domainName)
 			logging.LogDebugf("repo/dp/FlushCache(), restActionPath: '%s'", restActionPath)
-			switch statusClass {
-			case "StylesheetCachingSummary":
-				flushRequestJSON :=
-					fmt.Sprintf(`{"FlushStylesheetCache":{"XMLManager":"%s"}}`, statusName)
-				jsonResponseString, err := r.rest(restActionPath, "POST", flushRequestJSON)
-				if err != nil {
-					return false, err
-				}
-				logging.LogDebugf("jsonResponseString: '%s'", jsonResponseString)
-				resultMsg, err := parseJSONFindOne(jsonResponseString,
-					"/FlushStylesheetCache")
-				if err != nil {
-					return false, err
-				}
-				if resultMsg == "Operation completed." {
-					return true, nil
-				}
-				return false, errs.Errorf("Error flushing cache '%s': '%s'",
-					statusName, resultMsg)
-			default:
-				return false, errs.Errorf("Don't know to flush cache for '%s'.", statusClass)
+			flushRequestJSON :=
+				fmt.Sprintf(`{"%s":{"XMLManager":"%s"}}`, flushCacheOp, statusName)
+
+			jsonResponseString, err := r.rest(restActionPath, "POST", flushRequestJSON)
+			if err != nil {
+				return false, err
 			}
+			logging.LogDebugf("jsonResponseString: '%s'", jsonResponseString)
+			resultMsg, err := parseJSONFindOne(jsonResponseString,
+				fmt.Sprintf("/%s", flushCacheOp))
+			if err != nil {
+				return false, err
+			}
+			if resultMsg == "Operation completed." {
+				return true, nil
+			}
+			return false, errs.Errorf("Error flushing cache '%s': '%s'",
+				statusName, resultMsg)
+
 		case config.DpInterfaceSoma:
 			somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:man="http://www.datapower.com/schemas/management">
    <soapenv:Body>
       <man:request domain="%s">
          <man:do-action>
-            <FlushStylesheetCache>
+            <%s>
                <XMLManager>%s</XMLManager>
-            </FlushStylesheetCache>
+            </%s>
          </man:do-action>
       </man:request>
    </soapenv:Body>
 </soapenv:Envelope>`,
-				domainName, statusName)
+				domainName, flushCacheOp, statusName, flushCacheOp)
 			somaResponse, err := r.soma(somaRequest)
 			if err != nil {
 				return false, err
@@ -2492,7 +2577,8 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 		return nil, errs.Error("Can't get status class list if DataPower domain is not selected.")
 	}
 
-	var classNamesWithDuplicates []string
+	classNames := make([]string, 0)
+	classSizeMap := make(map[string]int)
 	// Can be find out only for SOMA interface.
 	classModifiedMap := make(map[string]bool)
 	var err error
@@ -2514,11 +2600,10 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 			logging.LogDebugf("Can't find '%s' in JSON:\n'%s'", query, responseJSON)
 			return nil, errs.Errorf("Unexpected JSON, can't find '%s'.", query)
 		}
-		classNamesWithDuplicates = make([]string, 0)
 		for _, node := range resultNodes {
 			className := node.Data
 			if className != "self" {
-				classNamesWithDuplicates = append(classNamesWithDuplicates, className)
+				classNames = append(classNames, className)
 			}
 		}
 	case config.DpInterfaceSoma:
@@ -2549,17 +2634,20 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 			return nil, errs.Errorf("Unexpected SOMA, can't find '%s'.", query)
 		}
 
-		for _, node := range resultNodes {
+		for idx, node := range resultNodes {
 			className := node.Data
-			classNamesWithDuplicates = append(classNamesWithDuplicates, className)
-			switch className {
-			case "StylesheetCachingSummary":
-				cacheUseCountNode := xmlquery.FindOne(node,
-					fmt.Sprintf("/*[local-name()='CacheCount']"))
-				if cacheUseCountNode != nil && cacheUseCountNode.InnerText() != "0" {
-					logging.LogDebugf("==== '%s'", cacheUseCountNode.InnerText())
-					classModifiedMap[className] = true
-				}
+			if className == "self" {
+				continue
+			}
+			status := parseStatusFromXML(className, idx, node)
+
+			if _, existingName := classSizeMap[className]; !existingName {
+				classNames = append(classNames, className)
+			}
+			classSizeMap[className]++
+
+			if status.modified != "" {
+				classModifiedMap[className] = true
 			}
 		}
 
@@ -2571,18 +2659,6 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 
 	if err != nil {
 		return nil, err
-	}
-
-	classNames := make([]string, 0)
-	classNameMap := make(map[string]int)
-	for _, className := range classNamesWithDuplicates {
-		if className == "self" {
-			continue
-		}
-		if _, oldName := classNameMap[className]; !oldName {
-			classNames = append(classNames, className)
-		}
-		classNameMap[className]++
 	}
 
 	logging.LogDebugf("repo/dp/listStatusClasses(), classNames: %v", classNames)
@@ -2597,7 +2673,7 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 			Parent:      currentView}
 		statusCnt := ""
 		if r.dataPowerAppliance.DpManagmentInterface() == config.DpInterfaceSoma {
-			statusCnt = fmt.Sprintf("%d", classNameMap[className])
+			statusCnt = fmt.Sprintf("%d", classSizeMap[className])
 		}
 		modified := ""
 		if classModifiedMap[className] {
@@ -2614,6 +2690,66 @@ func (r *dpRepo) listStatusClasses(currentView *model.ItemConfig) (model.ItemLis
 
 	logging.LogDebugf("repo/dp/listStatusClasses(), items: %v", items)
 	return items, nil
+}
+
+// statusInfo contains basic info for each status (if available). For xsl cache
+// it is: xml mgr name, used cache size, cache used.
+type statusInfo struct {
+	name     string
+	size     string
+	modified string
+}
+
+// parseStatusFromJSON parses JSON node and creates statusInfo struct.
+func parseStatusFromJSON(
+	statusClassName string, nodeIdx int, node *jsonquery.Node) statusInfo {
+	var statusName string
+	var size string
+	var modified string
+	switch statusClassName {
+	case "StylesheetCachingSummary":
+		statusName = jsonquery.FindOne(node, "/XMLManager/value").InnerText()
+		size = jsonquery.FindOne(node, "/CacheCount").InnerText()
+	case "DocumentCachingSummary":
+		statusName = jsonquery.FindOne(node, "/XMLManager/value").InnerText()
+		size = jsonquery.FindOne(node, "/DocCount").InnerText()
+	default:
+		statusName = fmt.Sprintf("%d", nodeIdx)
+	}
+
+	if size != "" && size != "0" {
+		modified = "*"
+	}
+
+	return statusInfo{statusName, size, modified}
+}
+
+// parseStatusFromXML parses XML node and creates statusInfo struct.
+func parseStatusFromXML(
+	statusClassName string, nodeIdx int, node *xmlquery.Node) statusInfo {
+	var statusName string
+	var size string
+	var modified string
+	switch statusClassName {
+	case "StylesheetCachingSummary":
+		statusName = xmlquery.FindOne(node, "/XMLManager").InnerText()
+		size = xmlquery.FindOne(node, "/CacheCount").InnerText()
+	case "DocumentCachingSummary":
+		statusName = xmlquery.FindOne(node, "/XMLManager").InnerText()
+		size = xmlquery.FindOne(node, "/DocCount").InnerText()
+	case "DocumentCachingSummaryGlobal":
+		statusName = xmlquery.FindOne(node, "/Domain").InnerText() + ": " +
+			xmlquery.FindOne(node, "/XMLManager").InnerText()
+		size = xmlquery.FindOne(node, "/DocCount").InnerText()
+	default:
+		statusName = fmt.Sprintf("%d", nodeIdx)
+	}
+
+	if size != "" && size != "0" {
+		modified = "*"
+	}
+
+	return statusInfo{statusName, size, modified}
 }
 
 // listStatuses lists all statuses of selected class in current DataPower domain.
@@ -2685,30 +2821,17 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 
 		for idx, node := range nodes {
 			statusPath := fmt.Sprintf("%d", idx)
-			var statusName string
-			var size string
-			var modified string
-			switch statusClassName {
-			case "StylesheetCachingSummary":
-				statusName = jsonquery.FindOne(node, "/XMLManager/value").InnerText()
-				size = jsonquery.FindOne(node, "/CacheCount").InnerText()
-			default:
-				statusName = fmt.Sprintf("%d", idx)
-			}
-
-			if size != "" && size != "0" {
-				modified = "*"
-			}
+			status := parseStatusFromJSON(statusClassName, idx, node)
 
 			itemConfig := model.ItemConfig{Type: model.ItemDpStatus,
-				Name:        statusName,
+				Name:        status.name,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        statusPath,
 				Parent:      itemConfig}
 
-			item := model.Item{Name: statusName, Size: size, Modified: modified,
-				Config: &itemConfig}
+			item := model.Item{Name: status.name, Size: status.size,
+				Modified: status.modified, Config: &itemConfig}
 			items[idx] = item
 		}
 
@@ -2742,29 +2865,16 @@ func (r *dpRepo) listStatuses(itemConfig *model.ItemConfig) (model.ItemList, err
 		items = append(items, parentDir)
 		for idx, node := range nodes {
 			statusPath := fmt.Sprintf("%d", idx)
-			var statusName string
-			var size string
-			var modified string
-			switch statusClassName {
-			case "StylesheetCachingSummary":
-				statusName = xmlquery.FindOne(node, "/XMLManager").InnerText()
-				size = xmlquery.FindOne(node, "/CacheCount").InnerText()
-			default:
-				statusName = fmt.Sprintf("%d", idx)
-			}
-
-			if size != "" && size != "0" {
-				modified = "*"
-			}
+			status := parseStatusFromXML(statusClassName, idx, node)
 
 			itemConfig := model.ItemConfig{Type: model.ItemDpStatus,
-				Name:        statusName,
+				Name:        status.name,
 				DpAppliance: itemConfig.DpAppliance,
 				DpDomain:    itemConfig.DpDomain,
 				Path:        statusPath,
 				Parent:      itemConfig}
-			item := model.Item{Name: statusName, Size: size, Modified: modified,
-				Config: &itemConfig}
+			item := model.Item{Name: status.name, Size: status.size,
+				Modified: status.modified, Config: &itemConfig}
 			items[idx] = item
 		}
 
