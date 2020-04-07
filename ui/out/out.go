@@ -91,6 +91,8 @@ func DrawEvent(updateViewEvent events.UpdateViewEvent) {
 func refreshScreen(m model.Model) {
 	logging.LogDebugf("ui/out/refreshScreen('%v')", m)
 
+	m.ResizeView()
+
 	Screen.Clear()
 	Screen.SetStyle(tcell.StyleDefault.Foreground(fgNormal).Background(bgNormal))
 
