@@ -655,10 +655,12 @@ func (m *Model) SortSide(side Side) {
 }
 
 // GetSelectedItems returns all selected items for given side.
+// It skips parent directories since we don't want to perform any
+// actions (except navigation) on parent directory.
 func (m *Model) GetSelectedItems(side Side) []Item {
 	var selItems = make([]Item, 0)
 	for _, item := range m.items[side] {
-		if item.Selected {
+		if item.Selected && item.Name != ".." {
 			selItems = append(selItems, item)
 		}
 	}

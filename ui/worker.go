@@ -691,6 +691,10 @@ func refreshCurrentView(m *model.Model) error {
 func viewCurrent(m *model.Model) error {
 	ci := m.CurrItem()
 	logging.LogDebugf("ui/viewCurrent(), item: %v", ci)
+	if ci.Name == ".." {
+		return errs.Errorf("Can't view parent directory '%s'.", ci.Name)
+	}
+
 	var err error
 	switch ci.Config.Type {
 	case model.ItemFile:
@@ -767,6 +771,9 @@ func viewCurrent(m *model.Model) error {
 func editCurrent(m *model.Model) error {
 	ci := m.CurrItem()
 	logging.LogDebugf("ui/editCurrent(), item: %v", ci)
+	if ci.Name == ".." {
+		return errs.Errorf("Can't edit parent directory '%s'.", ci.Name)
+	}
 	var err error
 	switch ci.Config.Type {
 	case model.ItemFile:
@@ -898,7 +905,13 @@ func diffFilesWithCleanup(tmpDir, oldPath, newPath string) error {
 func diffCurrent(m *model.Model) error {
 	logging.LogDebug("ui/diffCurrent()")
 	dpItem := m.CurrItemForSide(model.Left)
+	if dpItem.Name == ".." {
+		return errs.Errorf("Can't diff dp parent directory '%s',", dpItem.Name)
+	}
 	localItem := m.CurrItemForSide(model.Right)
+	if localItem.Name == ".." {
+		return errs.Errorf("Can't diff local parent directory '%s',", localItem.Name)
+	}
 
 	dpView := m.ViewConfig(model.Left)
 	localView := m.ViewConfig(model.Right)
@@ -980,7 +993,9 @@ func getSelectedOrCurrent(m *model.Model) []model.Item {
 	selectedItems := m.GetSelectedItems(m.CurrSide())
 	if len(selectedItems) == 0 {
 		selectedItems = make([]model.Item, 0)
-		selectedItems = append(selectedItems, *m.CurrItem())
+		if m.CurrItem().Name != ".." {
+			selectedItems = append(selectedItems, *m.CurrItem())
+		}
 	}
 
 	return selectedItems
@@ -1437,6 +1452,9 @@ func createEmptyFile(m *model.Model) error {
 func cloneCurrent(m *model.Model) error {
 	logging.LogDebug("ui/cloneCurrent()")
 	currentItem := m.CurrItem()
+	if currentItem.Name == ".." {
+		return errs.Errorf("Can't clone parent directory '%s',", currentItem.Name)
+	}
 
 	var newItemName string
 	renameDialogResult := askUserInput(
@@ -2028,6 +2046,9 @@ func showItemInfo(m *model.Model) error {
 	}
 
 	currentItem := m.CurrItem()
+	if currentItem.Name == ".." {
+		return errs.Errorf("Can't show info for parent directory '%s'.", currentItem.Name)
+	}
 
 	switch currentItem.Config.Type {
 	case model.ItemDpObject:
@@ -2061,6 +2082,9 @@ func showObjectDetails(m *model.Model) error {
 	}
 
 	currentItem := m.CurrItem()
+	if currentItem.Name == ".." {
+		return errs.Errorf("Can't show policy for parent directory '%s'.", currentItem.Name)
+	}
 
 	switch currentItem.Config.Type {
 	case model.ItemDpObject:

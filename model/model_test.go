@@ -684,20 +684,21 @@ func TestModelSelect(t *testing.T) {
 		{[]selectionFunc{model.ToggleCurrItem, model.NavDown}, []int{0, 1}},
 		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4}},
 		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7}},
-		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
+		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
 		{[]selectionFunc{model.SelPgDown, model.NavPgDown}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
 		{[]selectionFunc{model.NavUp}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
 		{[]selectionFunc{model.NavUp}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
 		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{0, 1, 2, 3, 4, 8}},
 		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{0, 1, 8}},
 		{[]selectionFunc{model.SelPgUp, model.NavPgUp}, []int{8}},
-		{[]selectionFunc{model.SelToBottom, model.NavBottom}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
+		{[]selectionFunc{model.SelToBottom, model.NavBottom}, []int{0, 1, 2, 3, 4, 5, 6, 7, 8}},
 		{[]selectionFunc{model.SelToTop, model.NavTop}, []int{}},
 		{[]selectionFunc{model.ToggleCurrItem}, []int{0}},
 		{[]selectionFunc{model.SelToBottom, model.NavBottom}, []int{}},
 	}
 	for idx, testCase := range selectionTestMatrix {
-		checkSelected(testCase.sf, testCase.selItemIdx, fmt.Sprintf("testCase[%d], selItemIdx arr: %v", idx, testCase.selItemIdx))
+		checkSelected(testCase.sf, testCase.selItemIdx,
+			fmt.Sprintf("testCase[%d], selItemIdx arr: %v", idx, testCase.selItemIdx))
 	}
 
 }
