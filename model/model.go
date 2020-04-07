@@ -517,6 +517,31 @@ func (m *Model) applyFilter(side Side) {
 	}
 }
 
+// ResizeView ensures view is showing proper items after resizing and current
+// item is visible.
+func (m *Model) ResizeView() {
+	logging.LogDebugf("model/ResizeView()")
+
+	for _, side := range []Side{Left, Right} {
+		itemCount := len(m.items[side])
+		maxRows := m.GetVisibleItemCount(side)
+		currIdx := m.currItemIdx[side]
+
+		if m.currFirstRowItemIdx[side]+maxRows > itemCount {
+			m.currFirstRowItemIdx[side] = itemCount - maxRows
+		}
+		if currIdx < m.currFirstRowItemIdx[side] {
+			m.currFirstRowItemIdx[side] = currIdx
+		}
+		if currIdx > m.currFirstRowItemIdx[side]+maxRows-1 {
+			m.currFirstRowItemIdx[side] = currIdx - maxRows + 1
+		}
+		if m.currFirstRowItemIdx[side] < 0 {
+			m.currFirstRowItemIdx[side] = 0
+		}
+	}
+}
+
 // SetCurrentFilter sets filter string to apply to current side.
 func (m *Model) SetCurrentFilter(filterString string) {
 	m.currentFilter[m.currSide] = filterString

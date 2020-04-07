@@ -252,6 +252,7 @@ func ProcessInputEvent(event tcell.Event) error {
 			updateStatusf("Key event value (before showing help): '%#v'", event)
 		}
 	case *tcell.EventResize:
+		workingModel.ResizeView()
 	}
 
 	if err != nil {
