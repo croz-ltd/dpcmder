@@ -113,7 +113,7 @@ func (r localRepo) GetFilePath(parentPath, fileName string) string {
 
 func (r localRepo) CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error) {
 	logging.LogDebugf("repo/localfs/CreateDir(%v, '%s', '%s')", viewConfig, parentPath, dirName)
-	fi, err := os.Stat(parentPath)
+	fi, err := os.Lstat(parentPath)
 	if err != nil {
 		logging.LogDebugf("repo/localfs/CreateDir('%s', '%s') - %v", parentPath, dirName, err)
 		return false, err
@@ -145,7 +145,7 @@ func (r localRepo) Delete(currentView *model.ItemConfig, itemType model.ItemType
 		subFiles, err := ioutil.ReadDir(filePath)
 		if err != nil {
 			logging.LogDebugf("repo/localfs/Delete(), path: '%s', fileName: '%s', fileType: %v - err: %v",
-			parentPath, fileName, fileType, err)
+				parentPath, fileName, fileType, err)
 			return false, err
 		}
 		for _, subFile := range subFiles {
@@ -216,11 +216,12 @@ func (t Tree) FileChanged(anotherTree *Tree) bool {
 	return anotherTree == nil || t.ModTime != anotherTree.ModTime
 }
 
+// LoadTree loads directory hierarchy information into Tree object.
 func LoadTree(pathFromRoot, filePath string) (Tree, error) {
 	tree := Tree{}
 	var errorMsg string
 
-	fi, err := os.Stat(filePath)
+	fi, err := os.Lstat(filePath)
 	if err != nil {
 		errorMsg = fmt.Sprintf("repo.localfs.LoadTree('%s', '%s'): %s", pathFromRoot, filePath, err.Error())
 		logging.LogDebug("repo.localfs.LoadTree(), err: ", err)
@@ -308,7 +309,7 @@ func GetFileByPath(filePath string) ([]byte, error) {
 
 func getFileTypeFromPath(filePath string) (model.ItemType, error) {
 	logging.LogDebugf("repo/localfs/getFileTypeFromPath('%s')", filePath)
-	fi, err := os.Stat(filePath)
+	fi, err := os.Lstat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return model.ItemNone, nil
