@@ -247,7 +247,8 @@ S                    - save running DataPower configuration (SOMA only)
                        filestore mode view / object mode view / status mode view
                      - when using SOMA access changed objects are marked and object
                        changes can be shown using diff (d key)
-?                    - show status information for the current DataPower object
+?                    - show status information for the current DataPower object,
+                       local directory or local file
 P                    - show DataPower policy for the current DataPower object
                        (can be used only on service, policy, matches,rules & actions)
                        exports the current DataPower object, analyzes it and

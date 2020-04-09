@@ -20,4 +20,5 @@ type Repo interface {
 	CreateDir(viewConfig *model.ItemConfig, parentPath, dirName string) (bool, error)
 	Delete(currentView *model.ItemConfig, itemType model.ItemType, parentPath, fileName string) (bool, error)
 	GetViewConfigByPath(currentView *model.ItemConfig, dirPath string) (*model.ItemConfig, error)
+	GetItemInfo(itemConfig *model.ItemConfig) ([]byte, error)
 }

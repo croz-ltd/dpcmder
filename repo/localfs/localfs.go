@@ -170,7 +170,7 @@ func (r localRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath st
 	}
 	switch fileType {
 	case model.ItemDirectory:
-		var parentConfig *model.ItemConfig = nil
+		var parentConfig *model.ItemConfig
 		if dirPath != "/" {
 			parentPath := paths.GetFilePath(dirPath, "..")
 			parentName := paths.GetFileName(parentPath)
@@ -184,6 +184,31 @@ func (r localRepo) GetViewConfigByPath(currentView *model.ItemConfig, dirPath st
 	default:
 		return nil, errs.Errorf("Given path '%s' is not directory.", dirPath)
 	}
+}
+
+func (r localRepo) GetItemInfo(itemConfig *model.ItemConfig) ([]byte, error) {
+	logging.LogDebugf("repo/localfs/GetItemInfo(%v)", itemConfig)
+
+	fi, err := os.Lstat(itemConfig.Path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []byte(fmt.Sprintf("%v", err)), nil
+		}
+		logging.LogDebugf("repo/localfs/GetItemInfo(), err: %v", err)
+		return nil, err
+	}
+
+	result := fmt.Sprintf(`name:      '%s'
+size:      %d
+modified:  %v
+regular:   %t
+directory: %t
+file mode: %s`,
+		fi.Name(),
+		fi.Size(), fi.ModTime(),
+		fi.Mode().IsRegular(), fi.Mode().IsDir(),
+		fi.Mode().String())
+	return []byte(result), nil
 }
 
 // Tree represents file/dir with all it's children and modification time.

@@ -2042,18 +2042,14 @@ func toggleObjectMode(m *model.Model) error {
 func showItemInfo(m *model.Model) error {
 	logging.LogDebugf("worker/showItemInfo(), dp.Repo.DpViewMode: %s", dp.Repo.DpViewMode)
 
-	if dp.Repo.DpViewMode != model.DpObjectMode {
-		return errs.Error("Can't show info for DataPower object if object mode is not active.")
-	}
-
 	currentItem := m.CurrItem()
 	if currentItem.Name == ".." {
 		return errs.Errorf("Can't show info for parent directory '%s'.", currentItem.Name)
 	}
 
 	switch currentItem.Config.Type {
-	case model.ItemDpObject:
-		infoBytes, err := dp.Repo.GetInfo(currentItem)
+	case model.ItemDpObject, model.ItemFile, model.ItemDirectory:
+		infoBytes, err := repos[m.CurrSide()].GetItemInfo(currentItem.Config)
 		if err != nil {
 			return err
 		}
@@ -2063,10 +2059,11 @@ func showItemInfo(m *model.Model) error {
 				return err
 			}
 		} else {
-			return errs.Errorf("Can't show info for '%s' object.", currentItem.Name)
+			return errs.Errorf("Can't find info for '%s' item.", currentItem.Name)
 		}
 	default:
-		return errs.Error("Can't show info for non DataPower object.")
+		return errs.Errorf("Can't show info for item '%s' of type %s.",
+			currentItem.Name, currentItem.Config.Type.UserFriendlyString())
 	}
 
 	return nil

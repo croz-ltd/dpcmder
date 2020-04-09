@@ -1824,20 +1824,28 @@ func (r *dpRepo) ParseObjectClassAndName(objectBytes []byte) (objectClass, objec
 	}
 }
 
-// GetInfo returns information about given item.
-func (r *dpRepo) GetInfo(item *model.Item) ([]byte, error) {
-	logging.LogDebugf("repo/dp/GetInfo(%v)", item)
+// GetItemInfo returns information about given item.
+func (r *dpRepo) GetItemInfo(itemConfig *model.ItemConfig) ([]byte, error) {
+	logging.LogDebugf("repo/dp/GetItemInfo(%v)", itemConfig)
 
-	itemInfo, err := json.Marshal(item.Config.DpObjectState)
-	if err != nil {
-		return nil, err
+	var itemInfo []byte
+	var err error
+	switch itemConfig.Type {
+	case model.ItemDpObject:
+		itemInfo, err = json.Marshal(itemConfig.DpObjectState)
+		if err != nil {
+			return nil, err
+		}
+
+		var prettyJSON bytes.Buffer
+		json.Indent(&prettyJSON, itemInfo, "", "  ")
+		itemInfo = prettyJSON.Bytes()
+	default:
+		return nil, errs.Errorf("No additional info available for item '%s'.",
+			itemConfig.Name)
 	}
 
-	var prettyJSON bytes.Buffer
-	json.Indent(&prettyJSON, itemInfo, "", "  ")
-	itemInfoPretty := prettyJSON.Bytes()
-
-	return itemInfoPretty, err
+	return itemInfo, err
 }
 
 func (r *dpRepo) FlushCache(
