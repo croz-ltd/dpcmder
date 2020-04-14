@@ -910,7 +910,7 @@ func diffCurrent(m *model.Model) error {
 		return errs.Errorf("Can't diff dp parent directory '%s',", dpItem.Name)
 	}
 	localItem := m.CurrItemForSide(model.Right)
-	if localItem.Name == ".." {
+	if localItem.Name == ".." && dpItem.Config.Type != model.ItemDpObject {
 		return errs.Errorf("Can't diff local parent directory '%s',", localItem.Name)
 	}
 
