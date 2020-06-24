@@ -210,12 +210,17 @@ func Diff(leftPath string, rightPath string) error {
 		err = viewBytes("Diff result", buf.Bytes(), false)
 
 		if err != nil {
-			logging.LogDebug("extprogs/Diff() err: ", err)
+			logging.LogDebugf("extprogs/Diff() err: %v", err)
 			return errs.Errorf("Diff command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
 		}
 
 		return errs.Errorf("Diff command misconfigured, to use non-blocking diff: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.",
 			config.Conf.Cmd.Diff)
+	}
+
+	if err != nil {
+		logging.LogDebugf("extprogs/Diff() err: %v", err)
+		return errs.Errorf("Diff command misconfigured: '%s' - check ~/.dpcmder/config.json and/or run dpcmder with -help flag.", err)
 	}
 
 	return nil

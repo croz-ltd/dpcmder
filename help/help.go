@@ -111,9 +111,11 @@ viewers "less" or "more" can be used while "cat" will not work. For file
 comparison, normal "diff" command can be used as a workaround but "blocking" diff
 command should be used (like vimdiff). Custom ldiff script which combines diff
 and "less" commands can be easily prepared using something like:
-  'diff "$1" "$2" | less'
+  #!/bin/bash
+  diff "$1" "$2" | less
 or for the fancier colored output you can use something like:
-  'diff -u -r --color=always "$1" "$2" | less -r'.
+  #!/bin/bash
+  diff -u -r --color=always "$1" "$2" | less -R
 
 SOMA (+ AMP) vs REST:
 SOMA and AMP interfaces have one shortcoming - you can't see domain list if you
