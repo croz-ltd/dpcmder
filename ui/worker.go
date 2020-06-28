@@ -212,8 +212,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			filterItems(&workingModel)
 		case c == '/':
 			searchItem(&workingModel)
-		case c == 'n', c == 'p':
-			searchNextItem(&workingModel, c == 'p')
+		case c == 'n', c == 'N':
+			searchNextItem(&workingModel, c == 'N')
 		case k == tcell.KeyF2, c == '2':
 			err = refreshCurrentView(&workingModel)
 		case k == tcell.KeyF3, c == '3':

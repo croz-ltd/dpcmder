@@ -237,9 +237,9 @@ d                    - diff current files/directories
                      - diff changes on modified DataPower object (SOMA only)
 /                    - find string
 n                    - find next string
-m                    - show all status messages saved in the history
-p                    - find previous string
+N                    - find previous string
 f                    - filter visible items by a given string
+m                    - show all status messages saved in the history
 .                    - enter a location (full path) for the local file system
 s                    - auto-synchronize selected directories (local to DataPower)
 S                    - save running DataPower configuration (SOMA only)
