@@ -3,13 +3,14 @@ package out
 
 import (
 	"fmt"
-	"github.com/croz-ltd/dpcmder/events"
-	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/gdamore/tcell"
 	"os"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/croz-ltd/dpcmder/events"
+	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/gdamore/tcell/v2"
 )
 
 // Colors used for coloring text and background.

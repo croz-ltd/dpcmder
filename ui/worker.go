@@ -18,7 +18,7 @@ import (
 	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/gdamore/tcell"
+  "github.com/gdamore/tcell/v2"
 )
 
 // dpMissingPasswordError is constant error returned if DataPower password is
