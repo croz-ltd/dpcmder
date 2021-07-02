@@ -914,7 +914,7 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 			return nil, err
 		}
 
-		// 2. Extract just given domain backup archive
+		// 2. Extract just the received domain backup archive
 		backupBytesReader := bytes.NewReader(backupBytes)
 		backupZipReader, err := zip.NewReader(backupBytesReader, int64(len(backupBytes)))
 		if err != nil {
