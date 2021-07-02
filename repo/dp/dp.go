@@ -8,6 +8,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"regexp"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/antchfx/jsonquery"
 	"github.com/antchfx/xmlquery"
 	"github.com/clbanning/mxj"
@@ -17,14 +26,6 @@ import (
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
 	"github.com/savaki/jq"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"regexp"
-	"sort"
-	"strings"
-	"time"
 )
 
 // dpApplicance extends with additional name field. This struct contains all
@@ -1696,8 +1697,20 @@ func (r *dpRepo) SaveConfiguration(itemConfig *model.ItemConfig) error {
 	logging.LogDebugf("repo/dp/SaveConfiguration(%v)", itemConfig)
 	switch r.dataPowerAppliance.DpManagmentInterface() {
 	case config.DpInterfaceRest:
-		logging.LogDebug("repo/dp/SaveConfiguration(), not available using REST.")
-		return errs.Error("DataPower REST management interface used - save configuration not available.")
+		saveConfigRequestJSON := `{"SaveConfig":"0"}`
+		resultText, _, err := r.restPostForResult(
+			"/mgmt/actionqueue/"+itemConfig.DpDomain,
+			saveConfigRequestJSON,
+			"/SaveConfig",
+			"Operation completed.",
+			"/SaveConfig")
+		if err != nil {
+			return err
+		}
+
+		logging.LogDebugf("repo/dp/SaveConfiguration(), resultText: '%s'", resultText)
+
+		return nil
 	case config.DpInterfaceSoma:
 		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 	xmlns:man="http://www.datapower.com/schemas/management">

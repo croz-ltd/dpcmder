@@ -69,7 +69,7 @@ f                    - filter visible items by a given string
 m                    - show all status messages saved in the history
 .                    - enter a location (full path) for the local file system
 s                    - auto-synchronize selected directories (local to DataPower)
-S                    - save running DataPower configuration (SOMA only)
+S                    - save a running DataPower configuration
 0                    - cycle between different DataPower view modes
                        filestore mode view / object mode view / status mode view
                      - when using SOMA access changed objects are marked and object
