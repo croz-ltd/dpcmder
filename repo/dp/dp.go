@@ -954,6 +954,65 @@ func (r *dpRepo) ExportDomain(domainName, exportFileName string) ([]byte, error)
 	}
 }
 
+// SecureBackupAppliance creates secure backup of DataPower appliance using
+// given Certificate object certName on the given exportDestPath and returns
+// error in case of error or nil for success.
+func (r *dpRepo) SecureBackupAppliance(applianceConfigName, certName, exportDestPath string) error {
+	logging.LogDebugf("repo/dp/SecureBackupAppliance('%s', '%s', '%s')",
+		applianceConfigName, certName, exportDestPath)
+
+	// 0. Prepare DataPower connection configuration.
+	oldDataPowerAppliance := r.dataPowerAppliance
+	r.dataPowerAppliance = dpApplicance{name: applianceConfigName,
+		DataPowerAppliance: config.Conf.DataPowerAppliances[applianceConfigName]}
+	clearCurrentConfig := func() {
+		r.dataPowerAppliance = oldDataPowerAppliance
+	}
+	defer clearCurrentConfig()
+	if r.dataPowerAppliance.Password == "" {
+		r.dataPowerAppliance.SetDpPlaintextPassword(config.DpTransientPasswordMap[applianceConfigName])
+	}
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		// Don't know how to create secure backup using REST.
+		return errs.Errorf("DataPower management interface %s not supported for secure backup of the appliance.",
+			r.dataPowerAppliance.DpManagmentInterface())
+	case config.DpInterfaceSoma:
+		secureBackupRequestSoma := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<man:request>
+			<man:do-action>
+				<SecureBackup>
+					<cert>%s</cert>
+					<destination>%s</destination>
+					<include-iscsi>off</include-iscsi>
+					<include-raid>off</include-raid>
+				</SecureBackup>
+			</man:do-action>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, certName, exportDestPath)
+		secureBackupResponseSoma, err := r.soma(secureBackupRequestSoma)
+		if err != nil {
+			return err
+		}
+		result, err := parseSOMAFindOne(secureBackupResponseSoma, "//*[local-name()='response']/*[local-name()='result']")
+		if err != nil {
+			return err
+		}
+		logging.LogDebugf("repo/dp/SecureBackupAppliance(), result: '%v'", result)
+		if result != "OK" {
+			return errs.Errorf("DataPower secure backup error: '%v'", result)
+		}
+		return nil
+	default:
+		return errs.Errorf("DataPower management interface %s not supported.", r.dataPowerAppliance.DpManagmentInterface())
+	}
+}
+
 // GetObjectDetails parses DataPower export to show service policy
 // with all rules, matches & actions.
 func (r *dpRepo) GetObjectDetails(domainName, objectClassName, objectName string) ([]byte, error) {

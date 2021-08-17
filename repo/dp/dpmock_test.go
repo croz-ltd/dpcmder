@@ -2,9 +2,10 @@ package dp
 
 import (
 	"fmt"
-	"github.com/croz-ltd/dpcmder/utils/errs"
 	"io/ioutil"
 	"regexp"
+
+	"github.com/croz-ltd/dpcmder/utils/errs"
 )
 
 type mockRequester struct{}
@@ -83,6 +84,7 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		var opObjClass string
 		var opLayoutOnly string
 		var opFilePath string
+		var opAction string
 
 		r := regexp.MustCompile(`.*<man:([^ ]+)( class="([^ ]+)")?( object-class="([^ ]+)")?/>.*`)
 		matches := r.FindStringSubmatch(body)
@@ -115,6 +117,19 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			matches = r.FindStringSubmatch(body)
 			if len(matches) == 2 {
 				opTag = matches[1]
+			}
+		}
+
+		if len(matches) == 0 {
+			r = regexp.MustCompile(`.*<man:(do-action)>.*`)
+			matches = r.FindStringSubmatch(body)
+			if len(matches) == 2 {
+				opTag = matches[1]
+				r = regexp.MustCompile(`.*<SecureBackup>.*`)
+				matches = r.FindStringSubmatch(body)
+				if len(matches) == 1 {
+					opAction = "SecureBackup"
+				}
 			}
 		}
 
@@ -157,6 +172,14 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 			content, err = ioutil.ReadFile("testdata/update_file_existing_dir.xml")
 		case opTag == "do-export":
 			content, err = ioutil.ReadFile("testdata/export.soap")
+		case opTag == "do-action" && opAction == "SecureBackup":
+			r = regexp.MustCompile(`.*test_secure_backup_error.*`)
+			matches = r.FindStringSubmatch(body)
+			if len(matches) == 1 {
+				content, err = ioutil.ReadFile("testdata/SecureBackup_error.xml")
+			} else {
+				content, err = ioutil.ReadFile("testdata/SecureBackup_ok.xml")
+			}
 		default:
 			fmt.Printf("dpmock_test: Unrecognized SOMA request opTag: '%s', "+
 				"opClass: '%s', opObjClass: '%s', opLayoutOnly: '%s', opFilePath: '%s'.\n",

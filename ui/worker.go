@@ -18,7 +18,7 @@ import (
 	"github.com/croz-ltd/dpcmder/ui/out"
 	"github.com/croz-ltd/dpcmder/utils/errs"
 	"github.com/croz-ltd/dpcmder/utils/logging"
-  "github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2"
 )
 
 // dpMissingPasswordError is constant error returned if DataPower password is
@@ -222,6 +222,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = editCurrent(&workingModel)
 		case k == tcell.KeyF5, c == '5':
 			err = copyCurrent(&workingModel)
+		case c == 'B':
+			err = secureBackupCurrent(&workingModel)
 		case c == 'd':
 			err = diffCurrent(&workingModel)
 		case k == tcell.KeyF7, c == '7':
@@ -901,6 +903,167 @@ func diffFilesWithCleanup(tmpDir, oldPath, newPath string) error {
 	updateStatusf("Deleted tmp dir on localfs '%s'", tmpDir)
 	logging.LogDebug("ui/diffFiles() end")
 	return nil
+}
+
+func secureBackupCurrent(m *model.Model) error {
+	logging.LogDebug("ui/secureBackupCurrent()")
+
+	itemsToCopy := getSelectedOrCurrent(m)
+	if len(itemsToCopy) != 1 {
+		return errs.Errorf("Must select a single DataPower configuration to perform secure backup.")
+	}
+	itemAppliance := itemsToCopy[0]
+	if itemAppliance.Config.Type != model.ItemDpConfiguration {
+		return errs.Errorf("Must select a DataPower configuration to perform secure backup.")
+	}
+
+	applianceName := itemAppliance.Config.DpAppliance
+
+	applicanceConfig := config.Conf.DataPowerAppliances[applianceName]
+	dpTransientPassword := config.DpTransientPasswordMap[applianceName]
+	logging.LogDebugf("ui/secureBackupCurrent(), applicanceConfig: '%s'", applicanceConfig)
+	if applicanceConfig.Password == "" && dpTransientPassword == "" {
+		logging.LogDebugf("ui/secureBackupCurrent(), before asking password.")
+		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+		logging.LogDebugf("ui/secureBackupCurrent(), after asking password (%#v).", dialogResult)
+		if dialogResult.dialogCanceled || dialogResult.inputAnswer == "" {
+			return nil
+		}
+		setCurrentDpPlainPassword(dialogResult.inputAnswer)
+	}
+
+	dpRepo := dp.Repo
+	fileRepo := repos[m.OtherSide()]
+	certsItem := model.ItemConfig{Type: model.ItemDpObjectClass,
+		DpAppliance: applianceName,
+		DpDomain:    "default",
+		Name:        "CryptoCertificate",
+		Path:        "CryptoCertificate"}
+	currentViewMode := dpRepo.DpViewMode
+	restoreCurrentViewMode := func() {
+		dpRepo.DpViewMode = currentViewMode
+	}
+	dpRepo.DpViewMode = model.DpObjectMode
+	defer restoreCurrentViewMode()
+	certItemList, err := dpRepo.GetList(&certsItem)
+	if err != nil {
+		return err
+	}
+	certList := []string{}
+	for _, certItem := range certItemList {
+		if certItem.Name != ".." {
+			certList = append(certList, certItem.Name)
+		}
+	}
+	logging.LogDebugf("ui/secureBackupCurrent(), certList: %v", certList)
+	dialogSession := listSelectionDialogSessionInfo{message: "Select a certificate for secure backup:",
+		list:         certList,
+		selectionIdx: 0}
+loop:
+	for {
+		updateViewEvent := events.UpdateViewEvent{
+			Type:                     events.UpdateViewShowListSelectionDialog,
+			ListSelectionMessage:     dialogSession.message,
+			ListSelectionList:        dialogSession.list,
+			ListSelectionSelectedIdx: dialogSession.selectionIdx}
+
+		out.DrawEvent(updateViewEvent)
+		event := out.Screen.PollEvent()
+		switch event := event.(type) {
+		case *tcell.EventKey:
+			processSelectListDialogInput(&dialogSession, event)
+		}
+
+		if dialogSession.dialogCanceled || dialogSession.dialogSubmitted {
+			break loop
+		}
+	}
+
+	if dialogSession.dialogSubmitted {
+		certName := dialogSession.list[dialogSession.selectionIdx]
+		updateStatusf("Secure backup using cert '%v'...", certName)
+
+		exportDirName := "secure_backup_" + time.Now().Format("20060102150405")
+		exportDestPath := "temporary:/" + exportDirName
+		toSide := m.OtherSide()
+		toViewConfig := m.ViewConfig(toSide)
+
+		toParentPath := toViewConfig.Path
+		logging.LogDebugf("ui/secureBackupCurrent(), certName: '%v', toParentPath '%v', exportDirName: '%v'",
+			certName, toParentPath, exportDirName)
+		destDirType, err := fileRepo.GetFileType(toViewConfig, toParentPath, exportDirName)
+		if err != nil {
+			return err
+		}
+		if destDirType != model.ItemNone {
+			return errs.Errorf("Secure backup directory '%v' already exists.", exportDirName)
+		}
+		_, err = fileRepo.CreateDir(toViewConfig, toParentPath, exportDirName)
+		if err != nil {
+			return errs.Errorf("Can't create secure backup directory with name '%s' - '%v'.", exportDirName, err)
+		}
+		updateStatusf("Secure backup directory '%s' created.", exportDirName)
+
+		showProgressDialogf("Secure DataPower appliance backup '%s'...", applianceName)
+		err = dp.Repo.SecureBackupAppliance(applianceName, certName, exportDestPath)
+		logging.LogDebugf("ui/secureBackupCurrent(), created backup at '%v'", exportDestPath)
+		hideProgressDialog()
+		if err != nil {
+			return err
+		}
+
+		dpBackupDirConfig := model.ItemConfig{
+			Parent:      nil,
+			Type:        model.ItemDirectory,
+			Path:        exportDestPath,
+			Name:        exportDirName,
+			DpAppliance: applianceName,
+			DpDomain:    "default",
+			DpFilestore: "temporary:"}
+		dpRepo.DpViewMode = model.DpFilestoreMode
+		secureBackupItems, err := dpRepo.GetList(&dpBackupDirConfig)
+		logging.LogDebugf("ui/secureBackupCurrent(), secureBackupItems: '%v'", secureBackupItems)
+		if err != nil {
+			return err
+		}
+
+		showProgressDialog("Copying secure backup files from DataPower...")
+		defer hideProgressDialog()
+		fileViewBackupDirConfig := model.ItemConfig{Parent: toViewConfig,
+			Path:        fileRepo.GetFilePath(toViewConfig.Path, exportDirName),
+			DpAppliance: toViewConfig.DpAppliance,
+			DpDomain:    toViewConfig.DpDomain,
+			DpFilestore: toViewConfig.DpFilestore}
+		for _, sbi := range secureBackupItems {
+			if sbi.Name != ".." {
+				_, err = copyItem(&dpRepo, fileRepo, &dpBackupDirConfig, &fileViewBackupDirConfig, sbi, "y")
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		dpTemporaryFilestoreConfig := model.ItemConfig{
+			Parent:      nil,
+			Type:        model.ItemDpFilestore,
+			Path:        "temporary:",
+			Name:        "temporary:",
+			DpAppliance: applianceName,
+			DpDomain:    "default",
+			DpFilestore: "temporary:"}
+		dpBackupDirItem := model.Item{Name: exportDirName, Config: &dpBackupDirConfig}
+		deleteItem(&dpRepo, &dpTemporaryFilestoreConfig, dpBackupDirItem, "n")
+		refreshView(m, model.Right)
+		updateStatusf("Secure backup copied to new directory '%v'.", exportDirName)
+	} else {
+		updateStatusf("Secure backup canceled...")
+	}
+
+	// err = exportAppliance(item.Config, toViewConfig, item.Name)
+	// updateStatusf("Secure backup...")
+
+	return nil
+
 }
 
 func diffCurrent(m *model.Model) error {

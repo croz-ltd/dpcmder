@@ -1,0 +1,8 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2021-08-17T09:24:14+01:00</dp:timestamp>
+         <dp:result>Error creating secure backup.</dp:result>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

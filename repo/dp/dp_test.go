@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"io/ioutil"
+	"reflect"
+	"testing"
+
 	"github.com/clbanning/mxj"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/assert"
 	"github.com/croz-ltd/dpcmder/utils/errs"
-	"io/ioutil"
-	"reflect"
-	"testing"
 )
 
 const (
@@ -1646,6 +1647,56 @@ func TestGetFileType(t *testing.T) {
 		itemType, err := Repo.GetFileType(&currentView, "", "store:")
 		assert.Nil(t, "GetFileType", err)
 		assert.Equals(t, "GetFileType", itemType, model.ItemDpFilestore)
+	})
+}
+
+func TestSecureBackupAppliance(t *testing.T) {
+	dpa0 := config.DataPowerAppliance{
+		Username: "user",
+		Domain:   "",
+	}
+	dpa1 := config.DataPowerAppliance{
+		RestUrl:  testRestURL,
+		Username: "user",
+		Domain:   "Dpa1Domain",
+	}
+	dpa2 := config.DataPowerAppliance{
+		SomaUrl:  testSomaURL,
+		Username: "user",
+	}
+	config.Conf.DataPowerAppliances["dpa0"] = dpa0
+	config.Conf.DataPowerAppliances["dpa1"] = dpa1
+	config.Conf.DataPowerAppliances["dpa2"] = dpa2
+
+	t.Run("SecureBackupAppliance no REST/SOMA", func(t *testing.T) {
+		clearRepo()
+
+		err := Repo.SecureBackupAppliance("dpa0", "cert1", "temporary:///test_secure_backup")
+		assert.Equals(t, "SecureBackupAppliance", err, errs.Error("DataPower management interface Unknown not supported."))
+	})
+
+	t.Run("SecureBackupAppliance REST", func(t *testing.T) {
+		clearRepo()
+
+		err := Repo.SecureBackupAppliance("dpa1", "cert1", "temporary:///test_secure_backup")
+		assert.Equals(t, "SecureBackupAppliance", err, errs.Error("DataPower management interface REST not supported for secure backup of the appliance."))
+	})
+
+	t.Run("SecureBackupAppliance SOMA Error", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.SomaUrl = testSomaURL
+
+		err := Repo.SecureBackupAppliance("dpa2", "cert1", "temporary:///test_secure_backup_error")
+		assert.Equals(t, "SecureBackupAppliance", err, errs.Error("DataPower secure backup error: 'Error creating secure backup.'"))
+	})
+
+	t.Run("SecureBackupAppliance SOMA OK", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.SomaUrl = testSomaURL
+
+		err := Repo.SecureBackupAppliance("dpa2", "cert1", "temporary:///test_secure_backup_ok")
+		assert.Nil(t, "SecureBackupAppliance", err)
+		// assert.Equals(t, "SecureBackupAppliance", string(policyBytes), string(expectedPolicyBytes))
 	})
 }
 
