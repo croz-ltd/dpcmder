@@ -2251,14 +2251,14 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 		// If we open filestore or open file but want to reload - refresh current filestore XML cache.
 		err := r.fetchFilestoreIfNeeded(selectedItemConfig.DpDomain, dpFilestoreLocation, dpFilestoreIsRoot)
 		if err != nil {
-			logging.LogDebug("Error parsing response JSON.", err)
+			logging.LogDebug("Error parsing response SOMA.", err)
 			return nil, err
 		}
 
 		if dpFilestoreIsRoot {
 			doc, err := xmlquery.Parse(strings.NewReader(r.dpFilestoreXmls[dpFilestoreLocation]))
 			if err != nil {
-				logging.LogDebug("Error parsing response JSON.", err)
+				logging.LogDebug("Error parsing response SOMA.", err)
 				return nil, err
 			}
 			dpDirNodes = xmlquery.Find(doc, "//*[local-name()='location' and @name='"+dpFilestoreLocation+"']/directory")
