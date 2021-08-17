@@ -1612,95 +1612,113 @@ func deleteCurrent(m *model.Model) error {
 
 	confirmResponse := "n"
 	for _, item := range selectedItems {
-		var confirmMsg string
-		var successMsg string
-		var errorMsg string
-		var cancelMsg string
-		switch item.Config.Type {
-		case model.ItemDirectory, model.ItemFile, model.ItemDpConfiguration, model.ItemDpObject:
-			if item.Name == ".." {
-				return errs.Errorf("Won't delete parent item '%s' (%s) at '%s', aborting...",
-					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
-			}
-			confirmMsg =
-				fmt.Sprintf("Confirm deletion of '%s' (%s) at '%s' (y/ya/n/na): ",
-					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
-			successMsg = fmt.Sprintf("Successfully deleted '%s' (%s).",
-				item.Name, item.Config.Type.UserFriendlyString())
-			errorMsg = fmt.Sprintf("Couldn't delete '%s' (%s).",
-				item.Name, item.Config.Type.UserFriendlyString())
-			cancelMsg = fmt.Sprintf("Canceled deleting of '%s' (%s).",
-				item.Name, item.Config.Type.UserFriendlyString())
-		case model.ItemDpStatusClass:
-			switch item.Name {
-			case "StylesheetCachingSummary", "DocumentCachingSummary",
-				"DocumentCachingSummaryGlobal":
-				confirmMsg =
-					fmt.Sprintf("Confirm flushing all '%s' caches (y/ya/n/na): ",
-						item.Name)
-				successMsg = fmt.Sprintf("Successfully flushed caches '%s'.", item.Name)
-				errorMsg = fmt.Sprintf("Couldn't flush caches '%s'", item.Name)
-				cancelMsg = fmt.Sprintf("Canceled flushing caches '%s'.", item.Name)
-			default:
-				return errs.Errorf("Can't flush caches '%s'.", item.Name)
-			}
-		case model.ItemDpStatus:
-			switch viewConfig.Path {
-			case "StylesheetCachingSummary", "DocumentCachingSummary",
-				"DocumentCachingSummaryGlobal":
-				confirmMsg =
-					fmt.Sprintf("Confirm flushing cache of '%s' (%s) (y/ya/n/na): ",
-						item.Name, viewConfig.Path)
-				successMsg = fmt.Sprintf("Successfully flushed cache '%s'.", item.Name)
-				errorMsg = fmt.Sprintf("Couldn't flush cache '%s'.", item.Name)
-				cancelMsg = fmt.Sprintf("Canceled flushing cache of '%s'.", item.Name)
-			default:
-				return errs.Errorf("Can't flush cache '%s' (%s) at '%s'.",
-					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
-			}
-		default:
-			return errs.Errorf("Can't delete '%s' (%s) at '%s'",
-				item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
-		}
+		var err error
+		confirmResponse, err = deleteItem(repos[m.CurrSide()], viewConfig, item, confirmResponse)
 
-		if confirmResponse != "ya" && confirmResponse != "na" {
-			confirmResponse = "n"
-			dialogResult := askUserInput(confirmMsg, "", false)
-			if dialogResult.dialogSubmitted {
-				confirmResponse = dialogResult.inputAnswer
-			}
-		}
-		if confirmResponse == "y" || confirmResponse == "ya" {
-			var res bool
-			var err error
-			switch item.Config.Type {
-			case model.ItemDirectory, model.ItemFile, model.ItemDpConfiguration, model.ItemDpObject:
-				res, err = repos[m.CurrSide()].Delete(viewConfig, item.Config.Type, viewConfig.Path, item.Name)
-			case model.ItemDpStatusClass:
-				res, err = dp.Repo.FlushCache(
-					viewConfig.DpDomain, item.Name, "", item.Config.Type)
-			case model.ItemDpStatus:
-				res, err = dp.Repo.FlushCache(
-					viewConfig.DpDomain, viewConfig.Path, item.Name, item.Config.Type)
-			default:
-				return errs.Errorf("Can't delete '%s' (%s) at '%s'",
-					item.Name, item.Config.Type.UserFriendlyString(), viewConfig.Path)
-			}
-			switch {
-			case err != nil:
-				updateStatus(err.Error())
-			case res:
-				updateStatus(successMsg)
-			default:
-				updateStatus(errorMsg)
-			}
-			showItem(side, viewConfig, ".")
-		} else {
-			updateStatus(cancelMsg)
+		if err != nil {
+			return err
 		}
 	}
+	showItem(side, viewConfig, ".")
 
 	return nil
+}
+
+func deleteItem(repo repo.Repo, parentItemConfig *model.ItemConfig, item model.Item, confirmResponse string) (string, error) {
+	logging.LogDebugf("ui/deleteItem(%v, '%v')", item, confirmResponse)
+
+	var confirmMsg string
+	var successMsg string
+	var errorMsg string
+	var cancelMsg string
+	switch item.Config.Type {
+	case model.ItemDirectory, model.ItemFile, model.ItemDpConfiguration, model.ItemDpObject:
+		if item.Name == ".." {
+			return confirmResponse,
+				errs.Errorf("Won't delete parent item '%s' (%s) at '%s', aborting...",
+					item.Name, item.Config.Type.UserFriendlyString(), parentItemConfig.Path)
+		}
+		confirmMsg =
+			fmt.Sprintf("Confirm deletion of '%s' (%s) at '%s' (y/ya/n/na): ",
+				item.Name, item.Config.Type.UserFriendlyString(), parentItemConfig.Path)
+		successMsg = fmt.Sprintf("Successfully deleted '%s' (%s).",
+			item.Name, item.Config.Type.UserFriendlyString())
+		errorMsg = fmt.Sprintf("Couldn't delete '%s' (%s).",
+			item.Name, item.Config.Type.UserFriendlyString())
+		cancelMsg = fmt.Sprintf("Canceled deleting of '%s' (%s).",
+			item.Name, item.Config.Type.UserFriendlyString())
+	case model.ItemDpStatusClass:
+		switch item.Name {
+		case "StylesheetCachingSummary", "DocumentCachingSummary",
+			"DocumentCachingSummaryGlobal":
+			confirmMsg =
+				fmt.Sprintf("Confirm flushing all '%s' caches (y/ya/n/na): ",
+					item.Name)
+			successMsg = fmt.Sprintf("Successfully flushed caches '%s'.", item.Name)
+			errorMsg = fmt.Sprintf("Couldn't flush caches '%s'", item.Name)
+			cancelMsg = fmt.Sprintf("Canceled flushing caches '%s'.", item.Name)
+		default:
+			return confirmResponse,
+				errs.Errorf("Can't flush caches '%s'.", item.Name)
+		}
+	case model.ItemDpStatus:
+		switch parentItemConfig.Path {
+		case "StylesheetCachingSummary", "DocumentCachingSummary",
+			"DocumentCachingSummaryGlobal":
+			confirmMsg =
+				fmt.Sprintf("Confirm flushing cache of '%s' (%s) (y/ya/n/na): ",
+					item.Name, parentItemConfig.Path)
+			successMsg = fmt.Sprintf("Successfully flushed cache '%s'.", item.Name)
+			errorMsg = fmt.Sprintf("Couldn't flush cache '%s'.", item.Name)
+			cancelMsg = fmt.Sprintf("Canceled flushing cache of '%s'.", item.Name)
+		default:
+			return confirmResponse,
+				errs.Errorf("Can't flush cache '%s' (%s) at '%s'.",
+					item.Name, item.Config.Type.UserFriendlyString(), parentItemConfig.Path)
+		}
+	default:
+		return confirmResponse,
+			errs.Errorf("Can't delete '%s' (%s) at '%s'",
+				item.Name, item.Config.Type.UserFriendlyString(), parentItemConfig.Path)
+	}
+
+	if confirmResponse != "ya" && confirmResponse != "na" {
+		confirmResponse = "n"
+		dialogResult := askUserInput(confirmMsg, "", false)
+		if dialogResult.dialogSubmitted {
+			confirmResponse = dialogResult.inputAnswer
+		}
+	}
+	if confirmResponse == "y" || confirmResponse == "ya" {
+		var res bool
+		var err error
+		switch item.Config.Type {
+		case model.ItemDirectory, model.ItemFile, model.ItemDpConfiguration, model.ItemDpObject:
+			res, err = repo.Delete(parentItemConfig, item.Config.Type, parentItemConfig.Path, item.Name)
+		case model.ItemDpStatusClass:
+			res, err = dp.Repo.FlushCache(
+				parentItemConfig.DpDomain, item.Name, "", item.Config.Type)
+		case model.ItemDpStatus:
+			res, err = dp.Repo.FlushCache(
+				parentItemConfig.DpDomain, parentItemConfig.Path, item.Name, item.Config.Type)
+		default:
+			return confirmResponse,
+				errs.Errorf("Can't delete '%s' (%s) at '%s'",
+					item.Name, item.Config.Type.UserFriendlyString(), parentItemConfig.Path)
+		}
+		switch {
+		case err != nil:
+			updateStatus(err.Error())
+		case res:
+			updateStatus(successMsg)
+		default:
+			updateStatus(errorMsg)
+		}
+	} else {
+		updateStatus(cancelMsg)
+	}
+
+	return confirmResponse, nil
 }
 
 func enterDirectoryPath(m *model.Model) error {
