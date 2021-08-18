@@ -8,14 +8,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
+	"os/user"
+	"strings"
+
 	"github.com/croz-ltd/confident"
 	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
 	"github.com/howeyc/gopass"
-	"os"
-	"os/user"
-	"strings"
 )
 
 const (

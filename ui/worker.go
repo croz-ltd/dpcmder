@@ -983,44 +983,59 @@ loop:
 		certName := dialogSession.list[dialogSession.selectionIdx]
 		updateStatusf("Secure backup using cert '%v'...", certName)
 
-		exportDirName := "secure_backup_" + time.Now().Format("20060102150405")
-		exportDestPath := "temporary:/" + exportDirName
+		dpExportDirName := "secure_backup_" + time.Now().Format("20060102150405")
+		localExportDirName := applianceName + "_" + dpExportDirName
+		dpExportDestPath := "temporary:/" + dpExportDirName
 		toSide := m.OtherSide()
 		toViewConfig := m.ViewConfig(toSide)
 
 		toParentPath := toViewConfig.Path
-		logging.LogDebugf("ui/secureBackupCurrent(), certName: '%v', toParentPath '%v', exportDirName: '%v'",
-			certName, toParentPath, exportDirName)
-		destDirType, err := fileRepo.GetFileType(toViewConfig, toParentPath, exportDirName)
+		logging.LogDebugf("ui/secureBackupCurrent(), certName: '%v', toParentPath '%v', dpExportDirName: '%v', localExportDirName: '%v'",
+			certName, toParentPath, dpExportDirName, localExportDirName)
+		destDirType, err := fileRepo.GetFileType(toViewConfig, toParentPath, localExportDirName)
 		if err != nil {
 			return err
 		}
 		if destDirType != model.ItemNone {
-			return errs.Errorf("Secure backup directory '%v' already exists.", exportDirName)
+			return errs.Errorf("Local secure backup directory '%v' already exists.", localExportDirName)
 		}
-		_, err = fileRepo.CreateDir(toViewConfig, toParentPath, exportDirName)
+		_, err = fileRepo.CreateDir(toViewConfig, toParentPath, localExportDirName)
 		if err != nil {
-			return errs.Errorf("Can't create secure backup directory with name '%s' - '%v'.", exportDirName, err)
+			return errs.Errorf("Can't create local secure backup directory with name '%s' - '%v'.", localExportDirName, err)
 		}
-		updateStatusf("Secure backup directory '%s' created.", exportDirName)
+		updateStatusf("Local secure backup directory '%s' created.", localExportDirName)
 
 		showProgressDialogf("Secure DataPower appliance backup '%s'...", applianceName)
-		err = dp.Repo.SecureBackupAppliance(applianceName, certName, exportDestPath)
-		logging.LogDebugf("ui/secureBackupCurrent(), created backup at '%v'", exportDestPath)
+		err = dp.Repo.SecureBackupAppliance(applianceName, certName, dpExportDestPath)
+		logging.LogDebugf("ui/secureBackupCurrent(), created backup at '%v'", dpExportDestPath)
 		hideProgressDialog()
 		if err != nil {
 			return err
 		}
 
-		dpBackupDirConfig := model.ItemConfig{
+		dpTemporaryFilestoreConfig := model.ItemConfig{
 			Parent:      nil,
+			Type:        model.ItemDpFilestore,
+			Path:        "temporary:",
+			Name:        "temporary:",
+			DpAppliance: applianceName,
+			DpDomain:    "default",
+			DpFilestore: "temporary:"}
+		dpBackupDirConfig := model.ItemConfig{
+			Parent:      &dpTemporaryFilestoreConfig,
 			Type:        model.ItemDirectory,
-			Path:        exportDestPath,
-			Name:        exportDirName,
+			Path:        dpExportDestPath,
+			Name:        dpExportDirName,
 			DpAppliance: applianceName,
 			DpDomain:    "default",
 			DpFilestore: "temporary:"}
 		dpRepo.DpViewMode = model.DpFilestoreMode
+		// Refresh termporary: filestore (SOMA filestore is cached after we fetch
+		//   it the first time).
+		_, err = dpRepo.GetList(&dpTemporaryFilestoreConfig)
+		if err != nil {
+			return err
+		}
 		secureBackupItems, err := dpRepo.GetList(&dpBackupDirConfig)
 		logging.LogDebugf("ui/secureBackupCurrent(), secureBackupItems: '%v'", secureBackupItems)
 		if err != nil {
@@ -1030,7 +1045,7 @@ loop:
 		showProgressDialog("Copying secure backup files from DataPower...")
 		defer hideProgressDialog()
 		fileViewBackupDirConfig := model.ItemConfig{Parent: toViewConfig,
-			Path:        fileRepo.GetFilePath(toViewConfig.Path, exportDirName),
+			Path:        fileRepo.GetFilePath(toViewConfig.Path, localExportDirName),
 			DpAppliance: toViewConfig.DpAppliance,
 			DpDomain:    toViewConfig.DpDomain,
 			DpFilestore: toViewConfig.DpFilestore}
@@ -1043,27 +1058,19 @@ loop:
 			}
 		}
 
-		dpTemporaryFilestoreConfig := model.ItemConfig{
-			Parent:      nil,
-			Type:        model.ItemDpFilestore,
-			Path:        "temporary:",
-			Name:        "temporary:",
-			DpAppliance: applianceName,
-			DpDomain:    "default",
-			DpFilestore: "temporary:"}
-		dpBackupDirItem := model.Item{Name: exportDirName, Config: &dpBackupDirConfig}
-		deleteItem(&dpRepo, &dpTemporaryFilestoreConfig, dpBackupDirItem, "n")
+		dpBackupDirItem := model.Item{Name: dpExportDirName, Config: &dpBackupDirConfig}
+		_, err = deleteItem(&dpRepo, &dpTemporaryFilestoreConfig, dpBackupDirItem, "n")
+		if err != nil {
+			return err
+		}
+		updateStatusf("Secure backup appliance directory deleted ('%v').", dpExportDirName)
+		updateStatusf("Secure backup copied to new local directory '%v'.", localExportDirName)
 		refreshView(m, model.Right)
-		updateStatusf("Secure backup copied to new directory '%v'.", exportDirName)
 	} else {
 		updateStatusf("Secure backup canceled...")
 	}
 
-	// err = exportAppliance(item.Config, toViewConfig, item.Name)
-	// updateStatusf("Secure backup...")
-
 	return nil
-
 }
 
 func diffCurrent(m *model.Model) error {
