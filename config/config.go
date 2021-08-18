@@ -387,6 +387,7 @@ func usage(exitStatus int) {
 	fmt.Println(" -x PROXY_SERVER - connect to DataPower through proxy")
 	fmt.Println(" -c DP_CONFIG_NAME - save DataPower configuration under given name")
 	fmt.Println(" -debug - turns on creation of dpcmder.log file with debug log messages")
+	fmt.Println(" -trace - turns on creation of dpcmder.log file with trace log messages")
 	fmt.Println(" -h - shows this (usage) help")
 	fmt.Println(" -help - shows dpcmder full help on console")
 	fmt.Println(" -v - shows dpcmder version")
