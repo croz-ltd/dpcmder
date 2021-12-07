@@ -624,7 +624,12 @@ loop:
 				dp.Repo.DpViewMode = model.DpFilestoreMode
 			}
 		}
-		showView(side, newView, ".", "", false)
+		currentItemName := ""
+		currentItem := workingModel.ViewConfigFromHistory(side, dialogSession.selectionIdx+1)
+		if currentItem != nil {
+			currentItemName = currentItem.Name
+		}
+		showView(side, newView, ".", currentItemName, false)
 	}
 
 	// When progress dialog was shown we show it after we don't need selection
