@@ -2,12 +2,13 @@
 package main
 
 import (
-	"github.com/croz-ltd/dpcmder/config"
-	"github.com/croz-ltd/dpcmder/ui"
-	"github.com/croz-ltd/dpcmder/utils/logging"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/croz-ltd/dpcmder/config"
+	"github.com/croz-ltd/dpcmder/ui"
+	"github.com/croz-ltd/dpcmder/utils/logging"
 )
 
 func main() {

@@ -2049,6 +2049,8 @@ func syncModeToggle(m *model.Model) error {
 }
 
 func syncLocalToDp(m *model.Model) {
+	logging.LogDebugf("worker/syncLocalToDp(), On: %v, Initial: %v, Domain: '%s', DirDp: '%s', DirLocal: '%s'",
+		m.SyncModeOn, m.SyncInitial, m.SyncDpDomain, m.SyncDirDp, m.SyncDirLocal)
 	// 1. Fetch dp & local file tree
 	// 2. Initial sync files from local to dp:
 	// 2a. Copy non-existing from local to dp
@@ -2064,31 +2066,35 @@ func syncLocalToDp(m *model.Model) {
 		if err != nil {
 			updateStatusf("Sync err: %s.", err)
 		}
-		logging.LogDebug("syncLocalToDp(), tree: ", tree)
+		logging.LogDebug("worker/syncLocalToDp(), tree: ", tree)
 
 		if m.SyncInitial {
 			changesMade = syncLocalToDpInitial(&tree)
-			logging.LogDebug("syncLocalToDp(), after initial sync - changesMade: ", changesMade)
+			logging.LogDebug("worker/syncLocalToDp(), after initial sync - changesMade: ", changesMade)
 			m.SyncInitial = false
 		} else {
 			changesMade = syncLocalToDpLater(&tree, &treeOld)
-			logging.LogDebug("syncLocalToDp(), after later sync - changesMade: ", changesMade)
+			logging.LogDebug("worker/syncLocalToDp(), after later sync - changesMade: ", changesMade)
 		}
 
 		treeOld = tree
 
+		logging.LogDebugf("worker/syncLocalToDp() changesMade: %v.", changesMade)
 		if changesMade {
 			refreshView(m, model.Left)
 		} else {
 			refreshStatus()
 		}
+		logging.LogDebugf("worker/syncLocalToDp() before sleep, m.SyncModeOn: %v.", m.SyncModeOn)
 		time.Sleep(syncCheckTime)
+		logging.LogDebugf("worker/syncLocalToDp() after sleep, m.SyncModeOn: %v.", m.SyncModeOn)
 	}
+	logging.LogDebug("worker/syncLocalToDp() ending.")
 }
 
 func syncLocalToDpInitial(tree *localfs.Tree) bool {
 	changesMade := false
-	logging.LogDebug(fmt.Sprintf("syncLocalToDpInitial(%v)", tree))
+	logging.LogDebugf("worker/syncLocalToDpInitial(%v)", tree)
 	// m := &model.Model{}
 	m := &workingModel
 	// logging.LogDebug("syncLocalToDpInitial(), syncDirDp: ", syncDirDp, ", tree.PathFromRoot: ", tree.PathFromRoot)
@@ -2115,6 +2121,7 @@ func syncLocalToDpInitial(tree *localfs.Tree) bool {
 		changesMade = updateDpFile(m, tree)
 	}
 
+	logging.LogDebugf("worker/syncLocalToDpInitial(), changesMade: %v", changesMade)
 	return changesMade
 }
 
@@ -2156,6 +2163,7 @@ func syncLocalToDpLater(tree, treeOld *localfs.Tree) bool {
 		}
 	}
 
+	logging.LogDebugf("worker/syncLocalToDpLater()(), changesMade: %v", changesMade)
 	return changesMade
 }
 
