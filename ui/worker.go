@@ -2056,7 +2056,6 @@ func syncLocalToDp(m *model.Model) {
 	// 3. Save local file tree (file path + modify timestamp)
 	// 4. Sync files from local to dp:
 	// 4a. When local modify timestamp changes or new file appears copy to dp
-	cnt := 0
 	var treeOld localfs.Tree
 	syncCheckTime := time.Duration(config.Conf.Sync.Seconds) * time.Second
 	for m.SyncModeOn {
@@ -2078,7 +2077,6 @@ func syncLocalToDp(m *model.Model) {
 
 		treeOld = tree
 
-		cnt++
 		if changesMade {
 			refreshView(m, model.Left)
 		} else {
