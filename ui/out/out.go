@@ -34,6 +34,10 @@ var (
 // console resize, could add mouse).
 var Screen tcell.Screen
 
+// screenActive - track state of Screen, when external programs are active
+// don't draw on the screen (async sync events can cause draw events)
+var screenActive = false
+
 // Init initializes console screen.
 func Init() {
 	logging.LogDebug("ui/out/Init()")
@@ -49,17 +53,24 @@ func Init() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
+	screenActive = true
 }
 
 // Stop terminates console screen.
 func Stop() {
 	logging.LogDebug("ui/out/Stop()")
+	screenActive = false
 	Screen.Fini()
 	logging.LogDebug("ui/out/Stop() end")
 }
 
 // GetScreenSize returns size of console screen.
 func GetScreenSize() (width, height int) {
+	logging.LogDebugf("ui/out/GetScreenSize(), screenActive: %v", screenActive)
+	if !screenActive {
+		return
+	}
+
 	width, height = Screen.Size()
 	logging.LogTracef("ui/out/GetScreenSize(), width: %d, height: %d", width, height)
 	return width, height
@@ -68,7 +79,11 @@ func GetScreenSize() (width, height int) {
 // DrawEvent crates appropriate changes to screen for given event. Usually either
 // refresh whole screen or just update status message.
 func DrawEvent(updateViewEvent events.UpdateViewEvent) {
-	logging.LogDebugf("ui/out/DrawEvent(%v)", updateViewEvent)
+	logging.LogDebugf("ui/out/DrawEvent(%v), screenActive: %v", updateViewEvent, screenActive)
+
+	if !screenActive {
+		return
+	}
 
 	switch updateViewEvent.Type {
 	case events.UpdateViewShowStatus:
