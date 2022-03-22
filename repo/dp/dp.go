@@ -3387,6 +3387,11 @@ func cleanXML(inputXML string) (string, error) {
 	re = regexp.MustCompile(` read-only="[a-z]+"`)
 	outputXML = re.ReplaceAllString(outputXML, "")
 
+	// Remove space from the name attribute from the SSH Service - otherwise update fails.
+	// <SSHService name="SSH Service" intrinsic="true">
+	re = regexp.MustCompile(`<SSHService name="SSH Service"`)
+	outputXML = re.ReplaceAllString(outputXML, `<SSHService name="SSH_Service"`)
+
 	// Remove XMLFirewall from: MgmtInterface, WebB2BViewer & WebGUI
 	// otherwise update doesn't work. (?s) - match newlines.
 	re = regexp.MustCompile(`(?s)(<(MgmtInterface|WebB2BViewer|WebGUI) .+?)(<XMLFirewall .+?</XMLFirewall>)(.*?</(MgmtInterface|WebB2BViewer|WebGUI)>)`)
