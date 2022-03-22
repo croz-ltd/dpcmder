@@ -3382,6 +3382,11 @@ func cleanXML(inputXML string) (string, error) {
 	re = regexp.MustCompile(` persisted="[a-z]+"`)
 	outputXML = re.ReplaceAllString(outputXML, "")
 
+	// Remove read-only attribute from all elements - otherwise update fails.
+	// <mAdminState read-only="true">enabled</mAdminState>
+	re = regexp.MustCompile(` read-only="[a-z]+"`)
+	outputXML = re.ReplaceAllString(outputXML, "")
+
 	// Remove XMLFirewall from: MgmtInterface, WebB2BViewer & WebGUI
 	// otherwise update doesn't work. (?s) - match newlines.
 	re = regexp.MustCompile(`(?s)(<(MgmtInterface|WebB2BViewer|WebGUI) .+?)(<XMLFirewall .+?</XMLFirewall>)(.*?</(MgmtInterface|WebB2BViewer|WebGUI)>)`)
