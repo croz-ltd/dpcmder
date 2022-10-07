@@ -19,7 +19,7 @@ import (
 
 	"github.com/antchfx/jsonquery"
 	"github.com/antchfx/xmlquery"
-	"github.com/clbanning/mxj"
+	"github.com/clbanning/mxj/v2"
 	"github.com/croz-ltd/dpcmder/config"
 	"github.com/croz-ltd/dpcmder/model"
 	"github.com/croz-ltd/dpcmder/utils/errs"
