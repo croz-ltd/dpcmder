@@ -37,7 +37,7 @@ typical uses of dpcmder in daily work.
 
 If you don't want to build applications yourself (or run it using "go run"),
 32 bit and 64 bit binaries are available for 3 platforms (Linux, Mac, Windows)
-under [releases](./releases).
+under [releases](/croz-ltd/dpcmder/releases).
 
 ## Install
 
