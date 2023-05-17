@@ -78,9 +78,9 @@ GOOS=linux GOARCH=amd64 go build -o dpcmder-linux-amd64 dpcmder.go
 Local cross-platform build with version flags and stripping of debug information
 (should be done after properly tagging version with `git tag`):
 ```sh
-GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=windows/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-win-amd64.exe dpcmder.go
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=darwin/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-mac-amd64 dpcmder.go
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=linux/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-linux-amd64 dpcmder.go
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=windows/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-win-amd64.exe dpcmder.go
+GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=darwin/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-mac-amd64 dpcmder.go
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/croz-ltd/dpcmder/help.Version=$(git tag | tail -n1)' -X 'github.com/croz-ltd/dpcmder/help.Platform=linux/amd64' -X 'github.com/croz-ltd/dpcmder/help.BuildTime=$(git tag | tail -n1).$(date -u -Iseconds)'" -o release/dpcmder-linux-amd64 dpcmder.go
 ```
 
 After building binary it can be compressed using excellent
