@@ -1,0 +1,12 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+   <env:Body>
+      <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+         <dp:timestamp>2023-05-17T05:07:12-04:00</dp:timestamp>
+         <dp:result>
+            <error-log>
+               <dp:log-event level="error">Unable to execute local:/config-err.cfg - must be text file.</dp:log-event>
+            </error-log>
+         </dp:result>
+      </dp:response>
+   </env:Body>
+</env:Envelope>

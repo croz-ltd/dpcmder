@@ -1,0 +1,12 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/actionqueue/tmp"
+    },
+    "doc": {
+      "href": "/mgmt/docs/actionqueue"
+    }
+  },
+  "ExecConfig": "Operation completed.",
+  "script-log": ""
+}

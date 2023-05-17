@@ -1,0 +1,12 @@
+{
+  "_links": {
+    "self": {
+      "href": "/mgmt/actionqueue/tmp"
+    }
+  },
+  "error": [
+    "Bad request.",
+    "Unable to execute local:/config-err.cfg - must be text file.",
+    " exec config:/matko23.cfg"
+  ]
+}

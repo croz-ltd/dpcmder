@@ -244,6 +244,7 @@ m                    - show all status messages saved in the history
 s                    - auto-synchronize selected directories (local to DataPower)
 S                    - save a running DataPower configuration
 B                    - create and copy a secure backup of the appliance
+e                    - run exec command on current or selected cfg file(s)
 0                    - cycle between different DataPower view modes
                        filestore mode view / object mode view / status mode view
                      - when using SOMA access changed objects are marked and object
@@ -251,7 +252,7 @@ B                    - create and copy a secure backup of the appliance
 ?                    - show status information for the current DataPower object,
                        local directory or local file
 P                    - show DataPower policy for the current DataPower object
-                       (can be used only on service, policy, matches,rules & actions)
+                       (can be used only on service, policy, matches, rules & actions)
                        exports the current DataPower object, analyzes it and
                        shows service, policy, matches, rules and actions for
                        the object

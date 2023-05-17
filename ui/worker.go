@@ -240,6 +240,8 @@ func ProcessInputEvent(event tcell.Event) error {
 			err = saveDataPowerConfig(&workingModel)
 		case c == 'm':
 			err = showStatusMessages(workingModel.Statuses())
+		case c == 'e':
+			err = execConfigFile(&workingModel)
 		case c == '0':
 			err = toggleObjectMode(&workingModel)
 		case c == '?':
@@ -2165,6 +2167,57 @@ func syncLocalToDpLater(tree, treeOld *localfs.Tree) bool {
 
 	logging.LogDebugf("worker/syncLocalToDpLater()(), changesMade: %v", changesMade)
 	return changesMade
+}
+
+// execConfigFile switches between (default) filestore mode, object mode and
+// status mode for the DataPower view.
+func execConfigFile(m *model.Model) error {
+	logging.LogDebugf("worker/execConfigFile(), dp.Repo.DpViewMode: %s", dp.Repo.DpViewMode)
+
+	side := m.CurrSide()
+	// viewConfig := m.ViewConfig(side)
+	switch side {
+	case model.Left:
+		itemsToExec := getSelectedOrCurrent(m)
+		pathsToExec := make([]string, len(itemsToExec))
+		for idx, item := range itemsToExec {
+			ci := item.Config
+			pathsToExec[idx] = ci.Path
+			switch item.Config.Type {
+			case model.ItemFile:
+			default:
+				return errs.Errorf("Can't exec item '%s' (%s)",
+					ci.Name, ci.Type.UserFriendlyString())
+			}
+		}
+
+		res := "n"
+		dialogResult := askUserInput(
+			fmt.Sprintf("Confirm exec files %v (y/n): ",
+				pathsToExec), "", false)
+		if dialogResult.dialogSubmitted {
+			res = dialogResult.inputAnswer
+		}
+		logging.LogDebugf("ui/execConfigFile(), confirm exec: '%s'", res)
+		if res == "y" {
+			for _, item := range itemsToExec {
+				showProgressDialogf("Running exec command '%s' file from DataPower...", item.Name)
+				err := repos[m.CurrSide()].ExecConfig(item.Config)
+				if err != nil {
+					hideProgressDialog()
+					return err
+				}
+			}
+			hideProgressDialog()
+			updateStatusf("Exec config files success: %v", pathsToExec)
+		}
+
+	default:
+		logging.LogDebug("worker/execConfigFile(), To exec config file select config file in the DataPower view.")
+		return errs.Error("To exec config file select config file in the DataPower view.")
+	}
+
+	return nil
 }
 
 // toggleObjectMode switches between (default) filestore mode, object mode and

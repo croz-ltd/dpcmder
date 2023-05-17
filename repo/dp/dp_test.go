@@ -2212,3 +2212,51 @@ func TestGetStatus(t *testing.T) {
 		assert.Equals(t, "GetStatus", string(statusBytes), wantStatus)
 	})
 }
+
+func TestExecConfig(t *testing.T) {
+	itemToExec := model.ItemConfig{Type: model.ItemFile,
+		DpDomain: "MyExecDomain", DpFilestore: "local:", Path: "local:/config-ok.cfg"}
+
+	t.Run("ExecConfig no REST/SOMA", func(t *testing.T) {
+		clearRepo()
+
+		err := Repo.ExecConfig(&itemToExec)
+		assert.Equals(t, "ExecConfig", err, errs.Error("DataPower management interface not set."))
+	})
+
+	itemToExec.Path = "local:/config-err.cfg"
+	t.Run("ExecConfig REST Error", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.RestUrl = testRestURL
+
+		err := Repo.ExecConfig(&itemToExec)
+		assert.Equals(t, "ExecConfig", err, errs.Error("Unexpected response from server."))
+	})
+
+	itemToExec.Path = "local:/config-ok.cfg"
+	t.Run("ExecConfig REST OK", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.RestUrl = testRestURL
+
+		err := Repo.ExecConfig(&itemToExec)
+		assert.Nil(t, "ExecConfig", err)
+	})
+
+	itemToExec.Path = "local:/config-err.cfg"
+	t.Run("ExecConfig SOMA Error", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.SomaUrl = testSomaURL
+
+		err := Repo.ExecConfig(&itemToExec)
+		assert.Equals(t, "ExecConfig", err, errs.Error("DataPower exec config error: 'Unable to execute local:/config-err.cfg - must be text file.'"))
+	})
+
+	itemToExec.Path = "local:/config-ok.cfg"
+	t.Run("ExecConfig SOMA OK", func(t *testing.T) {
+		clearRepo()
+		Repo.dataPowerAppliance.SomaUrl = testSomaURL
+
+		err := Repo.ExecConfig(&itemToExec)
+		assert.Nil(t, "ExecConfig", err)
+	})
+}

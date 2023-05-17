@@ -2062,6 +2062,74 @@ func (r *dpRepo) FlushCache(
 	}
 }
 
+// ExecConfig run exec dommand for a DataPower configuration script.
+func (r *dpRepo) ExecConfig(itemConfig *model.ItemConfig) error {
+	logging.LogDebugf("repo/dp/ExecConfig(%v)", itemConfig)
+
+	switch r.dataPowerAppliance.DpManagmentInterface() {
+	case config.DpInterfaceRest:
+		execConfigRequestJSON := fmt.Sprintf(`{"ExecConfig":{"URL":"%s"}}`, itemConfig.Path)
+		resultText, _, err := r.restPostForResult(
+			"/mgmt/actionqueue/"+itemConfig.DpDomain,
+			execConfigRequestJSON,
+			"/ExecConfig",
+			"Operation completed.",
+			"/ExecConfig")
+		if err != nil {
+			return err
+		}
+
+		logging.LogDebugf("repo/dp/ExecConfig(), resultText: '%s'", resultText)
+
+		return nil
+
+	case config.DpInterfaceSoma:
+		somaRequest := fmt.Sprintf(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:man="http://www.datapower.com/schemas/management">
+	<soapenv:Body>
+		<man:request domain="%s">
+			<man:do-action><ExecConfig><URL>%s</URL></ExecConfig></man:do-action>
+		</man:request>
+	</soapenv:Body>
+</soapenv:Envelope>`, itemConfig.DpDomain, itemConfig.Path)
+		response, err := r.soma(somaRequest)
+		if err != nil {
+			return err
+		}
+		result, err := parseSOMAFindOne(response, "//*[local-name()='response']/*[local-name()='result']")
+		logging.LogDebugf("repo/dp/ExecConfig(), result: '%v'", result)
+		if result != "OK" {
+			return errs.Errorf("DataPower exec config error: '%v'", result)
+		}
+		return nil
+
+	default:
+		logging.LogDebug("repo/dp/ExecConfig(), using neither REST neither SOMA.")
+		return errs.Error("DataPower management interface not set.")
+	}
+
+	// 	<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+	// 	<env:Body>
+	// 		 <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+	// 				<dp:timestamp>2023-02-06T10:52:04-05:00</dp:timestamp>
+	// 				<dp:result>
+	// 					 <error-log>
+	// 							<dp:log-event level="error">Unable to execute config:///default.cf - must be text file.</dp:log-event>
+	// 					 </error-log>
+	// 				</dp:result>
+	// 		 </dp:response>
+	// 	</env:Body>
+	// </env:Envelope>
+	// 	<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+	// 	<env:Body>
+	// 		 <dp:response xmlns:dp="http://www.datapower.com/schemas/management">
+	// 				<dp:timestamp>2023-02-06T11:06:01-05:00</dp:timestamp>
+	// 				<dp:result>OK</dp:result>
+	// 		 </dp:response>
+	// 	</env:Body>
+	// </env:Envelope>
+}
+
 // GetManagementInterface returns current DataPower management interface used.
 func (r *dpRepo) GetManagementInterface() string {
 	return r.dataPowerAppliance.DpManagmentInterface()

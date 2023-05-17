@@ -417,7 +417,7 @@ func showVersion() {
 
 // help prints in-program help information to console.
 func showHelp(exitStatus int) {
-	fmt.Println(help.Help)
+	fmt.Print(help.Help)
 
 	os.Exit(exitStatus)
 }

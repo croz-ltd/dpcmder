@@ -3,11 +3,6 @@ package localfs
 
 import (
 	"fmt"
-	"github.com/croz-ltd/dpcmder/config"
-	"github.com/croz-ltd/dpcmder/model"
-	"github.com/croz-ltd/dpcmder/utils/errs"
-	"github.com/croz-ltd/dpcmder/utils/logging"
-	"github.com/croz-ltd/dpcmder/utils/paths"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,6 +10,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/croz-ltd/dpcmder/config"
+	"github.com/croz-ltd/dpcmder/model"
+	"github.com/croz-ltd/dpcmder/utils/errs"
+	"github.com/croz-ltd/dpcmder/utils/logging"
+	"github.com/croz-ltd/dpcmder/utils/paths"
 )
 
 type localRepo struct {
@@ -209,6 +210,10 @@ file mode: %s`,
 		fi.Mode().IsRegular(), fi.Mode().IsDir(),
 		fi.Mode().String())
 	return []byte(result), nil
+}
+
+func (r localRepo) ExecConfig(itemConfig *model.ItemConfig) error {
+	return errs.Error("Can't exec configuration on local machine.")
 }
 
 // Tree represents file/dir with all it's children and modification time.

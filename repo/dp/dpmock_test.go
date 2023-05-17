@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strings"
 
 	"github.com/croz-ltd/dpcmder/utils/errs"
 )
@@ -65,6 +66,17 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 		switch method {
 		case "POST":
 			content, err = ioutil.ReadFile("testdata/export-svc-post-response.json")
+		default:
+			return "", errs.Errorf("dpmock_test: Unrecognized method '%s'", method)
+		}
+	case "https://my_dp_host:5554/mgmt/actionqueue/MyExecDomain":
+		switch method {
+		case "POST":
+			if strings.Contains(body, "config-ok") {
+				content, err = ioutil.ReadFile("testdata/ExecConfig_ok.json")
+			} else {
+				content, err = ioutil.ReadFile("testdata/ExecConfig_error.json")
+			}
 		default:
 			return "", errs.Errorf("dpmock_test: Unrecognized method '%s'", method)
 		}
@@ -130,6 +142,14 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 				if len(matches) == 1 {
 					opAction = "SecureBackup"
 				}
+
+				if len(matches) == 0 {
+					r = regexp.MustCompile(`.*<ExecConfig>.*`)
+					matches = r.FindStringSubmatch(body)
+					if len(matches) == 1 {
+						opAction = "ExecConfig"
+					}
+				}
 			}
 		}
 
@@ -179,6 +199,14 @@ func (nr mockRequester) httpRequest(dpa dpApplicance, urlFullPath, method, body 
 				content, err = ioutil.ReadFile("testdata/SecureBackup_error.xml")
 			} else {
 				content, err = ioutil.ReadFile("testdata/SecureBackup_ok.xml")
+			}
+		case opTag == "do-action" && opAction == "ExecConfig":
+			r = regexp.MustCompile(`.*config-err.*`)
+			matches = r.FindStringSubmatch(body)
+			if len(matches) == 1 {
+				content, err = ioutil.ReadFile("testdata/ExecConfig_error.xml")
+			} else {
+				content, err = ioutil.ReadFile("testdata/ExecConfig_ok.xml")
 			}
 		default:
 			fmt.Printf("dpmock_test: Unrecognized SOMA request opTag: '%s', "+
