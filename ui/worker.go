@@ -283,9 +283,22 @@ func prepareInputDialog(dialogSession *userDialogInputSessionInfo) events.Update
 		DialogAnswerCursorIdx: dialogSession.inputAnswerCursorIdx}
 }
 
+// sliceContainsString searches a string in a slice of strings.
+func sliceContainsString(arr []string, toFind string) bool {
+	for _, val := range arr {
+		if val == toFind {
+			return true
+		}
+	}
+
+	return false
+}
+
 // askUserInput asks user for input like confirmation of some action or name of
 // new file/directory.
-func askUserInput(question, answer string, answerMasked bool) userDialogResult {
+// If allowedAnswers is not nil - don't dismiss dialog until correct answer is
+// given or dialog is canceled.
+func askUserInput(question, answer string, allowedAnswers []string, answerMasked bool) userDialogResult {
 	// When progress dialog is shown we don't won't it to hid our input dialog.
 	progressDialogSession.waitUserInput = true
 
@@ -303,8 +316,15 @@ loop:
 			processInputDialogInput(&dialogSession, event)
 		}
 
-		if dialogSession.dialogCanceled || dialogSession.dialogSubmitted {
+		if dialogSession.dialogCanceled {
 			break loop
+		} else if dialogSession.dialogSubmitted {
+			if allowedAnswers == nil ||
+				sliceContainsString(allowedAnswers, dialogSession.inputAnswer) {
+				break loop
+			} else {
+				dialogSession.dialogSubmitted = false
+			}
 		}
 	}
 	// When progress dialog was shown we show it after we don't need input dialog
@@ -394,7 +414,7 @@ func enterCurrentDirectory() error {
 
 	switch err {
 	case dpMissingPasswordError:
-		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+		dialogResult := askUserInput("Please enter DataPower password: ", "", nil, true)
 		if dialogResult.inputAnswer != "" {
 			setCurrentDpPlainPassword(dialogResult.inputAnswer)
 		}
@@ -931,7 +951,7 @@ func secureBackupCurrent(m *model.Model) error {
 	logging.LogDebugf("ui/secureBackupCurrent(), applicanceConfig: '%s'", applicanceConfig)
 	if applicanceConfig.Password == "" && dpTransientPassword == "" {
 		logging.LogDebugf("ui/secureBackupCurrent(), before asking password.")
-		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+		dialogResult := askUserInput("Please enter DataPower password: ", "", nil, true)
 		logging.LogDebugf("ui/secureBackupCurrent(), after asking password (%#v).", dialogResult)
 		if dialogResult.dialogCanceled || dialogResult.inputAnswer == "" {
 			return nil
@@ -1321,7 +1341,7 @@ func copyFile(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConfig *model.It
 			logging.LogDebugf("ui/copyFile(), confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
-					fileName, toViewConfig.Path), "", false)
+					fileName, toViewConfig.Path), "", []string{"y", "ya", "n", "na"}, false)
 			if dialogResult.dialogSubmitted {
 				res = dialogResult.inputAnswer
 			}
@@ -1398,7 +1418,7 @@ func copyObjectToFile(itemConfig *model.ItemConfig, itemName string,
 			logging.LogDebugf("ui/copyObjectToFile(), confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of file '%s' at '%s' (y/ya/n/na): ",
-					objectFileName, toViewConfig.Path), "", false)
+					objectFileName, toViewConfig.Path), "", []string{"y", "ya", "n", "na"}, false)
 			if dialogResult.dialogSubmitted {
 				res = dialogResult.inputAnswer
 			}
@@ -1488,7 +1508,7 @@ func copyFileToObject(itemConfig *model.ItemConfig, itemName string,
 			logging.LogDebugf("ui/copyFileToObject(), confirm overwrite: '%s'", res)
 			dialogResult := askUserInput(
 				fmt.Sprintf("Confirm overwrite of object '%s' of class '%s' from  file '%s' (y/ya/n/na): ",
-					objectName, objectClassName, objectFileName), "", false)
+					objectName, objectClassName, objectFileName), "", []string{"y", "ya", "n", "na"}, false)
 			if dialogResult.dialogSubmitted {
 				res = dialogResult.inputAnswer
 			}
@@ -1549,7 +1569,7 @@ func exportAppliance(dpApplianceConfig, toViewConfig *model.ItemConfig, applianc
 	logging.LogDebugf("ui/exportAppliance(), applicanceConfig: '%s'", applicanceConfig)
 	if applicanceConfig.Password == "" && dpTransientPassword == "" {
 		logging.LogDebugf("ui/exportAppliance(), before asking password.")
-		dialogResult := askUserInput("Please enter DataPower password: ", "", true)
+		dialogResult := askUserInput("Please enter DataPower password: ", "", nil, true)
 		logging.LogDebugf("ui/exportAppliance(), after asking password (%#v).", dialogResult)
 		if dialogResult.dialogCanceled || dialogResult.inputAnswer == "" {
 			return nil
@@ -1577,7 +1597,7 @@ func createEmptyFile(m *model.Model) error {
 	viewConfig := m.ViewConfig(side)
 	switch viewConfig.Type {
 	case model.ItemDirectory, model.ItemDpFilestore:
-		dialogResult := askUserInput("Enter file name for file to create: ", "", false)
+		dialogResult := askUserInput("Enter file name for file to create: ", "", nil, false)
 		if dialogResult.dialogSubmitted {
 			fileName := dialogResult.inputAnswer
 			r := repos[side]
@@ -1599,7 +1619,7 @@ func createEmptyFile(m *model.Model) error {
 		updateStatus("Creation of new file canceled.")
 	case model.ItemNone:
 		if side == model.Left {
-			dialogResult := askUserInput("Enter DataPower configuration name to create: ", "", false)
+			dialogResult := askUserInput("Enter DataPower configuration name to create: ", "", nil, false)
 			if dialogResult.dialogSubmitted {
 				confName := dialogResult.inputAnswer
 
@@ -1637,7 +1657,7 @@ func cloneCurrent(m *model.Model) error {
 	var newItemName string
 	renameDialogResult := askUserInput(
 		fmt.Sprintf("Enter name of cloned %s: ",
-			currentItem.Config.Type.UserFriendlyString()), currentItem.Name, false)
+			currentItem.Config.Type.UserFriendlyString()), currentItem.Name, nil, false)
 	if renameDialogResult.dialogSubmitted {
 		newItemName = renameDialogResult.inputAnswer
 
@@ -1672,8 +1692,8 @@ func cloneCurrent(m *model.Model) error {
 			if objectConfigToOverwrite != nil {
 				existingObject = true
 				confirmDialogResult := askUserInput(
-					fmt.Sprintf("Object of class %s with name '%s' exists, overwrite (y,n): ",
-						currentItem.Config.Type.UserFriendlyString(), objectNameNew), "", false)
+					fmt.Sprintf("Object of class %s with name '%s' exists, overwrite (y/n): ",
+						currentItem.Config.Type.UserFriendlyString(), objectNameNew), "", []string{"y", "n"}, false)
 				if confirmDialogResult.dialogCanceled || confirmDialogResult.inputAnswer != "y" {
 					updateStatusf("Clonning of '%s' (%s) canceled.",
 						currentItem.Name, currentItem.Config.Type.UserFriendlyString())
@@ -1735,7 +1755,7 @@ func createDirectoryOrDomain(m *model.Model) error {
 
 func createDirectory(m *model.Model) error {
 	logging.LogDebug("ui/createDirectory()")
-	dialogResult := askUserInput("Enter directory name to create: ", "", false)
+	dialogResult := askUserInput("Enter directory name to create: ", "", nil, false)
 	if dialogResult.dialogSubmitted {
 		dirName := dialogResult.inputAnswer
 		side := m.CurrSide()
@@ -1762,7 +1782,7 @@ func createDirectory(m *model.Model) error {
 
 func createDomain(m *model.Model) error {
 	logging.LogDebug("ui/createDomain()")
-	dialogResult := askUserInput("Enter domain name to create: ", "", false)
+	dialogResult := askUserInput("Enter domain name to create: ", "", nil, false)
 	if dialogResult.dialogSubmitted {
 		domainName := dialogResult.inputAnswer
 		side := m.CurrSide()
@@ -1861,7 +1881,7 @@ func deleteItem(repo repo.Repo, parentItemConfig *model.ItemConfig, item model.I
 
 	if confirmResponse != "ya" && confirmResponse != "na" {
 		confirmResponse = "n"
-		dialogResult := askUserInput(confirmMsg, "", false)
+		dialogResult := askUserInput(confirmMsg, "", []string{"y", "ya", "n", "na"}, false)
 		if dialogResult.dialogSubmitted {
 			confirmResponse = dialogResult.inputAnswer
 		}
@@ -1907,7 +1927,7 @@ func enterDirectoryPath(m *model.Model) error {
 		return errs.Error("Can't enter path if DataPower domain is not selected first.")
 	}
 
-	dialogResult := askUserInput("Enter path: ", viewConfig.Path, false)
+	dialogResult := askUserInput("Enter path: ", viewConfig.Path, nil, false)
 	if dialogResult.dialogCanceled {
 		return errs.Error("Entering path canceled.")
 	}
@@ -1930,13 +1950,13 @@ func enterDirectoryPath(m *model.Model) error {
 
 func filterItems(m *model.Model) {
 	cf := m.CurrentFilter()
-	dialogResult := askUserInput("Filter by: ", cf, false)
+	dialogResult := askUserInput("Filter by: ", cf, nil, false)
 	m.SetCurrentFilter(dialogResult.inputAnswer)
 }
 
 func searchItem(m *model.Model) {
 	m.SearchBy = ""
-	dialogResult := askUserInput("Search by: ", m.SearchBy, false)
+	dialogResult := askUserInput("Search by: ", m.SearchBy, nil, false)
 	m.SearchBy = dialogResult.inputAnswer
 	if m.SearchBy != "" {
 		found := m.SearchNext(m.SearchBy)
@@ -1949,7 +1969,7 @@ func searchItem(m *model.Model) {
 
 func searchNextItem(m *model.Model, reverse bool) {
 	if m.SearchBy == "" {
-		dialogResult := askUserInput("Search by: ", m.SearchBy, false)
+		dialogResult := askUserInput("Search by: ", m.SearchBy, nil, false)
 		m.SearchBy = dialogResult.inputAnswer
 	}
 	if m.SearchBy != "" {
@@ -1976,7 +1996,7 @@ func saveDataPowerConfig(m *model.Model) error {
 		confirmSave := askUserInput(
 			fmt.Sprintf("Are you sure you want to save current DataPower configuration for domain '%s' (y/n): ",
 				viewConfig.DpDomain),
-			"", false)
+			"", []string{"y", "n"}, false)
 
 		if confirmSave.dialogCanceled || confirmSave.inputAnswer != "y" {
 			return errs.Errorf("Canceled saving of DataPower configuration for domain '%s'.", viewConfig.DpDomain)
@@ -2016,10 +2036,10 @@ func syncModeToggle(m *model.Model) error {
 	dpDir := dpViewConfig.Path
 
 	if m.SyncModeOn {
-		syncModeToggleConfirm = askUserInput("Are you sure you want to disable sync mode (y/n): ", "", false)
+		syncModeToggleConfirm = askUserInput("Are you sure you want to disable sync mode (y/n): ", "", []string{"y", "n"}, false)
 	} else {
 		if dpDomain != "" && dpDir != "" {
-			syncModeToggleConfirm = askUserInput("Are you sure you want to enable sync mode (y/n): ", "", false)
+			syncModeToggleConfirm = askUserInput("Are you sure you want to enable sync mode (y/n): ", "", []string{"y", "n"}, false)
 		} else {
 			return errs.Errorf("Can't sync if DataPower domain (%s) or path (%s) are not selected.", dpDomain, dpDir)
 		}
@@ -2194,7 +2214,7 @@ func execConfigFile(m *model.Model) error {
 		res := "n"
 		dialogResult := askUserInput(
 			fmt.Sprintf("Confirm exec files %v (y/n): ",
-				pathsToExec), "", false)
+				pathsToExec), "", []string{"y", "n"}, false)
 		if dialogResult.dialogSubmitted {
 			res = dialogResult.inputAnswer
 		}
