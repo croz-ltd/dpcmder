@@ -2334,8 +2334,11 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			return nil, err
 		}
 
-		// "//" - work-around - for one directory we get JSON object, for multiple directories we get JSON array
-		dirNodes := jsonquery.Find(doc, "/filestore/location/directory//name/..")
+		// double-find - work-around - for one directory we get JSON object, for multiple directories we get JSON array
+		dirNodes := jsonquery.Find(doc, "/filestore/location/directory/name/..")
+		if len(dirNodes) == 0 {
+			dirNodes = jsonquery.Find(doc, "/filestore/location/directory/*/name/..")
+		}
 		for _, n := range dirNodes {
 			dirDpPath := n.SelectElement("name").InnerText()
 			_, dirName := splitOnLast(dirDpPath, "/")
@@ -2350,8 +2353,11 @@ func (r *dpRepo) listFiles(selectedItemConfig *model.ItemConfig) ([]model.Item, 
 			items = append(items, item)
 		}
 
-		// "//" - work-around - for one file we get JSON object, for multiple files we get JSON array
-		fileNodes := jsonquery.Find(doc, "/filestore/location/file//name/..")
+		// double-find - work-around - for one file we get JSON object, for multiple files we get JSON array
+		fileNodes := jsonquery.Find(doc, "/filestore/location/file/name/..")
+		if len(fileNodes) == 0 {
+			fileNodes = jsonquery.Find(doc, "/filestore/location/file/*/name/..")
+		}
 		for _, n := range fileNodes {
 			fileName := n.SelectElement("name").InnerText()
 			fileSize := n.SelectElement("size").InnerText()
