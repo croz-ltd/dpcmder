@@ -1298,11 +1298,16 @@ func copyDirsOrFilestores(fromRepo, toRepo repo.Repo, fromViewConfig, toViewConf
 		return confirmOverwrite, err
 	}
 
-	showProgressDialog("Copying files from DataPower...")
+	showProgressDialog("Copying files from/to DataPower...")
 	defer hideProgressDialog()
 	for _, item := range items {
 		if item.Name != ".." {
+			childToType, err := toRepo.GetFileType(toViewConfig, toViewConfig.Path, dirToName)
+			if err != nil {
+				return confirmOverwrite, err
+			}
 			toViewConfigDir := model.ItemConfig{Parent: toViewConfig,
+				Type:        childToType,
 				Path:        toRepo.GetFilePath(toViewConfig.Path, dirToName),
 				DpAppliance: toViewConfig.DpAppliance,
 				DpDomain:    toViewConfig.DpDomain,
