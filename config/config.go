@@ -16,7 +16,7 @@ import (
 	"github.com/croz-ltd/dpcmder/help"
 	"github.com/croz-ltd/dpcmder/utils/logging"
 	"github.com/croz-ltd/dpcmder/utils/paths"
-	"github.com/howeyc/gopass"
+	"golang.org/x/term"
 )
 
 const (
@@ -246,8 +246,8 @@ func validatePassword() {
 	if *dpUsername != "" {
 		if *dpPassword == "" {
 			fmt.Println("DataPower password: ")
-			// Silent. For printing *'s use gopass.GetPasswdMasked()
-			pass, err := gopass.GetPasswdMasked()
+			// Silent. For printing *'s use crypto terminal.GetPasswdMasked()
+			pass, err := term.ReadPassword(int(os.Stdin.Fd()))
 			if err != nil {
 				usage(1)
 			} else {
