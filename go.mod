@@ -12,7 +12,7 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/term v0.15.0
+	golang.org/x/net v0.23.0 // indirect
+	golang.org/x/term v0.18.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
