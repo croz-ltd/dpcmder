@@ -8,11 +8,10 @@ require (
 	github.com/antchfx/xpath v1.2.5 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0
 	github.com/croz-ltd/confident v0.0.2
-	github.com/gdamore/tcell/v2 v2.7.0
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/gdamore/tcell/v2 v2.7.4
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/term v0.18.0
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/term v0.27.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
