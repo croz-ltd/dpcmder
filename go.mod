@@ -1,8 +1,6 @@
 module github.com/croz-ltd/dpcmder
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	github.com/antchfx/jsonquery v1.3.6
@@ -11,7 +9,7 @@ require (
 	github.com/croz-ltd/confident v0.0.2
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/savaki/jq v0.0.0-20161209013833-0e6baecebbf8
-	golang.org/x/term v0.30.0
+	golang.org/x/term v0.43.0
 )
 
 require (
@@ -21,8 +19,8 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
